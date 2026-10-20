@@ -109,7 +109,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v6 · 29 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v7 · 29 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
@@ -1274,7 +1274,7 @@ function buildFreePanel(){
 /* ----- templates rail, fields, images ----- */
 function buildTemplates(){
   const box=$('#tplList');box.innerHTML='';
-  ['Advanced motion','Free canvas','Classic posts'].forEach(g=>{
+  ['Advanced motion','Premium campaigns','Free canvas','Classic posts'].forEach(g=>{
     box.append(el('h4','grp',g));
     T.filter(x=>x.grp===g).forEach(tp=>{
       const b=el('button','tpl-item'+(tp.id===state.tid?' active':''));b.type='button';b.dataset.id=tp.id;
