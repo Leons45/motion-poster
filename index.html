@@ -108,8 +108,9 @@ input[type=color]{width:100%;height:36px;padding:3px;border:1px solid var(--line
       <label class="fld"><span>Frame rate</span><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
     </div>
     <h3>Fonts</h3>
+    <label class="fld"><span>Typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
     <p class="note" id="fontNote" style="margin-top:0"></p>
-    <p class="note">Proxima is a licensed family, so it is read from this computer. Install or activate it (Adobe Fonts works), then reload.</p>
+    <p class="note">Proxima loads from Adobe Fonts on the hosted page, or from this computer if it is installed there.</p>
     <div class="exp">
       <button class="btn primary" id="vidBtn" type="button">Export video</button>
       <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
@@ -122,7 +123,8 @@ input[type=color]{width:100%;height:36px;padding:3px;border:1px solid var(--line
 <script>
 const W=1080;
 /* Proxima Nova for text; Proxima Soft for the rounded sale numerals. Montserrat and Nunito are fallbacks only. */
-const FM='"Proxima Nova","proxima-nova","Montserrat",system-ui,sans-serif', FN='"Proxima Soft","proxima-soft","Nunito","Proxima Nova","proxima-nova",system-ui,sans-serif';
+const FNOVA='"Proxima Nova","proxima-nova","Montserrat",system-ui,sans-serif', FSOFT='"Proxima Soft","proxima-soft","Nunito","Proxima Nova","proxima-nova",system-ui,sans-serif';
+let FM=FNOVA, FN=FSOFT; /* the Typeface selector reassigns these */
 function fontInstalled(name){const c=document.createElement('canvas').getContext('2d'),s='mmmmmmmmmmlliWQ@#';c.font='72px monospace';const a=c.measureText(s).width;c.font='72px "'+name+'", monospace';return c.measureText(s).width!==a}
 function verdict(c,kind,x,y,r){c.save();c.translate(x,y);c.fillStyle=kind==='check'?'#22B24C':'#E4262C';c.beginPath();c.arc(0,0,r,0,7);c.fill();
   c.strokeStyle='#fff';c.lineWidth=r*.2;c.lineCap='round';c.lineJoin='round';c.beginPath();
@@ -506,6 +508,7 @@ try{const d=localStorage.getItem('mps_logo');if(d){const im=new Image();im.onloa
   b.addEventListener('click',()=>{if(state.rec)return;state.ratio=r;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#ratioNote').textContent=RNOTE[r]});seg.append(b)});
   $('#ratioNote').textContent=RNOTE[state.ratio]})();
 $('#dur').addEventListener('input',e=>{state.D=+e.target.value;$('#durOut').textContent=state.D+'s';state.t=state.t%state.D});
+$('#fontSel').addEventListener('change',e=>{const v=e.target.value;FM=v==='soft'?FSOFT:FNOVA;FN=v==='nova'?FNOVA:FSOFT;paintThumbs()});
 $('#loops').addEventListener('change',e=>state.loops=+e.target.value);
 $('#fps').addEventListener('change',e=>state.fps=+e.target.value);
 /* playback */
