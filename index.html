@@ -2,6 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://use.typekit.net/giu1qyj.css">
 <style>body{margin:0}</style>
 <title>Motion Poster Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -12,7 +13,7 @@
 :root{
   --bg:#F3F2ED; --surface:#FFFFFF; --field:#F8F7F2; --ink:#1A1A14; --mute:#6A695C; --line:#E0DED2;
   --stage:#E6E4D8; --acc:#FFD60A; --acc-ink:#1A1A14; --ok:#1F7A3D; --warn:#9A5B00;
-  --f-ui:"Proxima Nova","Montserrat",system-ui,sans-serif; --f-disp:"Proxima Nova","Montserrat",system-ui,sans-serif;
+  --f-ui:"Proxima Nova","proxima-nova","Montserrat",system-ui,sans-serif; --f-disp:"Proxima Nova","proxima-nova","Montserrat",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0F0F0D; --surface:#181815; --field:#121210; --ink:#F1F0E6; --mute:#A2A194; --line:#2A2A25;
@@ -121,7 +122,7 @@ input[type=color]{width:100%;height:36px;padding:3px;border:1px solid var(--line
 <script>
 const W=1080;
 /* Proxima Nova for text; Proxima Soft for the rounded sale numerals. Montserrat and Nunito are fallbacks only. */
-const FM='"Proxima Nova","Montserrat",system-ui,sans-serif', FN='"Proxima Soft","Nunito","Proxima Nova",system-ui,sans-serif';
+const FM='"Proxima Nova","proxima-nova","Montserrat",system-ui,sans-serif', FN='"Proxima Soft","proxima-soft","Nunito","Proxima Nova","proxima-nova",system-ui,sans-serif';
 function fontInstalled(name){const c=document.createElement('canvas').getContext('2d'),s='mmmmmmmmmmlliWQ@#';c.font='72px monospace';const a=c.measureText(s).width;c.font='72px "'+name+'", monospace';return c.measureText(s).width!==a}
 function verdict(c,kind,x,y,r){c.save();c.translate(x,y);c.fillStyle=kind==='check'?'#22B24C':'#E4262C';c.beginPath();c.arc(0,0,r,0,7);c.fill();
   c.strokeStyle='#fff';c.lineWidth=r*.2;c.lineCap='round';c.lineJoin='round';c.beginPath();
@@ -550,9 +551,11 @@ function tick(ts){
   requestAnimationFrame(tick);
 }
 buildTemplates();buildInspector();requestAnimationFrame(tick);
-function fontNote(){$('#fontNote').textContent=(fontInstalled('Proxima Nova')?'Proxima Nova found on this computer. ':'Proxima Nova not found, showing Montserrat instead. ')+(fontInstalled('Proxima Soft')?'Proxima Soft found.':'Proxima Soft not found, showing Nunito instead.')}
+function fontNote(){const n=fontInstalled('Proxima Nova')||fontInstalled('proxima-nova'),s=fontInstalled('Proxima Soft')||fontInstalled('proxima-soft');
+  $('#fontNote').textContent=(n?'Proxima Nova is loaded. ':'Proxima Nova not found, showing Montserrat instead. ')+(s?'Proxima Soft is loaded.':'Proxima Soft not found, showing Nunito instead.')}
 fontNote();
-Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});
+document.fonts.addEventListener('loadingdone',()=>{paintThumbs();fontNote()});
+Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px "proxima-nova"'),document.fonts.load('800 40px "proxima-soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});
 </script>
 
 </html>
