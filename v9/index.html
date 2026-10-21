@@ -110,7 +110,7 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v16 · 56 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v17 · 56 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
@@ -200,6 +200,19 @@ function cbez(x1,y1,x2,y2){
 const eEnter=cbez(.16,1,.3,1), eExit=cbez(.7,0,.84,0), eMove=cbez(.65,0,.35,1), ePop=cbez(.34,1.56,.64,1);
 const eBack=p=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
 const wave=(t,D,k=1,ph=0)=>Math.sin((t/D*k+ph)*TAU);
+/* ---------- whole-post animation styles: a per-template 'style' field (see leons.js) drives this,
+   so text()/pop() and the Leon's masthead helpers all move the same way across one post. ---------- */
+const POST_STYLES={
+  classic:{name:'Classic cascade',stagger:1,durMul:1,textEase:eEnter,popEase:ePop},
+  snap:{name:'Snap & pop',stagger:.5,durMul:.6,textEase:eBack,popEase:eBack},
+  smooth:{name:'Smooth & calm',stagger:1.4,durMul:1.5,textEase:eOut,popEase:eOut},
+  quick:{name:'Quick reveal',stagger:.22,durMul:.5,textEase:eEnter,popEase:eOut},
+  dramatic:{name:'Dramatic build',stagger:1.7,durMul:1.05,textEase:eEnter,popEase:eBack}
+};
+function postStyle(){
+  const tid=typeof state!=='undefined'&&state.tid,v=tid&&state.vals&&state.vals[tid],k=(v&&v.style)||'classic';
+  return POST_STYLES[k]||POST_STYLES.classic;
+}
 function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
 function font(c,wt,sz,fam){c.font=wt+' '+sz+'px '+fam}
 function shade(hex,a){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=a<0?0:255,p=Math.abs(a);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return 'rgb('+r+','+g+','+b+')'}
@@ -207,10 +220,11 @@ function fitSize(c,txt,wt,fam,maxW,max){font(c,wt,max,fam);const w=c.measureText
 function wrap(c,txt,maxW){const out=[];String(txt).split('\n').forEach(par=>{const words=par.split(' ');let line='';words.forEach(w=>{const test=line?line+' '+w:w;if(c.measureText(test).width>maxW&&line){out.push(line);line=w}else line=test});out.push(line)});return out}
 function text(c,o){
   const {s,x,y,size,wt=800,fam=FM,fill='#000',al='center',maxW=900,lh=1.08,t=99,at=0,gap=.07,dur=.5,rise=46,up=false}=o;
+  const ST=postStyle();
   const str=up?String(s).toUpperCase():String(s);
   font(c,wt,size,fam);c.textAlign=al;c.textBaseline='middle';c.fillStyle=fill;
   const lines=wrap(c,str,maxW);
-  lines.forEach((ln,i)=>{const p=prog(t,at+i*gap,dur);if(p<=0)return;const e=eEnter(p);
+  lines.forEach((ln,i)=>{const p=prog(t,(at+i*gap)*ST.stagger,dur*ST.durMul);if(p<=0)return;const e=ST.textEase(p);
     c.save();c.globalAlpha*=p;c.fillText(ln,x,y+i*size*lh+size*lh/2+(1-e)*rise);c.restore()});
   return lines.length*size*lh;
 }
@@ -221,7 +235,8 @@ function mixed(c,parts,cx,cy,size,wt,fam,maxW){
   parts.forEach(p=>{c.fillStyle=p[1];c.fillText(p[0],x,cy);x+=c.measureText(p[0]).width});
 }
 function pop(c,cx,cy,t,at,fn,o={}){
-  const {dur=.65,from=0,ease=ePop,rot=0}=o;const p=prog(t,at,dur);if(p<=0)return;
+  const ST=postStyle();
+  const {dur=.65,from=0,ease=ST.popEase,rot=0}=o;const p=prog(t,at*ST.stagger,dur*ST.durMul);if(p<=0)return;
   const s=from+(1-from)*ease(p);c.save();c.translate(cx,cy);c.rotate(rot*(1-p));c.scale(s,s);c.globalAlpha*=clamp(p*3);fn();c.restore();
 }
 function countText(str,p){return String(str).replace(/\d[\d,]*/,m=>{const n=parseInt(m.replace(/,/g,''),10);const v=Math.round(n*eOut(p));return m.includes(',')?v.toLocaleString('en-US'):String(v)})}
@@ -1202,50 +1217,57 @@ const T_COMM=[
 const LY='#FFE81A';
 function yellowField(c,W,H,c1,c2){const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
 function mastCircle(c,W,H,t,I,tag,fill,bf){
-  const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=eEnter(prog(t,0,.7));
+  const ST=postStyle();
+  const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=ST.textEase(prog(t,0,.7*ST.durMul));
   c.save();c.globalAlpha=p;c.fillStyle=fill;c.beginPath();c.arc(W/2,cy-(1-p)*70,R,0,TAU);c.fill();c.restore();
   const ly=H*.055;
   pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65),{from:.7,dur:.6});
   let top=ly+H*.045;
-  if(tag){c.save();c.globalAlpha=clamp(prog(t,.35,.4));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
+  if(tag){c.save();c.globalAlpha=clamp(prog(t,.35*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
   return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012)};
 }
 function mastCard(c,W,H,t,I,tag,fill){
-  const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=eEnter(prog(t,0,.6));
+  const ST=postStyle();
+  const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;rr(c,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
   pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58),{from:.7,dur:.6});
-  if(tag){c.save();c.globalAlpha=clamp(prog(t,.3,.4));c.fillStyle='#fff';font(c,700,Math.min(20,W*.019),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,ly+ch*.3);c.restore()}
+  if(tag){c.save();c.globalAlpha=clamp(prog(t,.3*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(20,W*.019),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,ly+ch*.3);c.restore()}
   return {bottom:ch,top:ch+H*.03,band:0};
 }
 /* lay a number + headline lines inside the masthead band so nothing clips */
 function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt){
+  const ST=postStyle();
   const nShare=num?.52:0, nh=m.band*nShare, hh=m.band-nh, n=Math.max(1,headLines.length);
   let y=m.top;
   if(num){
     const ns=Math.min(nh*.98,fitSize(c,num,900,FN,W*.52,nh*.98));
-    c.save();c.globalAlpha=clamp(prog(t,numAt,.5));font(c,900,ns,FN);c.fillStyle=numFill;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(countText(num,prog(t,numAt+.05,.9)),W/2,y+nh/2);c.restore();y+=nh;
+    c.save();c.globalAlpha=clamp(prog(t,numAt*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=numFill;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(countText(num,prog(t,(numAt+.05)*ST.stagger,.9*ST.durMul)),W/2,y+nh/2);c.restore();y+=nh;
   }
   const hs=Math.min(hh/n*.92,W*.062);
   headLines.forEach((l,i)=>text(c,{s:l,x:W/2,y:y+hh/n*(i+.5),size:Math.min(hs,fitSize(c,l,900,FM,W*.64,hs)),wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:W*.64}));
 }
 function bottomArc(c,W,H,topY,fill,t,at){
-  const p=eEnter(prog(t,at==null?.5:at,.8));if(p<=0)return H;
+  const ST=postStyle();
+  const p=ST.textEase(prog(t,(at==null?.5:at)*ST.stagger,.8*ST.durMul));if(p<=0)return H;
   const y=H-(H-topY)*p, R=W*1.15, cy=y+R;
   c.save();c.fillStyle=fill;c.beginPath();c.arc(W/2,cy,R,0,TAU);c.fill();c.restore();
   return y;
 }
 function madeInCanada(c,x,y,s,t,at){
-  const p=eBack(prog(t,at,.5));if(p<=0)return;
+  const ST=postStyle();
+  const p=ST.popEase(prog(t,at*ST.stagger,.5*ST.durMul));if(p<=0)return;
   const img=BRAND.canada,w=s*7,r=(img&&img.naturalWidth)?img.naturalHeight/img.naturalWidth:.391,h=w*r;
   objDraw(c,'obj:Canada',x-w/2,y-h/2,w,h,()=>{c.save();c.translate(x,y);c.scale(p,p);brandBadge(c,img,0,0,w);c.restore()});
 }
+const STYLE_FIELD={k:'style',l:'Animation style (whole post)',t:'select',v:'classic',o:Object.keys(POST_STYLES).map(k=>[k,POST_STYLES[k].name])};
 const T_LEONS=[
 {id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
- fields:[{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
+  const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.355);
   mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
@@ -1255,13 +1277,13 @@ const T_LEONS=[
   pop(c,W/2,pcy,t,.5,()=>drawImg(c,I.p,-W*.42,-ph/2,W*.84,ph,{label:'Product photo'}),{from:.78,dur:.9});
   if(F.maple!=='no')madeInCanada(c,W*.9,arcTop-H*.035,Math.min(24,W*.022),t,1.3);
   const band=(H-fh)-arcTop, os=Math.min(band*.46,fitSize(c,F.off,900,FN,W*.6,band*.46)), oy=arcTop+band*.42;
-  c.save();c.globalAlpha=clamp(prog(t,1,.5));
+  c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));
   font(c,900,os,FN);const ow=c.measureText(F.off).width;
   font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
   font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
   text(c,{s:F.osub,x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
   if(F.flab){
-    const p=eEnter(prog(t,1.4,.6));c.save();c.translate(0,(1-p)*fh);
+    const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul));c.save();c.translate(0,(1-p)*fh);
     c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
     font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.flab,W*.54,H-fh/2);
     font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48;
@@ -1270,9 +1292,10 @@ const T_LEONS=[
   }
  }},
 {id:'lclean',name:'Clean Offer',sub:'Logo card, one product, black arc with the offer — the everyday Leon\'s post',
- fields:[{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
+  const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   const m=mastCard(c,W,H,t,I,F.tag,'#111111');
   const arcTop=bottomArc(c,W,H,H*.68,'#111111',t,.5);
@@ -1280,15 +1303,16 @@ const T_LEONS=[
   floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
   pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
   const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
-  c.save();c.globalAlpha=clamp(prog(t,.95,.5));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+  c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
   const ss=Math.min(band*.13,W*.032);
   text(c,{s:F.l1,x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
   text(c,{s:F.l2,x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
  }},
 {id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
- fields:[{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
+ fields:[STYLE_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
  images:[{k:'p',l:'Appliance photo'}],
  draw(c,W,H,t,D,F,I){
+  const ST=postStyle();
   const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
   const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.36);
   mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
@@ -1303,14 +1327,15 @@ const T_LEONS=[
     font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
   },{from:.2,dur:.8,rot:.6});
   const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
-  c.save();c.globalAlpha=clamp(prog(t,1.2,.5));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
-  c.fillText(countText(F.save,prog(t,1.25,1)),W/2,sy);c.restore();
+  c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
+  c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),W/2,sy);c.restore();
   text(c,{s:F.cond,x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
  }},
 {id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
- fields:[{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
  draw(c,W,H,t,D,F,I){
+  const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   const m=F.mast==='card'?mastCard(c,W,H,t,I,F.tag,'#111111'):mastCircle(c,W,H,t,I,F.tag,'#111111',.34);
   if(F.mast!=='card')mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
@@ -1334,29 +1359,30 @@ const T_LEONS=[
     if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,0,y+chh*.1+i*chh*.14))}
   },{from:.4,dur:.7});
   const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
-  c.save();c.globalAlpha=clamp(prog(t,1.3,.5));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+  c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
   text(c,{s:F.osub,x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
  }},
 {id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
- fields:[{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
+ fields:[STYLE_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
  images:[{k:'card',l:'Card image (optional)'}],
  draw(c,W,H,t,D,F,I){
+  const ST=postStyle();
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   const m=mastCard(c,W,H,t,I,F.tag,'#111111');
   const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
   hl.forEach((l,i)=>{
-    const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,.35+i*.14,.55);if(p<=0)return;
-    const e=eEnter(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
+    const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
+    const e=ST.textEase(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
     font(c,900,s,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
     c.fillText(l,W/2,m.top+hs*.72+i*hs*1.0);c.restore();
   });
   const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
   [[F.a1,F.a2,1.05],[F.b1,F.b2,1.25]].forEach((q,i)=>{
-    const p=clamp(prog(t,q[2],.5));if(p<=0)return;c.save();c.globalAlpha=p;
+    const p=clamp(prog(t,q[2]*ST.stagger,.5*ST.durMul));if(p<=0)return;c.save();c.globalAlpha=p;
     mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88);c.restore();
   });
   const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
-  c.save();c.globalAlpha=clamp(prog(t,1.6,.5));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';c.textAlign='center';c.textBaseline='middle';
+  c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';c.textAlign='center';c.textBaseline='middle';
   let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,W/2,fy+fi*flh);fi++}));c.restore();
   const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
   pop(c,W/2,cardY,t,1.9,()=>{if(I.card)drawImg(c,I.card,-110,-70,220,140,{label:'Card'});else{rr(c,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
