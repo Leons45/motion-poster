@@ -205,9 +205,9 @@ function defaults(){return{
   header:{align:'center',showLogo:true,logoSrc:'',logoW:600,logoTop:84,
           showTag:true,tagline:'That’s comfortable.',tagSize:56,tagGap:6,
           showBig:true,big:'2027',bigSize:600,bigGap:34,bigSpacing:-0.03,
-          showHl:true,line1:'Operating Plan',line2:'Initiatives',hlSize:150,hlGap:20,hlUpper:true,hlLine:1.02},
-  dome:{show:true,shape:'ellipse',dir:'up',top:1425,rx:2000,ry:1150},
-  grid:{cols:2,top:1570,bottom:84,side:96,gapX:44,gapY:46,radius:60,style:'solid',alt:false,shadow:true,autoShrink:true,
+          autoFit:true,showHl:true,line1:'Operating Plan',line2:'Initiatives',hlSize:150,hlGap:20,hlUpper:true,hlLine:1.02},
+  dome:{show:true,shape:'ellipse',dir:'up',top:806,rx:2000,ry:1150},
+  grid:{cols:2,top:951,offset:145,follow:true,autoGrow:true,bottom:84,side:96,gapX:44,gapY:46,radius:60,style:'solid',alt:false,shadow:true,autoShrink:true,
         layout:'row',badge:'oval',badgeStart:1,badgePad:true,iconShape:'circle',iconSize:176,titleSize:52,descSize:31},
   cards:[
     {id:uid(),title:'Cleaning Up Our Aged Inventory',desc:'Liquidating all discontinued showroom & warehouse product',icon:'inventory',visible:true},
@@ -257,7 +257,14 @@ function updUndo(){$('#undo').disabled=HI<=0;$('#redo').disabled=HI>=HIST.length
 let saveT=null;
 function saveSoon(){$('#saved').textContent='Saving…';clearTimeout(saveT);saveT=setTimeout(save,500)}
 function save(){try{localStorage.setItem(LS,JSON.stringify({state:S,assets:ASSETS}));$('#saved').textContent='Saved'}catch(e){$('#saved').textContent='Not saved';toast('Autosave is full (large images). Use File → Save project.')}}
-function load(){try{const r=JSON.parse(localStorage.getItem(LS)||'null');if(r&&r.state){S=merge(defaults(),r.state);S.cards=r.state.cards||S.cards;S.layers=r.state.layers||[];S.fonts.custom=(r.state.fonts&&r.state.fonts.custom)||[];ASSETS=r.assets||{}}}catch(e){}}
+/* older saves: keep their look (no auto-grow, header unscaled) and learn the grid/dome offset */
+function migrate(raw){
+  const g=raw.grid||{};
+  if(!('offset' in g))S.grid.offset=S.grid.top-S.dome.top;
+  if(!('autoGrow' in g))S.grid.autoGrow=false;
+  if(!(raw.header&&'autoFit' in raw.header))S.header.autoFit=false;
+}
+function load(){try{const r=JSON.parse(localStorage.getItem(LS)||'null');if(r&&r.state){S=merge(defaults(),r.state);S.cards=r.state.cards||S.cards;S.layers=r.state.layers||[];S.fonts.custom=(r.state.fonts&&r.state.fonts.custom)||[];ASSETS=r.assets||{};migrate(r.state)}}catch(e){}}
 
 let toastT;
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
@@ -377,7 +384,7 @@ function renderPoster(){
     g=`<div class="guides" data-html2canvas-ignore="true" style="position:absolute;left:${b}px;top:${b}px;width:${DW}px;height:${H}px;outline:4px dashed rgba(229,72,77,.95);pointer-events:none;z-index:50"><div style="position:absolute;left:${safe}px;top:${safe}px;right:${safe}px;bottom:${safe}px;outline:4px dashed rgba(60,200,120,.9)"></div></div>`;
   }
   P.innerHTML=domeHTML(b,H,th,tw)+`<div id="content" style="position:absolute;left:${b}px;top:${b}px;width:${DW}px;height:${H}px">${layersHTML(true)}${headerHTML()}${gridHTML()}${layersHTML(false)}</div>`+g;
-  fitView();placeLeaf();fitText();fitCards();applySel();updatePrintCSS();
+  fitView();fitText();fitHeader();fitCards();placeLeaf();applySel();updatePrintCSS();
 }
 /* put the red maple leaf on the apostrophe of the drawn logo */
 function placeLeaf(){
@@ -395,18 +402,55 @@ function fitText(){
     let n=0;while(el.scrollWidth>max+1&&s>20&&n++<80){s*=.97;el.style.fontSize=s+'px'}
   });
 }
-/* optional: shrink card text so it always fits inside its card (display only) */
+/* Card text auto-fit (display only – your sizes stay as set).
+   One shared factor for all cards so they stay consistent: it shrinks text that overflows and,
+   if "enlarge" is on, grows text/icons to use tall cards (e.g. in a 30 / 70 split). */
 function fitCards(){
-  if(!S.grid.autoShrink)return;
-  $$('#poster .card').forEach(card=>{
-    const txt=$('.txt',card),icn=$('.icn',card),h=$('h3',card),p=$('p',card);if(!txt)return;
-    const cs=getComputedStyle(card),pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom),gap=parseFloat(cs.rowGap)||0;
-    const stack=S.grid.layout==='stack',avail=card.clientHeight-pad-(cs.borderBottomWidth?parseFloat(cs.borderBottomWidth)*2:0);
-    const need=()=>txt.offsetHeight+(stack&&icn?icn.offsetHeight+gap:0);
-    let f=1,n=0;const h0=parseFloat(h.style.fontSize),p0=parseFloat(p.style.fontSize);
-    while(need()>avail&&f>.45&&n++<40){f*=.96;h.style.fontSize=h0*f+'px';p.style.fontSize=p0*f+'px'}
+  const g=S.grid,cards=$$('#poster .card');if(!cards.length)return;
+  const apply=f=>{
+    const ig=f>1?Math.min(f,1.5):1;
+    cards.forEach(c=>{
+      const h=$('h3',c),p=$('p',c),icn=$('.icn',c);
+      h.style.fontSize=g.titleSize*f+'px';p.style.fontSize=g.descSize*f+'px';
+      if(icn){const sz=g.iconSize*ig;icn.style.width=icn.style.height=sz+'px';const sv=$('svg',icn);if(sv){const s2=sz*(g.iconShape==='none'?.8:.59);sv.setAttribute('width',s2);sv.setAttribute('height',s2)}}
+    });
+  };
+  const fits=(k)=>cards.every(c=>{
+    const txt=$('.txt',c),icn=$('.icn',c),cs=getComputedStyle(c);
+    const pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(parseFloat(cs.borderBottomWidth)||0)*2;
+    const stack=g.layout==='stack',gap=parseFloat(cs.rowGap)||0;
+    const need=txt.offsetHeight+(stack&&icn?icn.offsetHeight+gap:0);
+    const avail=c.clientHeight-pad;
+    return need<=avail*k;
   });
+  apply(1);
+  if(g.autoGrow){
+    let f=1.8,n=0;apply(f);
+    while(!fits(.86)&&f>1&&n++<60){f*=.97;apply(f)}
+    if(f<=1)apply(1);
+  }
+  if(g.autoShrink&&!fits(1)){
+    let f=1,n=0;
+    while(!fits(1)&&f>.45&&n++<60){f*=.96;apply(f)}
+  }
 }
+/* scale the whole header block down so it fits above the yellow curve */
+function fitHeader(){
+  const hdr=$('#poster .hdr');if(!hdr)return;
+  hdr.style.transform='none';
+  if(!S.header.autoFit||!S.dome.show||S.dome.dir!=='up')return;
+  const avail=S.dome.top-24,h=hdr.offsetHeight;
+  if(h<=avail||h<=0)return;
+  hdr.style.transformOrigin=`top ${S.header.align}`;
+  hdr.style.transform=`scale(${clamp(avail/h,.25,1)})`;
+}
+/* top/bottom split – % of poster height where the yellow starts */
+const splitPct=()=>Math.round(S.dome.top/DH()*100);
+function applySplit(pct){
+  S.dome.top=Math.round(DH()*pct/100);
+  if(S.grid.follow)S.grid.top=S.dome.top+S.grid.offset;
+}
+function syncSplit(){$$('#panel [data-k="__split"]').forEach(o=>{if(o!==document.activeElement)o.value=splitPct()});$$('#panel [data-k="dome.top"]').forEach(o=>{if(o!==document.activeElement)o.value=S.dome.top});$$('#panel [data-k="grid.top"]').forEach(o=>{if(o!==document.activeElement)o.value=S.grid.top})}
 function fitView(){
   const b=bleedPx(),tw=DW+2*b,th=DH()+2*b,W=$('#work'),pad=40;
   let s=view.zoom==='fit'?Math.min((W.clientWidth-pad*2)/tw,(W.clientHeight-pad*2)/th):view.zoom;
@@ -502,6 +546,13 @@ function tabLayout(){
       ${nm('Bleed (in)','canvas.bleed',0,1,0.0625)}
       ${ck('Re-space dome & grid when height changes','canvas.autoFit')}
       <div class="hint">Bleed adds extra margin on every side for print (typically 0.125 in). Turn on “Show trim & safe guides” under File to see it.</div>`,true)
+   +det('Top / bottom split',`
+      <div class="num"><span>Yellow starts at (% of height)</span><input type="range" data-k="__split" data-t="n" min="8" max="92" step="1" value="${splitPct()}"><input type="number" data-k="__split" data-t="n" step="1" value="${splitPct()}"></div>
+      <div class="btns"><button class="btn sm" data-act="split" data-v="50">50 / 50</button><button class="btn sm" data-act="split" data-v="40">40 / 60</button><button class="btn sm pri" data-act="split" data-v="30">30 / 70</button><button class="btn sm" data-act="split" data-v="25">25 / 75</button></div>
+      ${ck('Move the cards with the curve','grid.follow')}
+      ${ck('Enlarge card text & icons to fill tall cards','grid.autoGrow')}
+      ${ck('Scale the header down to fit the top area','header.autoFit')}
+      <div class="hint">Drag the slider to choose how much of the poster is the black top (headline) versus the yellow bottom (initiatives).</div>`,true)
    +det('Dome / curve',`
       ${ck('Show dome','dome.show')}
       <div class="two">${sl('Shape','dome.shape',[['ellipse','Curved'],['flat','Flat']])}${sl('Direction','dome.dir',[['up','Rises from bottom'],['down','Hangs from top']])}</div>
@@ -569,6 +620,11 @@ panel.addEventListener('input',e=>{
   const el=e.target,k=el.dataset&&el.dataset.k;
   if(el.id==='fontFree'||el.id==='canvasPre'||el.id==='outW'||!k)return;
   if(k==='__guides'){guides=el.checked;renderPoster();return}
+  if(k==='__split'){
+    const pv=parseFloat(el.value);if(!isFinite(pv))return;
+    applySplit(clamp(pv,5,95));
+    $$('#panel [data-k="__split"]').forEach(o=>{if(o!==el)o.value=pv});syncSplit();change();return;
+  }
   let v;
   switch(el.dataset.t){
     case 'n':v=parseFloat(el.value);if(!isFinite(v))return;break;
@@ -580,6 +636,10 @@ panel.addEventListener('input',e=>{
   set(k,v);
   $$(`#panel [data-k="${k}"]`).forEach(o=>{if(o!==el&&o.type!=='checkbox')o.value=v});
   if(k==='canvas.wIn'||k==='canvas.hIn')autoFit(k,old);
+  if(k==='dome.top'&&S.grid.follow)S.grid.top=S.dome.top+S.grid.offset;
+  if(k==='grid.top')S.grid.offset=S.grid.top-S.dome.top;
+  if(k==='grid.follow'&&v)S.grid.offset=S.grid.top-S.dome.top;
+  if(/^(dome\.top|grid\.top|canvas\.)/.test(k))syncSplit();
   change();
   if(/^cards\.\d+\.title$/.test(k)||/^layers\.\d+\.text$/.test(k)){const i=k.split('.')[1];const it=(k.startsWith('cards')?$$('#panel .item')[i]:null);if(it){const t=$('.t',it);if(t)t.textContent=v||'(untitled)'}}
   if(k==='fonts.family')loadCustomFonts();
@@ -597,6 +657,7 @@ function autoFit(k,old,oldRatio){
   const f=now/prev;
   S.dome.top=Math.round(S.dome.top*f);S.grid.top=Math.round(S.grid.top*f);
   S.grid.bottom=Math.round(S.grid.bottom*f);
+  S.grid.offset=S.grid.top-S.dome.top;
 }
 
 panel.addEventListener('toggle',e=>{const d=e.target;if(d.tagName==='DETAILS'&&d.dataset.k0)OPEN[d.dataset.k0]=d.open},true);
@@ -609,6 +670,7 @@ document.addEventListener('click',e=>{
   const rebuild=()=>{renderSidebar();change()};
   switch(a){
     case 'undo':undo();break; case 'redo':redo();break;
+    case 'split':{applySplit(+v);S.grid.autoGrow=+v<45;rebuild();break}
     case 'zoom-fit':view.zoom='fit';fitView();placeLeaf();break;
     case 'zoom-in':view.zoom=clamp((view.s||1)*1.25,.05,3);fitView();placeLeaf();break;
     case 'zoom-out':view.zoom=clamp((view.s||1)/1.25,.05,3);fitView();placeLeaf();break;
@@ -685,7 +747,7 @@ function saveJSON(){
 }
 $('#fileJson').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const j=JSON.parse(await f.text());if(!j.state)throw 0;S=merge(defaults(),j.state);S.cards=j.state.cards||S.cards;S.layers=j.state.layers||[];S.fonts.custom=(j.state.fonts&&j.state.fonts.custom)||[];ASSETS=j.assets||{};loadedFonts=new Set();sel=null;openCard=0;fullRender();commit();saveSoon();toast('Project opened')}
+  try{const j=JSON.parse(await f.text());if(!j.state)throw 0;S=merge(defaults(),j.state);S.cards=j.state.cards||S.cards;S.layers=j.state.layers||[];S.fonts.custom=(j.state.fonts&&j.state.fonts.custom)||[];ASSETS=j.assets||{};migrate(j.state);loadedFonts=new Set();sel=null;openCard=0;fullRender();commit();saveSoon();toast('Project opened')}
   catch(err){toast('That file is not a Poster Studio project')}
   e.target.value='';
 });
