@@ -110,13 +110,13 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v13 · 56 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v14 · 56 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
       <button class="btn" id="playBtn" type="button">Pause</button>
       <button class="btn" id="restartBtn" type="button">Restart</button>
-      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
+      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button>
       <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
       <span class="time" id="time">0.0s / 6s</span>
     </div>
@@ -148,7 +148,7 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
       <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
     </div>
     <p class="note">Video records in real time, so keep this tab open until it finishes. Chrome and Edge save MP4; other browsers may save WebM. Your text, positions and layers are remembered in this browser.</p>
-    <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px">Reset saved edits</button>
+    <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px">Reset every template</button>
   </aside>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
@@ -1569,14 +1569,23 @@ let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[tp.id]||{},cache:{}};
+  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[tp.id]||{},mcache:{},seen:{}};
 }
 function matchKey(s){
-  const n=nz(s);if(!n)return null;if(n in FR.cache)return FR.cache[n];
-  let k=null;
-  for(const f of FR.fields)if(f.lines.includes(n)){k=f.key;break}
-  if(!k&&n.length>=3)for(const f of FR.fields)if(f.whole.includes(n)){k=f.key;break}
-  return FR.cache[n]=k;
+  const n=nz(s);if(!n)return null;
+  let cands=FR.mcache[n];
+  if(!cands){
+    cands=[];
+    for(const f of FR.fields)if(f.lines.includes(n))cands.push(f.key);
+    if(!cands.length&&n.length>=3)for(const f of FR.fields)if(f.whole.includes(n))cands.push(f.key);
+    FR.mcache[n]=cands;
+  }
+  if(!cands.length)return null;
+  if(cands.length===1)return cands[0];
+  /* two fields can hold identical text (a headline repeated inside a badge).
+     Hand them out in draw order so each stays its own object. */
+  const i=FR.seen[n]=(FR.seen[n]==null?0:FR.seen[n]+1);
+  return cands[Math.min(i,cands.length-1)];
 }
 function fillTextHook(s,x,y,mw){
   const c=realCtx;s=String(s);
@@ -2155,6 +2164,16 @@ $('#fps').addEventListener('change',e=>state.fps=+e.target.value);
 $('#resetBtn').addEventListener('click',()=>{try{localStorage.removeItem('mps_state')}catch(e){}location.reload()});
 /* playback */
 $('#playBtn').addEventListener('click',()=>{if(state.rec)return;state.playing=!state.playing;$('#playBtn').textContent=state.playing?'Pause':'Play'});
+$('#resetPostBtn').addEventListener('click',()=>{
+  if(state.rec)return;const tp=cur();
+  /* back to the template's own layout: default copy, no moved or resized elements.
+     Uploaded photos and the logo are kept, so nothing has to be re-uploaded. */
+  tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v);
+  delete state.ovr[tp.id];
+  if(tp.free){state.free.layers=[];state.free.bg='#FFE81A';state.free.bg2='';state.free.fx='none'}
+  state.sel=null;state.t=0;
+  buildInspector();persist();
+});
 $('#undoBtn').addEventListener('click',()=>{if(!state.rec)undo()});
 $('#redoBtn').addEventListener('click',()=>{if(!state.rec)redo()});
 $('#restartBtn').addEventListener('click',()=>{if(state.rec)return;state.t=0;state.playing=true;$('#playBtn').textContent='Pause'});
