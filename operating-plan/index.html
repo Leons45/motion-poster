@@ -72,6 +72,13 @@
   .pre .sw b{flex:1}
   .pre span{font-size:12px;font-weight:700}
 
+  .hlist{display:grid;gap:4px;max-height:260px;overflow:auto}
+  .hist{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;text-align:left;background:#111113;border:1px solid var(--line);border-radius:8px;padding:6px 9px;cursor:pointer}
+  .hist:hover{border-color:#55555c}
+  .hist b{color:var(--mut);font-weight:700}
+  .hist em{font-style:normal;font-size:11px;color:var(--mut)}
+  .hist.on{border-color:var(--y);background:#1e1c08}.hist.on em{color:var(--y)}
+  .hist.fut{opacity:.5}
   /* initiative list */
   .item{border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:8px;overflow:hidden}
   .item.on{border-color:var(--y)}
@@ -118,8 +125,8 @@
     <input id="pname" type="text" spellcheck="false" title="Project name">
     <span class="sp"></span>
     <span id="saved">Saved</span>
-    <button class="btn ic" id="undo" data-act="undo" title="Undo (Ctrl+Z)">↶</button>
-    <button class="btn ic" id="redo" data-act="redo" title="Redo (Ctrl+Shift+Z)">↷</button>
+    <button class="btn" id="undo" data-act="undo" title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
+    <button class="btn" id="redo" data-act="redo" title="Redo (Ctrl/Cmd+Shift+Z)">↷ Redo</button>
     <div class="zoom">
       <button class="btn ic" data-act="zoom-out" title="Zoom out">−</button>
       <span id="zoomLbl">100%</span>
@@ -245,14 +252,49 @@ const bleedPx=()=>S.canvas.bleed*DW/S.canvas.wIn;
 const hexA=(h,a)=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
 function merge(d,s){if(Array.isArray(d)||typeof d!=='object'||d===null)return s===undefined?d:s;const o={...d};if(s&&typeof s==='object'&&!Array.isArray(s))for(const k in s)o[k]=(k in d)?merge(d[k],s[k]):s[k];return o}
 
+/* History: every step is a snapshot with a short label, so you can undo, redo or jump to any point */
 function snap(){return JSON.stringify(S)}
-let commitT=null;
+let commitT=null,pendLabel='Edit';
+const note=l=>{pendLabel=l};
 function commitSoon(){clearTimeout(commitT);commitT=setTimeout(commit,350)}
-function commit(){clearTimeout(commitT);const j=snap();if(HIST[HI]===j)return;HIST=HIST.slice(0,HI+1);HIST.push(j);if(HIST.length>80)HIST.shift();HI=HIST.length-1;updUndo()}
+function commit(){
+  clearTimeout(commitT);const j=snap();
+  if(HIST[HI]&&HIST[HI].j===j){pendLabel='Edit';return}
+  HIST=HIST.slice(0,HI+1);HIST.push({j,label:HI<0?'Start':pendLabel,t:Date.now()});pendLabel='Edit';
+  if(HIST.length>100)HIST.shift();HI=HIST.length-1;updUndo();
+}
 function restore(j){S=JSON.parse(j);sel=sel&&sel.t==='layer'&&!S.layers.find(l=>l.id===sel.id)?null:sel;fullRender()}
-function undo(){commit();if(HI>0){HI--;restore(HIST[HI]);updUndo();saveSoon()}}
-function redo(){if(HI<HIST.length-1){HI++;restore(HIST[HI]);updUndo();saveSoon()}}
-function updUndo(){$('#undo').disabled=HI<=0;$('#redo').disabled=HI>=HIST.length-1}
+function undo(){commit();if(HI>0){HI--;restore(HIST[HI].j);updUndo();saveSoon();toast('Undid: '+HIST[HI+1].label)}else toast('Nothing to undo')}
+function redo(){commit();if(HI<HIST.length-1){HI++;restore(HIST[HI].j);updUndo();saveSoon();toast('Redid: '+HIST[HI].label)}else toast('Nothing to redo')}
+function jump(i){commit();if(i>=0&&i<HIST.length&&i!==HI){HI=i;restore(HIST[HI].j);updUndo();saveSoon()}}
+function histHTML(){
+  if(!HIST.length)return '<div class="hint">No steps yet.</div>';
+  const from=Math.max(0,HIST.length-40);let s='';
+  for(let i=HIST.length-1;i>=from;i--){
+    const h=HIST[i],on=i===HI,future=i>HI;
+    s+=`<button class="hist${on?' on':''}${future?' fut':''}" data-act="hist" data-i="${i}"><b>${i+1}</b><span>${esc(h.label)}</span><em>${on?'current':future?'undone':''}</em></button>`;
+  }
+  return s;
+}
+function updUndo(){
+  const u=$('#undo'),r=$('#redo');
+  u.disabled=HI<=0;r.disabled=HI>=HIST.length-1;
+  u.title=HI>0?`Undo: ${HIST[HI].label} (Ctrl/Cmd+Z)`:'Nothing to undo';
+  r.title=HI<HIST.length-1?`Redo: ${HIST[HI+1].label} (Ctrl/Cmd+Shift+Z)`:'Nothing to redo';
+  const l=$('#histList');if(l)l.innerHTML=histHTML();
+}
+function labelFor(k){
+  if(/^cards\.\d+\.title$/.test(k))return 'Edit initiative '+(+k.split('.')[1]+1)+' title';
+  if(/^cards\.\d+\.desc$/.test(k))return 'Edit initiative '+(+k.split('.')[1]+1)+' text';
+  if(/^theme\./.test(k))return 'Change colour';
+  if(/^fonts\./.test(k))return 'Change font';
+  if(/^header\./.test(k))return 'Edit header';
+  if(/^dome\.|^__split$/.test(k))return 'Adjust curve / split';
+  if(/^grid\./.test(k))return 'Adjust card grid';
+  if(/^canvas\./.test(k))return 'Change canvas';
+  if(/^layers\./.test(k))return 'Edit layer';
+  return 'Edit';
+}
 
 let saveT=null;
 function saveSoon(){$('#saved').textContent='Saving…';clearTimeout(saveT);saveT=setTimeout(save,500)}
@@ -288,9 +330,9 @@ const LEAF_URI='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http:/
 
 function logoHTML(){
   const h=S.header,w=h.logoW,mt=h.logoTop,ref=src(h.logoSrc);
-  if(ref)return `<div class="logo" style="margin-top:${mt}px;width:${w}px"><img src="${ref}" alt="Logo" style="width:100%;display:block"></div>`;
+  if(ref)return `<div class="logo" style="margin-top:${mt}px;width:${w}px;position:relative;z-index:5"><img src="${ref}" alt="Logo" style="width:100%;display:block"></div>`;
   const fs=w*.28;
-  return `<div class="logo" style="margin-top:${mt}px;width:${w}px;height:${w*.5333}px;position:relative">
+  return `<div class="logo" style="margin-top:${mt}px;width:${w}px;height:${w*.5333}px;position:relative;z-index:5">
     <div class="oval" style="position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;background:#FBD90C;border:${w*.0133}px solid #000;display:flex;align-items:center;justify-content:center">
       <span class="lt" style="font-family:'Kaushan Script','Brush Script MT',cursive;font-style:italic;font-weight:700;font-size:${fs}px;line-height:1;color:#000;white-space:nowrap;margin-top:${fs*.06}px">Leon<span class="apos" style="display:inline-block;width:${fs*.2}px"></span>s</span>
     </div>
@@ -302,11 +344,11 @@ function headerHTML(){
   const al={left:'flex-start',center:'center',right:'flex-end'}[h.align]||'center';
   let s=`<div class="hdr" data-sel="header" style="position:absolute;left:0;top:0;width:${DW}px;padding:0 ${S.grid.side}px;display:flex;flex-direction:column;align-items:${al};text-align:${h.align}">`;
   if(h.showLogo)s+=logoHTML();
-  if(h.showTag)s+=`<p class="ed fit" data-bind="header.tagline" contenteditable="true" spellcheck="false" style="margin:${h.tagGap}px 0 0;font-size:${h.tagSize}px;font-weight:${F.bodyW};color:${T.tag};line-height:1.15">${esc(h.tagline)}</p>`;
-  if(h.showBig)s+=`<div class="ed fit" data-bind="header.big" contenteditable="true" spellcheck="false" style="margin:${h.bigGap}px 0 0;font-size:${h.bigSize}px;font-weight:${F.headW};line-height:.8;letter-spacing:${h.bigSpacing}em;color:${T.big};white-space:nowrap">${esc(h.big)}</div>`;
+  if(h.showTag)s+=`<p class="ed fit" data-bind="header.tagline" contenteditable="true" spellcheck="false" style="position:relative;z-index:4;margin:${h.tagGap}px 0 0;font-size:${h.tagSize}px;font-weight:${F.bodyW};color:${T.tag};line-height:1.15">${esc(h.tagline)}</p>`;
+  if(h.showBig)s+=`<div class="ed fit" data-bind="header.big" contenteditable="true" spellcheck="false" style="position:relative;z-index:1;margin:${h.bigGap}px 0 0;font-size:${h.bigSize}px;font-weight:${F.headW};line-height:.8;letter-spacing:${h.bigSpacing}em;color:${T.big};white-space:nowrap">${esc(h.big)}</div>`;
   if(h.showHl){
     const st=`font-size:${h.hlSize}px;font-weight:${F.headW};color:${T.hl};line-height:${h.hlLine};text-transform:${h.hlUpper?'uppercase':'none'};white-space:nowrap;display:inline-block`;
-    s+=`<div style="margin-top:${h.hlGap}px;display:flex;flex-direction:column;align-items:${al}">`;
+    s+=`<div style="position:relative;z-index:3;margin-top:${h.hlGap}px;display:flex;flex-direction:column;align-items:${al}">`;
     if(h.line1!=='')s+=`<span class="ed fit" data-bind="header.line1" contenteditable="true" spellcheck="false" style="${st}">${esc(h.line1)}</span>`;
     if(h.line2!=='')s+=`<span class="ed fit" data-bind="header.line2" contenteditable="true" spellcheck="false" style="${st}">${esc(h.line2)}</span>`;
     s+='</div>';
@@ -587,7 +629,11 @@ function tabLayers(){
 }
 function tabFile(){
   const wIn=S.canvas.wIn+2*S.canvas.bleed;
-  return det('Export image',`
+  return det('History (undo / redo)',`
+      <div class="btns"><button class="btn" data-act="undo">↶ Undo</button><button class="btn" data-act="redo">↷ Redo</button></div>
+      <div id="histList" class="hlist">${histHTML()}</div>
+      <div class="hint">Click any step to jump back to that point. Steps marked “undone” come back if you click Redo or jump forward – making a new change clears them. Shortcuts: <span class="kbd">Ctrl/Cmd</span>+<span class="kbd">Z</span> and <span class="kbd">Ctrl/Cmd</span>+<span class="kbd">Shift</span>+<span class="kbd">Z</span>.</div>`,true)
+   +det('Export image',`
       <div class="f"><span>Output width (pixels)</span><input type="number" id="outW" min="300" max="9000" value="${Math.round(wIn*150)}"></div>
       <div class="btns"><button class="btn sm" data-act="out" data-v="${Math.round(wIn*72)}">Screen 72 dpi</button><button class="btn sm" data-act="out" data-v="${Math.round(wIn*150)}">Print 150 dpi</button><button class="btn sm" data-act="out" data-v="${Math.round(wIn*200)}">200 dpi</button></div>
       <div class="btns"><button class="btn pri" data-act="export-png">Download PNG</button><button class="btn" data-act="export-pdf">Print / Save as PDF</button></div>
@@ -620,6 +666,7 @@ panel.addEventListener('input',e=>{
   const el=e.target,k=el.dataset&&el.dataset.k;
   if(el.id==='fontFree'||el.id==='canvasPre'||el.id==='outW'||!k)return;
   if(k==='__guides'){guides=el.checked;renderPoster();return}
+  note(labelFor(k));
   if(k==='__split'){
     const pv=parseFloat(el.value);if(!isFinite(pv))return;
     applySplit(clamp(pv,5,95));
@@ -646,7 +693,7 @@ panel.addEventListener('input',e=>{
 });
 panel.addEventListener('change',e=>{
   const el=e.target;
-  if(el.id==='canvasPre'){const c=CANVASES[+el.value];if(!c)return;const old=S.canvas.hIn/S.canvas.wIn;S.canvas.wIn=c[1];S.canvas.hIn=c[2];autoFit('canvas.hIn',null,old);change();renderSidebar()}
+  if(el.id==='canvasPre'){note('Change canvas size');const c=CANVASES[+el.value];if(!c)return;const old=S.canvas.hIn/S.canvas.wIn;S.canvas.wIn=c[1];S.canvas.hIn=c[2];autoFit('canvas.hIn',null,old);change();renderSidebar()}
   if(el.dataset&&(el.dataset.k==='canvas.wIn'||el.dataset.k==='canvas.hIn'))renderSidebar();
   if(el.dataset&&(el.dataset.k==='grid.cols'))renderSidebar();
 });
@@ -668,7 +715,10 @@ document.addEventListener('click',e=>{
   const a=t.dataset.act,i=+t.dataset.i,id=t.dataset.id,v=t.dataset.v;
   e.stopPropagation&&0;
   const rebuild=()=>{renderSidebar();change()};
+  const LB={'card-add':'Add initiative','card-del':'Delete initiative','card-dup':'Duplicate initiative','card-up':'Move initiative up','card-down':'Move initiative down','card-vis':'Show / hide initiative','card-icon':'Change icon','logo-up':'Upload logo','logo-clear':'Use built-in logo','preset':'Apply colour theme','font-use':'Change font','layer-text':'Add text layer','layer-shape':'Add shape','layer-img':'Add image','layer-del':'Delete layer','layer-dup':'Duplicate layer','layer-vis':'Show / hide layer','layer-up':'Bring layer forward','layer-down':'Send layer back','layer-swap':'Replace image','split':'Change top / bottom split','reset':'Reset to default'};
+  if(LB[a])note(LB[a]);
   switch(a){
+    case 'hist':jump(i);break;
     case 'undo':undo();break; case 'redo':redo();break;
     case 'split':{applySplit(+v);S.grid.autoGrow=+v<45;rebuild();break}
     case 'zoom-fit':view.zoom='fit';fitView();placeLeaf();break;
@@ -738,7 +788,7 @@ $('#fileFont').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   const url=await readURL(f),id=uid();ASSETS[id]=url;
   const name=f.name.replace(/\.[^.]+$/,'').replace(/[^\w\- ]+/g,' ').trim()||'Custom font';
-  S.fonts.custom.push({name,asset:id});S.fonts.family=name;
+  note('Add font');S.fonts.custom.push({name,asset:id});S.fonts.family=name;
   loadCustomFonts();renderSidebar();change();toast('Font added: '+name);e.target.value='';
 });
 function saveJSON(){
@@ -747,7 +797,7 @@ function saveJSON(){
 }
 $('#fileJson').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const j=JSON.parse(await f.text());if(!j.state)throw 0;S=merge(defaults(),j.state);S.cards=j.state.cards||S.cards;S.layers=j.state.layers||[];S.fonts.custom=(j.state.fonts&&j.state.fonts.custom)||[];ASSETS=j.assets||{};migrate(j.state);loadedFonts=new Set();sel=null;openCard=0;fullRender();commit();saveSoon();toast('Project opened')}
+  try{const j=JSON.parse(await f.text());if(!j.state)throw 0;note('Open project');S=merge(defaults(),j.state);S.cards=j.state.cards||S.cards;S.layers=j.state.layers||[];S.fonts.custom=(j.state.fonts&&j.state.fonts.custom)||[];ASSETS=j.assets||{};migrate(j.state);loadedFonts=new Set();sel=null;openCard=0;fullRender();commit();saveSoon();toast('Project opened')}
   catch(err){toast('That file is not a Poster Studio project')}
   e.target.value='';
 });
@@ -759,7 +809,7 @@ $('#pname').addEventListener('input',e=>{S.name=e.target.value;commitSoon();save
 panel.addEventListener('dragstart',e=>{const it=e.target.closest('.item[data-i]');if(!it)return;dragFrom=+it.dataset.i;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(dragFrom))}catch(_){}});
 panel.addEventListener('dragover',e=>{const it=e.target.closest('.item[data-i]');if(!it||dragFrom==null)return;e.preventDefault();$$('#panel .dragover').forEach(x=>x.classList.remove('dragover'));it.classList.add('dragover')});
 panel.addEventListener('dragleave',e=>{const it=e.target.closest('.item[data-i]');if(it)it.classList.remove('dragover')});
-panel.addEventListener('drop',e=>{const it=e.target.closest('.item[data-i]');if(!it||dragFrom==null)return;e.preventDefault();const to=+it.dataset.i;if(to!==dragFrom){const [m]=S.cards.splice(dragFrom,1);S.cards.splice(to,0,m);openCard=to;sel={t:'card',i:to};renderSidebar();change()}dragFrom=null});
+panel.addEventListener('drop',e=>{const it=e.target.closest('.item[data-i]');if(!it||dragFrom==null)return;e.preventDefault();const to=+it.dataset.i;if(to!==dragFrom){note('Reorder initiatives');const [m]=S.cards.splice(dragFrom,1);S.cards.splice(to,0,m);openCard=to;sel={t:'card',i:to};renderSidebar();change()}dragFrom=null});
 panel.addEventListener('dragend',()=>{dragFrom=null;$$('#panel .dragover').forEach(x=>x.classList.remove('dragover'))});
 
 /* ---------- poster: inline text editing, selection, layer drag/resize ---------- */
@@ -767,7 +817,7 @@ const poster=$('#poster');
 poster.addEventListener('input',e=>{
   const el=e.target.closest('[data-bind]');if(!el)return;
   const path=el.dataset.bind,val=el.dataset.multi?el.innerText.replace(/\n$/,''):el.textContent;
-  set(path,val);
+  set(path,val);note(labelFor(path).replace(/^Edit$/,'Edit text'));
   $$(`#panel [data-k="${path}"]`).forEach(o=>{if(o!==document.activeElement)o.value=val});
   if(/^cards\.\d+\.title$/.test(path)){const it=$$('#panel .item')[path.split('.')[1]];const t=it&&$('.t',it);if(t)t.textContent=val||'(untitled)'}
   fitText();if(/^cards\./.test(path)){const c=el.closest('.card');if(c){const h=$('h3',c),p=$('p',c);h.style.fontSize=S.grid.titleSize+'px';p.style.fontSize=S.grid.descSize+'px'}fitCards()}commitSoon();saveSoon();
@@ -815,14 +865,17 @@ window.addEventListener('pointermove',e=>{
   if(drag.mode==='move'){L.x=Math.round(drag.lx+dx);L.y=Math.round(drag.ly+dy);drag.el.style.left=L.x+'px';drag.el.style.top=L.y+'px'}
   else{L.w=Math.max(20,Math.round(drag.lw+dx));drag.el.style.width=L.w+'px';if(L.type==='shape'){L.h=Math.max(10,Math.round(drag.lh+dy));drag.el.style.height=L.h+'px'}}
 });
+let drag0='move';
 window.addEventListener('pointerup',()=>{
-  if(!drag)return;const L=S.layers.find(l=>l.id===drag.id);drag=null;
-  if(L){['x','y','w','h'].forEach(p=>$$(`#panel [data-k="layers.${S.layers.indexOf(L)}.${p}"]`).forEach(o=>o.value=L[p]));commitSoon();saveSoon()}
+  if(!drag)return;const L=S.layers.find(l=>l.id===drag.id);drag0=drag.mode;drag=null;
+  if(L){note(drag0==='resize'?'Resize layer':'Move layer');['x','y','w','h'].forEach(p=>$$(`#panel [data-k="layers.${S.layers.indexOf(L)}.${p}"]`).forEach(o=>o.value=L[p]));commitSoon();saveSoon()}
 });
 document.addEventListener('keydown',e=>{
-  const mod=e.metaKey||e.ctrlKey,typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)||document.activeElement.isContentEditable;
-  if(mod&&e.key.toLowerCase()==='z'&&!typing){e.preventDefault();e.shiftKey?redo():undo();return}
-  if(mod&&e.key.toLowerCase()==='y'&&!typing){e.preventDefault();redo();return}
+  const ae=document.activeElement,mod=e.metaKey||e.ctrlKey,typing=/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||ae.isContentEditable;
+  /* while typing in a text box the browser's own character-level undo applies; everywhere else (sliders, dropdowns, the poster, buttons) it is the app's undo */
+  const textual=ae.isContentEditable||ae.tagName==='TEXTAREA'||(ae.tagName==='INPUT'&&!['range','checkbox','color','button','file'].includes(ae.type));
+  if(mod&&e.key.toLowerCase()==='z'&&!textual){e.preventDefault();e.shiftKey?redo():undo();return}
+  if(mod&&e.key.toLowerCase()==='y'&&!textual){e.preventDefault();redo();return}
   if(typing||!sel||sel.t!=='layer')return;
   const L=S.layers.find(l=>l.id===sel.id);if(!L)return;
   const st=e.shiftKey?10:1;let used=true;
