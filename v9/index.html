@@ -110,7 +110,7 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v14 · 56 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v15 · 56 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
@@ -1562,14 +1562,14 @@ const cur=()=>T.find(x=>x.id===state.tid);
 const Hnow=()=>RATIOS[state.ratio];
 
 /* ----- per-text overrides (works on every template through a canvas proxy) ----- */
-const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,op:1,sx:1,sy:1,flip:false};
+const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false};
 function ovFor(tid,key,create){const o=(state.ovr[tid]=state.ovr[tid]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
 const nz=s=>String(s).toUpperCase().replace(/\s+/g,' ').trim().replace(/\d[\d,]*/g,'#');
 let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[tp.id]||{},mcache:{},seen:{}};
+  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[tp.id]||{},mcache:{},seen:{},counts:{}};
 }
 function matchKey(s){
   const n=nz(s);if(!n)return null;
@@ -1590,8 +1590,9 @@ function matchKey(s){
 function fillTextHook(s,x,y,mw){
   const c=realCtx;s=String(s);
   const key=FR?matchKey(s):null;
-  const call=()=>mw===undefined?c.fillText(s,x,y):c.fillText(s,x,y,mw);
-  if(!key){call();return}
+  if(!key){mw===undefined?c.fillText(s,x,y):c.fillText(s,x,y,mw);return}
+  /* which line of this field we are on, and how many it had last frame */
+  const li=(FR.counts[key]||0);FR.counts[key]=li+1;
   const m=c.getTransform(),ov=FR.ov[key];
   let a=FR.anch[key];if(!a){const p=m.transformPoint(new DOMPoint(x,y));a=FR.anch[key]={x:p.x,y:p.y}}
   c.save();let M=m;
@@ -1604,12 +1605,19 @@ function fillTextHook(s,x,y,mw){
     if(ov.ls&&'letterSpacing' in c)c.letterSpacing=ov.ls+'px';
     if(ov.op!==1)c.globalAlpha*=ov.op;
   }
+  const sz=parseFloat(/(\d+(?:\.\d+)?)px/.exec(c.font)[1])||0;
+  let yy=y;
+  if(ov&&ov.lh&&ov.lh!==1){
+    const total=(LAST&&LAST.counts&&LAST.counts[key])||1;
+    if(total>1)yy=y+(li-(total-1)/2)*(ov.lh-1)*sz;
+  }
   if(c.globalAlpha>.05){
-    const sz=parseFloat(/(\d+(?:\.\d+)?)px/.exec(c.font)[1]);let w=c.measureText(s).width;if(mw&&w>mw)w=mw;
-    const al=c.textAlign,bl=c.textBaseline,x0=al==='center'?x-w/2:al==='right'?x-w:x,y0=bl==='middle'?y-sz*.55:bl==='top'?y:y-sz*.8;
+    let w=c.measureText(s).width;if(mw&&w>mw)w=mw;
+    const al=c.textAlign,bl=c.textBaseline,x0=al==='center'?x-w/2:al==='right'?x-w:x,y0=bl==='middle'?yy-sz*.55:bl==='top'?yy:yy-sz*.8;
     FR.hits.push({key,poly:[[x0,y0],[x0+w,y0],[x0+w,y0+sz*1.1],[x0,y0+sz*1.1]].map(p=>{const q=M.transformPoint(new DOMPoint(p[0],p[1]));return [q.x,q.y]})});
   }
-  call();c.restore();
+  mw===undefined?c.fillText(s,x,yy):c.fillText(s,x,yy,mw);
+  c.restore();
 }
 function wrapCtx(real){
   realCtx=real;
@@ -1949,6 +1957,7 @@ function buildSelPanel(){
     const cr=row2(box);ctl(cr,'Colour','color',ov,'col');
     const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='10px';btn(rb,'Default colour',()=>{ov.col='';buildSelPanel();dirty()});cr.append(rb);
     ctl(box,'Letter spacing','range',ov,'ls',{min:-10,max:40,step:1});
+    ctl(box,'Line spacing','range',ov,'lh',{min:.6,max:2.2,step:.05});
   }else ctl(box,'Flip horizontally','check',ov,'flip');
   ctl(box,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);buildSelPanel();dirty()});
@@ -2004,7 +2013,7 @@ function buildLayerProps(box,L){
     ctl(box,'Size','range',L,'size',{min:16,max:600,step:1});
     const a=row2(box);ctl(a,'Weight','select',L,'wt',{o:WEIGHTS.slice(1).map(w=>[+w[0],w[1]])});ctl(a,'Typeface','select',L,'fam',{o:[['nova','Proxima Nova'],['soft','Proxima Soft']]});
     const b=row2(box);ctl(b,'Colour','color',L,'col');ctl(b,'Align','select',L,'al',{o:['left','center','right']});
-    ctl(box,'Letter spacing','range',L,'ls',{min:-10,max:40,step:1});ctl(box,'Line height','range',L,'lh',{min:.7,max:1.6,step:.05});
+    ctl(box,'Letter spacing','range',L,'ls',{min:-10,max:40,step:1});ctl(box,'Line spacing','range',L,'lh',{min:.6,max:2.2,step:.05});
     ctl(box,'Uppercase','check',L,'up');
     const c2=row2(box);ctl(c2,'Outline width','number',L,'sk',{min:0,max:40,step:1});ctl(c2,'Outline colour','color',L,'skc');
     const c3=row2(box);ctl(c3,'Drop shadow','check',L,'sh');ctl(c3,'Shadow colour','color',L,'shc');
