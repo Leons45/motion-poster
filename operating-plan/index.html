@@ -283,7 +283,7 @@ function defaults(){return{
           autoFit:true,showHl:true,line1:'Operating Plan',line2:'Initiatives',hlSize:150,hlGap:20,hlUpper:true,hlLine:1.02},
   dome:{show:true,shape:'ellipse',dir:'up',top:806,rx:2000,ry:1150},
   grid:{cols:2,top:951,offset:145,follow:true,autoGrow:true,bottom:84,side:96,gapX:44,gapY:46,radius:60,style:'solid',alt:false,shadow:true,autoShrink:true,
-        layout:'row',badge:'oval',badgeStart:1,badgePad:true,badgeSize:100,iconShape:'circle',iconSize:190,glyph:68,stroke:7,titleSize:52,descSize:31},
+        layout:'row',badge:'none',badgeStart:1,badgePad:true,badgeSize:100,iconShape:'circle',iconSize:190,glyph:68,stroke:7,titleSize:52,descSize:31},
   cards:[
     {id:uid(),title:'Cleaning Up Our Aged Inventory',desc:'Liquidating all discontinued showroom & warehouse product',icon:'inventory',visible:true},
     {id:uid(),title:'Right Price, Right Customer',desc:'Building zone pricing processes to maximize sales & margin per market',icon:'price',visible:true},
@@ -375,6 +375,7 @@ function migrate(raw){
   const g=raw.grid||{};
   if(!('offset' in g))S.grid.offset=S.grid.top-S.dome.top;
   if(!('autoGrow' in g))S.grid.autoGrow=false;
+  if(!g.numsRemoved){S.grid.badge='none';S.grid.numsRemoved=true}
   if(!(raw.header&&'autoFit' in raw.header))S.header.autoFit=false;
 }
 function load(){try{const r=JSON.parse(localStorage.getItem(LS)||'null');if(r&&r.state){S=merge(defaults(),r.state);S.cards=r.state.cards||S.cards;S.layers=r.state.layers||[];S.fonts.custom=(r.state.fonts&&r.state.fonts.custom)||[];ASSETS=r.assets||{};migrate(r.state)}}catch(e){}}
