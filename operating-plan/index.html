@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poster Studio – Leon's 2027 Operating Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Kaushan+Script&family=Montserrat:wght@500;700;800;900&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f0f10;--panel:#18181a;--panel2:#202023;--line:#2e2e32;--txt:#ececec;--mut:#9a9aa2;--y:#FBD90C;--blue:#4da3ff}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:13.5px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+  button,input,select,textarea{font:inherit;color:inherit}
+  #app{display:grid;grid-template-rows:54px minmax(0,1fr);grid-template-columns:410px minmax(0,1fr);height:100vh}
+
+  /* ---------- top bar ---------- */
+  #top{grid-column:1/3;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.01em}
+  .brand i{width:34px;height:20px;border-radius:50%;background:var(--y);display:block}
+  #pname{background:transparent;border:1px solid transparent;border-radius:8px;padding:6px 9px;width:300px;font-weight:600}
+  #pname:hover,#pname:focus{border-color:var(--line);outline:none;background:var(--panel2)}
+  .sp{flex:1}
+  .btn{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:#4a4a50}
+  .btn:active{transform:translateY(1px)}
+  .btn.pri{background:var(--y);color:#000;border-color:var(--y);font-weight:800}
+  .btn.sm{padding:4px 8px;font-size:12px;border-radius:7px}
+  .btn.ic{padding:7px 10px}
+  .btn[disabled]{opacity:.35;pointer-events:none}
+  .btn.danger:hover{border-color:#e5484d;color:#ff8a8d}
+  #saved{color:var(--mut);font-size:12px;min-width:70px;text-align:right}
+  .zoom{display:flex;align-items:center;gap:4px}
+  #zoomLbl{min-width:44px;text-align:center;color:var(--mut)}
+
+  /* ---------- sidebar ---------- */
+  #side{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
+  #tabs{display:flex;border-bottom:1px solid var(--line)}
+  #tabs button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:12px 4px;color:var(--mut);cursor:pointer;font-weight:700}
+  #tabs button.on{color:var(--txt);border-bottom-color:var(--y)}
+  #panel{flex:1;min-height:0;overflow:auto;padding:12px 14px 40px}
+  details{border:1px solid var(--line);border-radius:12px;margin:0 0 10px;background:var(--panel2)}
+  summary{cursor:pointer;padding:11px 13px;font-weight:800;list-style:none;display:flex;align-items:center;gap:8px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸";color:var(--y);transition:.15s}
+  details[open]>summary::before{transform:rotate(90deg)}
+  .body{padding:2px 13px 13px;display:grid;gap:10px}
+  .f{display:grid;gap:5px}
+  .f>span,.lbl{color:var(--mut);font-size:12px;font-weight:600}
+  .f.row{grid-template-columns:1fr auto;align-items:center}
+  input[type=text],input[type=number],select,textarea{width:100%;background:#111113;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  input:focus,select:focus,textarea:focus{outline:2px solid #fbd90c55;border-color:var(--y)}
+  textarea{resize:vertical;min-height:62px}
+  .num{display:grid;grid-template-columns:96px 1fr 70px;align-items:center;gap:8px}
+  .num>span{color:var(--mut);font-size:12px;font-weight:600}
+  .num input[type=number]{padding:5px 6px}
+  input[type=range]{width:100%;accent-color:var(--y)}
+  .colors{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+  .col{display:grid;gap:4px}
+  .col>span{color:var(--mut);font-size:12px;font-weight:600}
+  .col div{display:flex;gap:6px}
+  input[type=color]{width:38px;height:32px;padding:2px;border:1px solid var(--line);background:#111113;border-radius:8px;cursor:pointer}
+  .hex{font-family:ui-monospace,monospace;text-transform:uppercase}
+  .chk{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .chk input{accent-color:var(--y);width:16px;height:16px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px}
+  .hint{color:var(--mut);font-size:12px}
+  .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .pre{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:8px;cursor:pointer;text-align:left}
+  .pre:hover{border-color:var(--y)}
+  .pre .sw{display:flex;height:22px;border-radius:6px;overflow:hidden;margin-bottom:6px}
+  .pre .sw b{flex:1}
+  .pre span{font-size:12px;font-weight:700}
+
+  /* initiative list */
+  .item{border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:8px;overflow:hidden}
+  .item.on{border-color:var(--y)}
+  .item.dragover{border-color:var(--blue)}
+  .ih{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 10px;cursor:pointer}
+  .ih .n{width:26px;height:26px;border-radius:50%;background:var(--y);color:#000;font-weight:900;font-size:12px;display:grid;place-items:center;flex:none}
+  .ih .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+  .item.off .t{opacity:.4;text-decoration:line-through}
+  .grip{cursor:grab;color:var(--mut);padding:0 2px;user-select:none}
+  .ib{padding:3px 6px;font-size:12px}
+  .ibody{padding:4px 12px 12px;display:grid;gap:10px;border-top:1px solid var(--line)}
+  .icons{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .icons button{aspect-ratio:1;border:1px solid var(--line);border-radius:9px;background:#111113;cursor:pointer;display:grid;place-items:center;padding:5px}
+  .icons button.on{background:var(--y);border-color:var(--y)}
+  .icons button svg{width:100%;height:100%}
+
+  /* ---------- workspace ---------- */
+  #work{overflow:auto;position:relative;min-width:0;
+    background-color:#161618;background-image:linear-gradient(45deg,#1b1b1e 25%,transparent 25%,transparent 75%,#1b1b1e 75%),linear-gradient(45deg,#1b1b1e 25%,transparent 25%,transparent 75%,#1b1b1e 75%);background-size:24px 24px;background-position:0 0,12px 12px}
+  #stageWrap{position:relative;box-shadow:0 20px 70px rgba(0,0,0,.6)}
+  #stage{position:absolute;left:0;top:0}
+  #poster{position:absolute;left:0;top:0;overflow:hidden;font-family:var(--ff)}
+  #poster .ed{outline:none;cursor:text}
+  #poster .ed:hover{box-shadow:0 0 0 4px rgba(77,163,255,.45);border-radius:6px}
+  #poster .ed:focus{box-shadow:0 0 0 5px rgba(77,163,255,.9);border-radius:6px}
+  #poster .is-sel{outline:6px dashed var(--blue);outline-offset:10px}
+  #poster .layer{cursor:move;touch-action:none}
+  #poster .layer .ed{cursor:inherit}
+  #poster .rh{position:absolute;right:-18px;bottom:-18px;width:36px;height:36px;border-radius:50%;background:var(--blue);border:5px solid #fff;cursor:nwse-resize;display:none}
+  #poster .layer.is-sel .rh{display:block}
+  #poster .card,#poster .hdr{cursor:default}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;font-weight:700;padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+  #exporting{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;place-items:center;z-index:60;font-weight:800;font-size:18px}
+  #exporting.on{display:grid}
+  .kbd{font-family:ui-monospace,monospace;background:#111113;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:11px}
+</style>
+<style id="printCSS"></style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <div class="brand"><i></i>Poster Studio</div>
+    <input id="pname" type="text" spellcheck="false" title="Project name">
+    <span class="sp"></span>
+    <span id="saved">Saved</span>
+    <button class="btn ic" id="undo" data-act="undo" title="Undo (Ctrl+Z)">↶</button>
+    <button class="btn ic" id="redo" data-act="redo" title="Redo (Ctrl+Shift+Z)">↷</button>
+    <div class="zoom">
+      <button class="btn ic" data-act="zoom-out" title="Zoom out">−</button>
+      <span id="zoomLbl">100%</span>
+      <button class="btn ic" data-act="zoom-in" title="Zoom in">+</button>
+      <button class="btn" data-act="zoom-fit">Fit</button>
+    </div>
+    <button class="btn pri" data-act="export-png">Download PNG</button>
+    <button class="btn" data-act="export-pdf">Print / PDF</button>
+  </div>
+
+  <aside id="side">
+    <div id="tabs">
+      <button data-tab="content">Content</button>
+      <button data-tab="style">Style</button>
+      <button data-tab="layout">Layout</button>
+      <button data-tab="layers">Layers</button>
+      <button data-tab="export">File</button>
+    </div>
+    <div id="panel"></div>
+  </aside>
+
+  <main id="work"><div id="stageWrap"><div id="stage"><div id="poster"></div></div></div></main>
+</div>
+<div id="toast"></div>
+<div id="exporting">Rendering your poster…</div>
+<input type="file" id="fileImg" accept="image/*" hidden>
+<input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2" hidden>
+<input type="file" id="fileJson" accept=".json,application/json" hidden>
+
+<script>
+/* html2canvas is bundled in /vendor; fall back to the CDN if it is missing */
+(function(){var s=document.createElement('script');s.src='vendor/html2canvas.min.js';
+  s.onerror=function(){var c=document.createElement('script');c.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';document.head.appendChild(c)};
+  document.head.appendChild(s)})();
+</script>
+<script>
+(()=>{'use strict';
+/* =====================================================================
+   POSTER STUDIO – everything is driven by one state object (S).
+   The poster is rebuilt from S on every change; the sidebar edits S.
+   Design space is 2112 px wide (= 22 in @ 96 dpi); export scales from it.
+   ===================================================================== */
+const DW = 2112, LS = 'leons-poster-studio-v1';
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const uid = ()=>Math.random().toString(36).slice(2,9);
+const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+/* ---------------- icon library (all stroke-drawn, explicit colours so PNG export is safe) ---------------- */
+const ICONS = {
+  inventory:'<path d="M16 52 L44 38 L72 52 L72 82 L44 96 L16 82 Z"/><path d="M16 52 L44 66 L72 52"/><path d="M44 66 V96"/><path d="M58 18 H84 V44"/><path d="M84 18 L56 46"/>',
+  price:'<path d="M14 54 L52 14 H88 V50 L50 88 Z"/><circle cx="72" cy="30" r="6"/><text x="50" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="40" fill="{c}" stroke="none">$</text>',
+  pin:'<path d="M50 94 C50 94 18 62 18 40 A32 32 0 0 1 82 40 C82 62 50 94 50 94 Z"/><circle cx="50" cy="40" r="12"/><path d="M26 96 H74"/>',
+  store:'<path d="M10 40 L18 12 H82 L90 40 Z"/><path d="M10 40 Q20 54 30 40 Q40 54 50 40 Q60 54 70 40 Q80 54 90 40"/><path d="M18 50 V90 H82 V50"/><path d="M40 90 V66 H60 V90"/>',
+  basket:'<path d="M10 40 H90 L80 86 H20 Z"/><path d="M28 40 L42 14"/><path d="M72 40 L58 14"/><path d="M38 54 V72"/><path d="M50 54 V72"/><path d="M62 54 V72"/>',
+  newstore:'<path d="M8 52 L14 30 H54 L60 52 Z"/><path d="M14 52 V88 H54 V52"/><path d="M28 88 V68 H40 V88"/><circle cx="74" cy="30" r="17"/><path d="M74 21 V39 M65 30 H83"/>',
+  truck:'<path d="M8 28 H58 V68 H8 Z"/><path d="M58 40 H80 L92 54 V68 H58"/><circle cx="26" cy="74" r="9"/><circle cx="76" cy="74" r="9"/>',
+  star:'<path d="M50 10 L61 38 L92 40 L68 59 L76 90 L50 73 L24 90 L32 59 L8 40 L39 38 Z"/>',
+  heart:'<path d="M50 88 C20 66 10 48 10 34 A20 20 0 0 1 50 28 A20 20 0 0 1 90 34 C90 48 80 66 50 88 Z"/>',
+  target:'<circle cx="50" cy="50" r="38"/><circle cx="50" cy="50" r="22"/><circle cx="50" cy="50" r="6"/>',
+  chart:'<path d="M12 88 H92"/><path d="M24 76 V54"/><path d="M44 76 V38"/><path d="M64 76 V58"/><path d="M84 76 V22"/>',
+  people:'<circle cx="36" cy="34" r="14"/><path d="M10 88 C10 66 22 58 36 58 C50 58 62 66 62 88"/><circle cx="72" cy="38" r="11"/><path d="M68 60 C84 60 92 70 92 88"/>',
+  percent:'<circle cx="30" cy="30" r="12"/><circle cx="70" cy="70" r="12"/><path d="M80 20 L20 80"/>',
+  sofa:'<path d="M18 44 V32 A10 10 0 0 1 28 22 H72 A10 10 0 0 1 82 32 V44"/><path d="M8 54 A10 10 0 0 1 18 44 A10 10 0 0 1 28 54 V62 H72 V54 A10 10 0 0 1 82 44 A10 10 0 0 1 92 54 V74 H8 Z"/><path d="M18 74 V84 M82 74 V84"/>',
+  bed:'<path d="M10 30 V86"/><path d="M10 68 H90 V86"/><path d="M10 68 V52 H90 V68"/><path d="M22 52 V40 H44 V52"/>',
+  home:'<path d="M10 48 L50 14 L90 48"/><path d="M20 42 V86 H80 V42"/><path d="M42 86 V60 H58 V86"/>',
+  key:'<circle cx="32" cy="50" r="18"/><path d="M50 50 H90"/><path d="M76 50 V64"/><path d="M64 50 V60"/>',
+  gift:'<path d="M12 40 H88 V58 H12 Z"/><path d="M18 58 V88 H82 V58"/><path d="M50 40 V88"/><path d="M50 40 C34 40 28 18 40 18 C50 18 50 40 50 40 C50 40 50 18 60 18 C72 18 66 40 50 40"/>',
+  clock:'<circle cx="50" cy="50" r="38"/><path d="M50 26 V50 L68 62"/>',
+  check:'<circle cx="50" cy="50" r="38"/><path d="M30 52 L45 67 L72 36"/>',
+  none:''
+};
+const iconSVG=(name,color,size)=>`<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" stroke="${color}" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">${(ICONS[name]||'').replace(/\{c\}/g,color)}</svg>`;
+
+/* ---------------- defaults = the current Leon's poster ---------------- */
+function defaults(){return{
+  v:1, name:"Leon's 2027 Operating Plan – Initiatives",
+  canvas:{wIn:22,hIn:28,bleed:0,autoFit:true},
+  theme:{bg:'#000000',dome:'#FBD90C',accent:'#FBD90C',big:'#FFFFFF',hl:'#FBD90C',tag:'#FFFFFF',
+         cardBg:'#000000',cardTitle:'#FFFFFF',cardDesc:'#D9D9D9',badgeBg:'#FBD90C',badgeText:'#000000',iconBg:'#FBD90C',iconFg:'#000000'},
+  fonts:{family:'Proxima Soft',headW:900,bodyW:700,custom:[]},
+  header:{align:'center',showLogo:true,logoSrc:'',logoW:600,logoTop:84,
+          showTag:true,tagline:'That’s comfortable.',tagSize:56,tagGap:6,
+          showBig:true,big:'2027',bigSize:600,bigGap:34,bigSpacing:-0.03,
+          showHl:true,line1:'Operating Plan',line2:'Initiatives',hlSize:150,hlGap:20,hlUpper:true,hlLine:1.02},
+  dome:{show:true,shape:'ellipse',dir:'up',top:1425,rx:2000,ry:1150},
+  grid:{cols:2,top:1570,bottom:84,side:96,gapX:44,gapY:46,radius:60,style:'solid',alt:false,shadow:true,autoShrink:true,
+        layout:'row',badge:'oval',badgeStart:1,badgePad:true,iconShape:'circle',iconSize:176,titleSize:52,descSize:31},
+  cards:[
+    {id:uid(),title:'Cleaning Up Our Aged Inventory',desc:'Liquidating all discontinued showroom & warehouse product',icon:'inventory',visible:true},
+    {id:uid(),title:'Right Price, Right Customer',desc:'Building zone pricing processes to maximize sales & margin per market',icon:'price',visible:true},
+    {id:uid(),title:'Win Back the GTA',desc:'Refocusing support for our biggest & most important trading area',icon:'pin',visible:true},
+    {id:uid(),title:'Superstore & More',desc:'Prototyping a new one-stop-shop, total home retail experience',icon:'store',visible:true},
+    {id:uid(),title:'Building Baskets Through Better Attachment',desc:'Redesigning & executing total home & room solution selling',icon:'basket',visible:true},
+    {id:uid(),title:'Growing Our Store Footprint',desc:'Opening new stores in our biggest & best opportunity markets',icon:'newstore',visible:true}
+  ],
+  layers:[]
+}}
+const PRESETS={
+  classic:{label:'Leon’s Classic',alt:false,t:{bg:'#000000',dome:'#FBD90C',accent:'#FBD90C',big:'#FFFFFF',hl:'#FBD90C',tag:'#FFFFFF',cardBg:'#000000',cardTitle:'#FFFFFF',cardDesc:'#D9D9D9',badgeBg:'#FBD90C',badgeText:'#000000',iconBg:'#FBD90C',iconFg:'#000000'}},
+  checker:{label:'Checkerboard',alt:true,t:{bg:'#000000',dome:'#FBD90C',accent:'#FBD90C',big:'#FFFFFF',hl:'#FBD90C',tag:'#FFFFFF',cardBg:'#000000',cardTitle:'#FFFFFF',cardDesc:'#D9D9D9',badgeBg:'#FBD90C',badgeText:'#000000',iconBg:'#FBD90C',iconFg:'#000000'}},
+  inverse:{label:'Yellow Top',alt:false,t:{bg:'#FBD90C',dome:'#000000',accent:'#FBD90C',big:'#000000',hl:'#000000',tag:'#000000',cardBg:'#FBD90C',cardTitle:'#000000',cardDesc:'#2b2b2b',badgeBg:'#000000',badgeText:'#FBD90C',iconBg:'#000000',iconFg:'#FBD90C'}},
+  white:{label:'Clean White',alt:false,t:{bg:'#FFFFFF',dome:'#FBD90C',accent:'#FBD90C',big:'#000000',hl:'#000000',tag:'#000000',cardBg:'#000000',cardTitle:'#FFFFFF',cardDesc:'#D9D9D9',badgeBg:'#FBD90C',badgeText:'#000000',iconBg:'#FBD90C',iconFg:'#000000'}},
+  midnight:{label:'Midnight Gold',alt:false,t:{bg:'#0B0B0D',dome:'#1A1A1E',accent:'#F5C518',big:'#FFFFFF',hl:'#F5C518',tag:'#CFCFCF',cardBg:'#2A2A30',cardTitle:'#FFFFFF',cardDesc:'#BDBDC4',badgeBg:'#F5C518',badgeText:'#000000',iconBg:'#F5C518',iconFg:'#000000'}},
+  royal:{label:'Deep Blue',alt:false,t:{bg:'#0A1A3A',dome:'#FBD90C',accent:'#FBD90C',big:'#FFFFFF',hl:'#FBD90C',tag:'#DDE6FF',cardBg:'#0A1A3A',cardTitle:'#FFFFFF',cardDesc:'#C8D4F0',badgeBg:'#FBD90C',badgeText:'#0A1A3A',iconBg:'#FBD90C',iconFg:'#0A1A3A'}}
+};
+const CANVASES=[
+  ['Poster 22 × 28 in',22,28],['Poster 24 × 36 in',24,36],['Poster 18 × 24 in',18,24],['Tabloid 11 × 17 in',11,17],
+  ['Letter 8.5 × 11 in',8.5,11],['Social 4:5 (1080×1350)',10.8,13.5],['Square 1:1',12,12],['Story 9:16',9,16],['Landscape 16:9',16,9]
+];
+const BASE_FONTS=['Proxima Soft','Proxima Nova','Nunito','Poppins','Montserrat','Inter','Arial'];
+
+/* ---------------- state, assets, history ---------------- */
+let S=defaults(), ASSETS={}, HIST=[], HI=-1, sel=null, tab='content', openCard=-1;
+let view={zoom:'fit',s:1}, guides=false, loadedFonts=new Set(), dragFrom=null;
+
+const get=(p,o=S)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
+function set(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=v}
+const src=r=>r&&String(r).startsWith('asset:')?(ASSETS[String(r).slice(6)]||''):(r||'');
+const DH=()=>DW*S.canvas.hIn/S.canvas.wIn;
+const bleedPx=()=>S.canvas.bleed*DW/S.canvas.wIn;
+const hexA=(h,a)=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+function merge(d,s){if(Array.isArray(d)||typeof d!=='object'||d===null)return s===undefined?d:s;const o={...d};if(s&&typeof s==='object'&&!Array.isArray(s))for(const k in s)o[k]=(k in d)?merge(d[k],s[k]):s[k];return o}
+
+function snap(){return JSON.stringify(S)}
+let commitT=null;
+function commitSoon(){clearTimeout(commitT);commitT=setTimeout(commit,350)}
+function commit(){clearTimeout(commitT);const j=snap();if(HIST[HI]===j)return;HIST=HIST.slice(0,HI+1);HIST.push(j);if(HIST.length>80)HIST.shift();HI=HIST.length-1;updUndo()}
+function restore(j){S=JSON.parse(j);sel=sel&&sel.t==='layer'&&!S.layers.find(l=>l.id===sel.id)?null:sel;fullRender()}
+function undo(){commit();if(HI>0){HI--;restore(HIST[HI]);updUndo();saveSoon()}}
+function redo(){if(HI<HIST.length-1){HI++;restore(HIST[HI]);updUndo();saveSoon()}}
+function updUndo(){$('#undo').disabled=HI<=0;$('#redo').disabled=HI>=HIST.length-1}
+
+let saveT=null;
+function saveSoon(){$('#saved').textContent='Saving…';clearTimeout(saveT);saveT=setTimeout(save,500)}
+function save(){try{localStorage.setItem(LS,JSON.stringify({state:S,assets:ASSETS}));$('#saved').textContent='Saved'}catch(e){$('#saved').textContent='Not saved';toast('Autosave is full (large images). Use File → Save project.')}}
+function load(){try{const r=JSON.parse(localStorage.getItem(LS)||'null');if(r&&r.state){S=merge(defaults(),r.state);S.cards=r.state.cards||S.cards;S.layers=r.state.layers||[];S.fonts.custom=(r.state.fonts&&r.state.fonts.custom)||[];ASSETS=r.assets||{}}}catch(e){}}
+
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+
+/* ---------------- fonts ---------------- */
+const fontStack=()=>`"${S.fonts.family}","Proxima Soft","Nunito","Avenir Next",Arial,sans-serif`;
+function loadCustomFonts(){
+  (S.fonts.custom||[]).forEach(c=>{
+    if(loadedFonts.has(c.asset))return; const data=ASSETS[c.asset]; if(!data)return;
+    loadedFonts.add(c.asset);
+    try{const ff=new FontFace(c.name,`url(${data})`);ff.load().then(f=>{document.fonts.add(f);renderPoster()}).catch(()=>loadedFonts.delete(c.asset))}catch(e){}
+  });
+}
+const allFontNames=()=>[...new Set([...BASE_FONTS,...(S.fonts.custom||[]).map(c=>c.name),S.fonts.family])];
+
+/* =====================================================================
+   POSTER RENDERING
+   ===================================================================== */
+const LEAF='M50 0 L61 20 L78 14 L72 36 L96 30 L84 52 L100 62 L56 78 L56 100 L44 100 L44 78 L0 62 L16 52 L4 30 L28 36 L22 14 L39 20 Z';
+const LEAF_URI='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="#E31B23" d="${LEAF}"/></svg>`);
+
+function logoHTML(){
+  const h=S.header,w=h.logoW,mt=h.logoTop,ref=src(h.logoSrc);
+  if(ref)return `<div class="logo" style="margin-top:${mt}px;width:${w}px"><img src="${ref}" alt="Logo" style="width:100%;display:block"></div>`;
+  const fs=w*.28;
+  return `<div class="logo" style="margin-top:${mt}px;width:${w}px;height:${w*.5333}px;position:relative">
+    <div class="oval" style="position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;background:#FBD90C;border:${w*.0133}px solid #000;display:flex;align-items:center;justify-content:center">
+      <span class="lt" style="font-family:'Kaushan Script','Brush Script MT',cursive;font-style:italic;font-weight:700;font-size:${fs}px;line-height:1;color:#000;white-space:nowrap;margin-top:${fs*.06}px">Leon<span class="apos" style="display:inline-block;width:${fs*.2}px"></span>s</span>
+    </div>
+    <img class="leaf" alt="" src="${LEAF_URI}" style="position:absolute;left:0;top:0;width:${w*.085}px;height:${w*.085}px;display:block">
+  </div>`;
+}
+function headerHTML(){
+  const h=S.header,T=S.theme,F=S.fonts;
+  const al={left:'flex-start',center:'center',right:'flex-end'}[h.align]||'center';
+  let s=`<div class="hdr" data-sel="header" style="position:absolute;left:0;top:0;width:${DW}px;padding:0 ${S.grid.side}px;display:flex;flex-direction:column;align-items:${al};text-align:${h.align}">`;
+  if(h.showLogo)s+=logoHTML();
+  if(h.showTag)s+=`<p class="ed fit" data-bind="header.tagline" contenteditable="true" spellcheck="false" style="margin:${h.tagGap}px 0 0;font-size:${h.tagSize}px;font-weight:${F.bodyW};color:${T.tag};line-height:1.15">${esc(h.tagline)}</p>`;
+  if(h.showBig)s+=`<div class="ed fit" data-bind="header.big" contenteditable="true" spellcheck="false" style="margin:${h.bigGap}px 0 0;font-size:${h.bigSize}px;font-weight:${F.headW};line-height:.8;letter-spacing:${h.bigSpacing}em;color:${T.big};white-space:nowrap">${esc(h.big)}</div>`;
+  if(h.showHl){
+    const st=`font-size:${h.hlSize}px;font-weight:${F.headW};color:${T.hl};line-height:${h.hlLine};text-transform:${h.hlUpper?'uppercase':'none'};white-space:nowrap;display:inline-block`;
+    s+=`<div style="margin-top:${h.hlGap}px;display:flex;flex-direction:column;align-items:${al}">`;
+    if(h.line1!=='')s+=`<span class="ed fit" data-bind="header.line1" contenteditable="true" spellcheck="false" style="${st}">${esc(h.line1)}</span>`;
+    if(h.line2!=='')s+=`<span class="ed fit" data-bind="header.line2" contenteditable="true" spellcheck="false" style="${st}">${esc(h.line2)}</span>`;
+    s+='</div>';
+  }
+  return s+'</div>';
+}
+function cardColors(k,cols){
+  const T=S.theme,g=S.grid;
+  const alt=g.alt&&((Math.floor(k/cols)+k%cols)%2===1);
+  let c={bg:T.cardBg,title:T.cardTitle,desc:T.cardDesc,badgeBg:T.badgeBg,badgeText:T.badgeText,ring:T.cardBg,iconBg:T.iconBg,iconFg:T.iconFg,border:'none',rule:false};
+  if(alt)c={bg:T.accent,title:T.cardBg,desc:hexA(T.cardBg,.78),badgeBg:T.cardBg,badgeText:T.accent,ring:T.accent,iconBg:T.cardBg,iconFg:T.accent,border:'none',rule:false};
+  if(g.style==='outline'||g.style==='minimal'){
+    const ink=T.cardBg;
+    c={bg:'transparent',title:ink,desc:hexA(ink,.82),badgeBg:ink,badgeText:T.dome,ring:T.dome,iconBg:ink,iconFg:T.dome,border:g.style==='outline'?`6px solid ${ink}`:'none',rule:g.style==='minimal'};
+  }
+  return c;
+}
+function cardHTML(c,i,k,cols){
+  const g=S.grid,F=S.fonts,col=cardColors(k,cols);
+  const stack=g.layout==='stack';
+  const bw={oval:[150,96],circle:[108,108],pill:[150,66]}[g.badge];
+  let badge='';
+  if(bw){
+    const n=g.badgeStart+k, txt=g.badgePad?String(n).padStart(2,'0'):String(n);
+    badge=`<div class="badge" style="position:absolute;left:-26px;top:-30px;width:${bw[0]}px;height:${bw[1]}px;border-radius:${g.badge==='pill'?'999px':'50%'};background:${col.badgeBg};color:${col.badgeText};border:6px solid ${col.ring};display:flex;align-items:center;justify-content:center;font-size:${bw[1]*.6}px;font-weight:${F.headW};letter-spacing:-.02em;transform:rotate(-8deg);z-index:3">${txt}</div>`;
+  }
+  let icon='';
+  if(c.icon&&c.icon!=='none'){
+    const sz=g.iconSize;
+    if(g.iconShape==='none')icon=`<div class="icn" style="flex:none;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center">${iconSVG(c.icon,col.iconBg==='transparent'?col.iconFg:col.iconBg,sz*.8)}</div>`;
+    else icon=`<div class="icn" style="flex:none;width:${sz}px;height:${sz}px;border-radius:${g.iconShape==='rounded'?sz*.26:sz/2}px;background:${col.iconBg};display:flex;align-items:center;justify-content:center">${iconSVG(c.icon,col.iconFg,sz*.59)}</div>`;
+  }
+  const rule=col.rule?`border-bottom:5px solid ${col.title};border-radius:0;`:'';
+  return `<article class="card" data-sel="card:${i}" style="position:relative;display:flex;flex-direction:${stack?'column':'row'};align-items:${stack?'flex-start':'center'};justify-content:${stack?'center':'flex-start'};gap:${stack?26:38}px;padding:${stack?'56px 44px 34px':'30px 44px 30px 46px'};border-radius:${g.radius}px;background:${col.bg};border:${col.border};${rule}color:${col.title};${g.shadow&&g.style==='solid'?'box-shadow:0 16px 0 rgba(0,0,0,.18);':''}">
+    ${badge}${icon}
+    <div class="txt" style="min-width:0">
+      <h3 class="ed" data-bind="cards.${i}.title" contenteditable="true" spellcheck="false" style="margin:0 0 12px;font-size:${g.titleSize}px;line-height:1.04;font-weight:${F.headW};letter-spacing:-.01em;color:${col.title}">${esc(c.title)}</h3>
+      <p class="ed" data-bind="cards.${i}.desc" contenteditable="true" spellcheck="false" style="margin:0;font-size:${g.descSize}px;line-height:1.24;font-weight:${F.bodyW};color:${col.desc}">${esc(c.desc)}</p>
+    </div>
+  </article>`;
+}
+function gridHTML(){
+  const g=S.grid,vis=S.cards.map((c,i)=>({c,i})).filter(o=>o.c.visible!==false);
+  if(!vis.length)return '';
+  const rows=Math.ceil(vis.length/g.cols);
+  let s=`<section class="grid" style="position:absolute;left:${g.side}px;right:${g.side}px;top:${g.top}px;bottom:${g.bottom}px;display:grid;grid-template-columns:repeat(${g.cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));gap:${g.gapY}px ${g.gapX}px">`;
+  vis.forEach((o,k)=>{s+=cardHTML(o.c,o.i,k,g.cols)});
+  return s+'</section>';
+}
+function layerHTML(L,k){
+  const base=`position:absolute;left:${L.x}px;top:${L.y}px;width:${L.w}px;${L.type==='shape'?`height:${L.h}px;`:''}transform:rotate(${L.rot||0}deg);opacity:${L.opacity??1};`;
+  let inner='';
+  if(L.type==='text')inner=`<div class="ed" data-bind="layers.${k}.text" data-multi="1" spellcheck="false" style="font-size:${L.size}px;font-weight:${L.weight};color:${L.color};text-align:${L.align};line-height:${L.lh||1.1};letter-spacing:${L.ls||0}em;text-transform:${L.upper?'uppercase':'none'};white-space:pre-wrap;word-break:break-word">${esc(L.text)}</div>`;
+  else if(L.type==='image')inner=`<img src="${src(L.src)}" alt="" draggable="false" style="width:100%;display:block;pointer-events:none;border-radius:${L.radius||0}px">`;
+  else inner=`<div style="width:100%;height:100%;background:${L.fill};border-radius:${L.shape==='ellipse'?'50%':L.shape==='pill'?'999px':(L.radius||0)+'px'};border:${L.strokeW>0?L.strokeW+'px solid '+L.stroke:'none'}"></div>`;
+  return `<div class="layer" data-layer="${L.id}" data-sel="layer:${L.id}" style="${base}">${inner}<i class="rh" data-html2canvas-ignore="true"></i></div>`;
+}
+const layersHTML=behind=>S.layers.map((L,k)=>L.hidden||!!L.behind!==behind?'':layerHTML(L,k)).join('');
+function domeHTML(b,H,th,tw){
+  const d=S.dome,T=S.theme; if(!d.show)return '';
+  if(d.shape==='flat'){
+    return d.dir==='up'?`<div class="dome" style="position:absolute;left:0;top:${b+d.top}px;width:${tw}px;height:${th}px;background:${T.dome}"></div>`
+                       :`<div class="dome" style="position:absolute;left:0;top:-2px;width:${tw}px;height:${b+d.top+2}px;background:${T.dome}"></div>`;
+  }
+  const left=b+DW/2-d.rx, top=d.dir==='up'?b+d.top:b+d.top-2*d.ry;
+  return `<div class="dome" style="position:absolute;left:${left}px;top:${top}px;width:${2*d.rx}px;height:${2*d.ry}px;border-radius:50%;background:${T.dome}"></div>`;
+}
+function renderPoster(){
+  const b=bleedPx(),H=DH(),tw=DW+2*b,th=H+2*b;
+  const P=$('#poster');
+  P.style.cssText=`width:${tw}px;height:${th}px;background:${S.theme.bg};--ff:${fontStack()}`;
+  let g='';
+  if(guides){
+    const safe=.5*DW/S.canvas.wIn;
+    g=`<div class="guides" data-html2canvas-ignore="true" style="position:absolute;left:${b}px;top:${b}px;width:${DW}px;height:${H}px;outline:4px dashed rgba(229,72,77,.95);pointer-events:none;z-index:50"><div style="position:absolute;left:${safe}px;top:${safe}px;right:${safe}px;bottom:${safe}px;outline:4px dashed rgba(60,200,120,.9)"></div></div>`;
+  }
+  P.innerHTML=domeHTML(b,H,th,tw)+`<div id="content" style="position:absolute;left:${b}px;top:${b}px;width:${DW}px;height:${H}px">${layersHTML(true)}${headerHTML()}${gridHTML()}${layersHTML(false)}</div>`+g;
+  fitView();placeLeaf();fitText();fitCards();applySel();updatePrintCSS();
+}
+/* put the red maple leaf on the apostrophe of the drawn logo */
+function placeLeaf(){
+  const o=$('#poster .oval'),a=$('#poster .apos'),t=$('#poster .lt'),l=$('#poster .leaf');if(!o||!a||!l||!t)return;
+  const w=S.header.logoW,fs=w*.28;
+  const or=o.getBoundingClientRect(),ar=a.getBoundingClientRect(),tr=t.getBoundingClientRect(),sc=view.s||1;
+  const cx=(ar.left+ar.width/2-or.left)/sc, top=(tr.top-or.top)/sc;
+  l.style.left=(cx-w*.0425)+'px';l.style.top=(top+fs*.04)+'px';
+}
+/* shrink any header text that would overflow the poster (display only – your sizes stay as set) */
+function fitText(){
+  const max=DW-2*S.grid.side;
+  $$('#poster .fit').forEach(el=>{
+    const base=parseFloat(el.style.fontSize);let s=base;el.style.fontSize=base+'px';
+    let n=0;while(el.scrollWidth>max+1&&s>20&&n++<80){s*=.97;el.style.fontSize=s+'px'}
+  });
+}
+/* optional: shrink card text so it always fits inside its card (display only) */
+function fitCards(){
+  if(!S.grid.autoShrink)return;
+  $$('#poster .card').forEach(card=>{
+    const txt=$('.txt',card),icn=$('.icn',card),h=$('h3',card),p=$('p',card);if(!txt)return;
+    const cs=getComputedStyle(card),pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom),gap=parseFloat(cs.rowGap)||0;
+    const stack=S.grid.layout==='stack',avail=card.clientHeight-pad-(cs.borderBottomWidth?parseFloat(cs.borderBottomWidth)*2:0);
+    const need=()=>txt.offsetHeight+(stack&&icn?icn.offsetHeight+gap:0);
+    let f=1,n=0;const h0=parseFloat(h.style.fontSize),p0=parseFloat(p.style.fontSize);
+    while(need()>avail&&f>.45&&n++<40){f*=.96;h.style.fontSize=h0*f+'px';p.style.fontSize=p0*f+'px'}
+  });
+}
+function fitView(){
+  const b=bleedPx(),tw=DW+2*b,th=DH()+2*b,W=$('#work'),pad=40;
+  let s=view.zoom==='fit'?Math.min((W.clientWidth-pad*2)/tw,(W.clientHeight-pad*2)/th):view.zoom;
+  s=clamp(s||.1,.05,3);view.s=s;
+  const wrap=$('#stageWrap');wrap.style.width=tw*s+'px';wrap.style.height=th*s+'px';wrap.style.margin=pad+'px auto';
+  $('#stage').style.cssText=`width:${tw}px;height:${th}px;transform:scale(${s});transform-origin:0 0`;
+  $('#zoomLbl').textContent=Math.round(s*100)+'%';
+}
+function updatePrintCSS(){
+  const b=bleedPx(),tw=DW+2*b,wIn=S.canvas.wIn+2*S.canvas.bleed,hIn=S.canvas.hIn+2*S.canvas.bleed,k=wIn*96/tw;
+  $('#printCSS').textContent=`@page{size:${wIn}in ${hIn}in;margin:0}@media print{html,body{height:auto!important;overflow:visible!important;background:#fff!important}#app{display:block!important;height:auto!important}#top,#side,#toast,#exporting{display:none!important}#work{overflow:visible!important;background:none!important;height:auto!important}#stageWrap{width:${wIn}in!important;height:${hIn}in!important;margin:0!important;box-shadow:none!important}#stage{transform:scale(${k})!important}#poster .is-sel{outline:none!important}#poster .ed{box-shadow:none!important}.rh,.guides{display:none!important}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}`;
+}
+function applySel(){
+  $$('#poster .is-sel').forEach(e=>e.classList.remove('is-sel'));
+  if(!sel)return;
+  let el=null;
+  if(sel.t==='card')el=$(`#poster [data-sel="card:${sel.i}"]`);
+  else if(sel.t==='header')el=$('#poster .hdr');
+  else if(sel.t==='layer')el=$(`#poster .layer[data-layer="${sel.id}"]`);
+  if(el)el.classList.add('is-sel');
+}
+
+/* =====================================================================
+   SIDEBAR
+   ===================================================================== */
+const F_=(l,h)=>`<label class="f"><span>${l}</span>${h}</label>`;
+const tx=(l,p,ph='')=>F_(l,`<input type="text" data-k="${p}" data-t="s" value="${esc(get(p))}" placeholder="${esc(ph)}">`);
+const ta=(l,p)=>F_(l,`<textarea data-k="${p}" data-t="s">${esc(get(p))}</textarea>`);
+const nm=(l,p,mn,mx,st=1)=>{const v=get(p);return `<div class="num"><span>${l}</span><input type="range" data-k="${p}" data-t="n" min="${mn}" max="${mx}" step="${st}" value="${v}"><input type="number" data-k="${p}" data-t="n" step="${st}" value="${v}"></div>`};
+const cl=(l,p)=>`<div class="col"><span>${l}</span><div><input type="color" data-k="${p}" data-t="c" value="${get(p)}"><input type="text" class="hex" data-k="${p}" data-t="c" value="${get(p)}" maxlength="7"></div></div>`;
+const sl=(l,p,opts,t='s')=>F_(l,`<select data-k="${p}" data-t="${t}">${opts.map(o=>{const[v,n]=Array.isArray(o)?o:[o,o];return `<option value="${esc(v)}"${String(get(p))===String(v)?' selected':''}>${esc(n)}</option>`}).join('')}</select>`);
+const ck=(l,p)=>`<label class="chk"><input type="checkbox" data-k="${p}" data-t="b"${get(p)?' checked':''}>${l}</label>`;
+const det=(t,body,open=false)=>`<details${open?' open':''}><summary>${t}</summary><div class="body">${body}</div></details>`;
+const W_OPTS=[[400,'Regular 400'],[500,'Medium 500'],[600,'Semibold 600'],[700,'Bold 700'],[800,'Extrabold 800'],[900,'Black 900']];
+
+function tabContent(){
+  const h='header';
+  let s=det('Header',`
+    ${ck('Show logo','header.showLogo')}
+    <div class="btns"><button class="btn sm" data-act="logo-up">Upload logo</button><button class="btn sm" data-act="logo-clear"${S.header.logoSrc?'':' disabled'}>Use built-in logo</button></div>
+    ${nm('Logo width','header.logoW',150,1400,10)}${nm('Logo top gap','header.logoTop',0,500,2)}
+    ${sl('Alignment','header.align',[['left','Left'],['center','Center'],['right','Right']])}
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    ${ck('Show tagline','header.showTag')}${tx('Tagline','header.tagline')}${nm('Size','header.tagSize',16,160)}${nm('Gap above','header.tagGap',-40,200)}
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    ${ck('Show big text','header.showBig')}${tx('Big text','header.big')}${nm('Size','header.bigSize',100,1000,10)}${nm('Gap above','header.bigGap',-200,300)}${nm('Letter spacing','header.bigSpacing',-0.1,0.2,0.005)}
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    ${ck('Show headline','header.showHl')}${tx('Line 1','header.line1')}${tx('Line 2','header.line2')}${nm('Size','header.hlSize',30,400,2)}${nm('Gap above','header.hlGap',-100,300)}${nm('Line height','header.hlLine',.6,1.6,.02)}${ck('UPPERCASE','header.hlUpper')}
+  `,openCard<0||(sel&&sel.t==='header'));
+  s+=`<div class="lbl" style="margin:14px 2px 8px;display:flex;align-items:center;justify-content:space-between"><span>INITIATIVES (${S.cards.length})</span><button class="btn sm pri" data-act="card-add">+ Add</button></div>`;
+  S.cards.forEach((c,i)=>{
+    const on=openCard===i;
+    s+=`<div class="item${on?' on':''}${c.visible===false?' off':''}" data-i="${i}" draggable="true">
+      <div class="ih" data-act="card-open" data-i="${i}"><span class="grip" title="Drag to reorder">⋮⋮</span><span class="n">${i+1}</span><span class="t">${esc(c.title)||'(untitled)'}</span>
+        <button class="btn ib" data-act="card-up" data-i="${i}" title="Move up">↑</button><button class="btn ib" data-act="card-down" data-i="${i}" title="Move down">↓</button>
+        <button class="btn ib" data-act="card-vis" data-i="${i}" title="Show / hide">${c.visible===false?'Show':'Hide'}</button>
+      </div>
+      ${on?`<div class="ibody">${tx('Title',`cards.${i}.title`)}${ta('Description',`cards.${i}.desc`)}
+        <div class="lbl">Icon</div><div class="icons">${Object.keys(ICONS).map(n=>`<button data-act="card-icon" data-i="${i}" data-v="${n}" class="${c.icon===n?'on':''}" title="${n}">${n==='none'?'<span style="font-size:11px">none</span>':iconSVG(n,'#000'==='#000'&&c.icon===n?'#000':'#cfcfcf',100)}</button>`).join('')}</div>
+        <div class="btns"><button class="btn sm" data-act="card-dup" data-i="${i}">Duplicate</button><button class="btn sm danger" data-act="card-del" data-i="${i}">Delete</button></div></div>`:''}
+    </div>`;
+  });
+  return s;
+}
+function tabStyle(){
+  const presets=Object.entries(PRESETS).map(([k,p])=>`<button class="pre" data-act="preset" data-v="${k}"><div class="sw"><b style="background:${p.t.bg}"></b><b style="background:${p.t.dome}"></b><b style="background:${p.t.cardBg}"></b><b style="background:${p.t.accent}"></b></div><span>${p.label}</span></button>`).join('');
+  const T='theme.';
+  return det('Colour themes',`<div class="presets">${presets}</div><div class="hint">Presets only change colours – your text and layout stay.</div>`,true)
+   +det('Colours',`<div class="colors">${cl('Poster background',T+'bg')}${cl('Dome / curve',T+'dome')}${cl('Accent',T+'accent')}${cl('Big text',T+'big')}${cl('Headline',T+'hl')}${cl('Tagline',T+'tag')}</div>
+      <div class="lbl" style="margin-top:4px">Initiative cards</div>
+      <div class="colors">${cl('Card',T+'cardBg')}${cl('Card title',T+'cardTitle')}${cl('Card text',T+'cardDesc')}${cl('Number badge',T+'badgeBg')}${cl('Badge text',T+'badgeText')}${cl('Icon circle',T+'iconBg')}${cl('Icon colour',T+'iconFg')}</div>`)
+   +det('Typography',`
+      ${sl('Font family','fonts.family',allFontNames())}
+      <div class="two">${F_('Or type any installed font',`<input type="text" id="fontFree" placeholder="e.g. Gotham">`)}<div class="f"><span>&nbsp;</span><button class="btn" data-act="font-use">Use</button></div></div>
+      <div class="btns"><button class="btn sm" data-act="font-up">Upload font file (.otf/.ttf/.woff)</button></div>
+      <div class="hint">Tip: Proxima Soft works if it is installed on this computer. Upload the font file to embed it in your saved project.</div>
+      <div class="two">${sl('Heading weight','fonts.headW',W_OPTS,'n')}${sl('Body weight','fonts.bodyW',W_OPTS,'n')}</div>
+      ${nm('Card title size','grid.titleSize',20,140)}${nm('Card text size','grid.descSize',14,90)}`)
+   +det('Cards',`
+      ${sl('Card style','grid.style',[['solid','Solid'],['outline','Outline'],['minimal','Minimal (line)']])}
+      ${ck('Checkerboard (alternate colours)','grid.alt')}${ck('Drop shadow (solid)','grid.shadow')}
+      ${ck('Auto-shrink card text to fit','grid.autoShrink')}
+      ${sl('Content layout','grid.layout',[['row','Icon left of text'],['stack','Icon above text']])}
+      ${nm('Corner radius','grid.radius',0,160)}
+      <div class="two">${sl('Number badge','grid.badge',[['oval','Oval'],['circle','Circle'],['pill','Pill'],['none','None']])}${sl('Icon shape','grid.iconShape',[['circle','Circle'],['rounded','Rounded'],['none','No background']])}</div>
+      ${nm('Icon size','grid.iconSize',60,360,2)}${nm('Badge starts at','grid.badgeStart',0,50)}${ck('Two-digit numbers (01, 02…)','grid.badgePad')}`);
+}
+function tabLayout(){
+  const cur=CANVASES.findIndex(c=>c[1]===S.canvas.wIn&&c[2]===S.canvas.hIn);
+  return det('Canvas',`
+      <label class="f"><span>Size preset</span><select id="canvasPre"><option value="-1"${cur<0?' selected':''}>Custom</option>${CANVASES.map((c,i)=>`<option value="${i}"${cur===i?' selected':''}>${c[0]}</option>`).join('')}</select></label>
+      <div class="two">${F_('Width (in)',`<input type="number" step="0.25" min="2" data-k="canvas.wIn" data-t="n" value="${S.canvas.wIn}">`)}${F_('Height (in)',`<input type="number" step="0.25" min="2" data-k="canvas.hIn" data-t="n" value="${S.canvas.hIn}">`)}</div>
+      ${nm('Bleed (in)','canvas.bleed',0,1,0.0625)}
+      ${ck('Re-space dome & grid when height changes','canvas.autoFit')}
+      <div class="hint">Bleed adds extra margin on every side for print (typically 0.125 in). Turn on “Show trim & safe guides” under File to see it.</div>`,true)
+   +det('Dome / curve',`
+      ${ck('Show dome','dome.show')}
+      <div class="two">${sl('Shape','dome.shape',[['ellipse','Curved'],['flat','Flat']])}${sl('Direction','dome.dir',[['up','Rises from bottom'],['down','Hangs from top']])}</div>
+      ${nm('Edge position (px)','dome.top',0,5000,5)}${nm('Curve width','dome.rx',400,6000,20)}${nm('Curve depth','dome.ry',100,4000,10)}`)
+   +det('Initiative grid',`
+      ${sl('Columns','grid.cols',[[1,'1 column'],[2,'2 columns'],[3,'3 columns'],[4,'4 columns']],'n')}
+      ${nm('Top (px)','grid.top',0,5000,5)}${nm('Bottom margin','grid.bottom',0,800,2)}${nm('Side margin','grid.side',0,500,2)}
+      ${nm('Horizontal gap','grid.gapX',0,200)}${nm('Vertical gap','grid.gapY',0,200)}`);
+}
+function tabLayers(){
+  let s=`<div class="btns" style="margin-bottom:10px"><button class="btn sm pri" data-act="layer-text">+ Text</button><button class="btn sm pri" data-act="layer-img">+ Image</button><button class="btn sm pri" data-act="layer-shape">+ Shape</button></div>
+  <div class="hint" style="margin-bottom:10px">Layers float on top of the poster. Drag to move, drag the blue dot to resize, double-click text to edit. Arrow keys nudge (hold Shift for 10 px).</div>`;
+  if(!S.layers.length)s+='<div class="hint">No extra layers yet – add a footer note, a sticker, a photo, a banner…</div>';
+  S.layers.forEach((L,k)=>{
+    const on=sel&&sel.t==='layer'&&sel.id===L.id;
+    const name=L.type==='text'?(L.text||'Text').split('\n')[0].slice(0,26):L.type==='image'?'Image':L.shape==='ellipse'?'Ellipse':'Rectangle';
+    s+=`<div class="item${on?' on':''}${L.hidden?' off':''}"><div class="ih" data-act="layer-open" data-id="${L.id}"><span class="n">${k+1}</span><span class="t">${esc(name)} <span class="hint">(${L.type})</span></span>
+      <button class="btn ib" data-act="layer-up" data-id="${L.id}" title="Bring forward">↑</button><button class="btn ib" data-act="layer-down" data-id="${L.id}" title="Send back">↓</button>
+      <button class="btn ib" data-act="layer-vis" data-id="${L.id}">${L.hidden?'Show':'Hide'}</button></div>`;
+    if(on){
+      const p=`layers.${k}.`;
+      s+=`<div class="ibody">`;
+      if(L.type==='text')s+=`${ta('Text',p+'text')}${nm('Size',p+'size',10,600)}<div class="two">${sl('Weight',p+'weight',W_OPTS,'n')}${sl('Align',p+'align',[['left','Left'],['center','Center'],['right','Right']])}</div>${cl('Colour',p+'color')}${nm('Letter spacing',p+'ls',-0.1,0.5,0.01)}${nm('Line height',p+'lh',.6,2.2,.02)}${ck('UPPERCASE',p+'upper')}`;
+      if(L.type==='shape')s+=`${sl('Shape',p+'shape',[['rect','Rectangle'],['pill','Pill'],['ellipse','Ellipse']])}${cl('Fill',p+'fill')}${cl('Outline colour',p+'stroke')}${nm('Outline width',p+'strokeW',0,60)}${nm('Corner radius',p+'radius',0,300)}${nm('Height',p+'h',10,3000,2)}`;
+      if(L.type==='image')s+=`<div class="btns"><button class="btn sm" data-act="layer-swap" data-id="${L.id}">Replace image</button></div>${nm('Corner radius',p+'radius',0,600)}`;
+      s+=`${nm('X',p+'x',-1000,3500)}${nm('Y',p+'y',-1000,4500)}${nm('Width',p+'w',20,3000,2)}${nm('Rotation',p+'rot',-180,180)}${nm('Opacity',p+'opacity',0,1,0.05)}${ck('Place behind the cards & header',p+'behind')}
+        <div class="btns"><button class="btn sm" data-act="layer-dup" data-id="${L.id}">Duplicate</button><button class="btn sm danger" data-act="layer-del" data-id="${L.id}">Delete</button></div></div>`;
+    }
+    s+='</div>';
+  });
+  return s;
+}
+function tabFile(){
+  const wIn=S.canvas.wIn+2*S.canvas.bleed;
+  return det('Export image',`
+      <div class="f"><span>Output width (pixels)</span><input type="number" id="outW" min="300" max="9000" value="${Math.round(wIn*150)}"></div>
+      <div class="btns"><button class="btn sm" data-act="out" data-v="${Math.round(wIn*72)}">Screen 72 dpi</button><button class="btn sm" data-act="out" data-v="${Math.round(wIn*150)}">Print 150 dpi</button><button class="btn sm" data-act="out" data-v="${Math.round(wIn*200)}">200 dpi</button></div>
+      <div class="btns"><button class="btn pri" data-act="export-png">Download PNG</button><button class="btn" data-act="export-pdf">Print / Save as PDF</button></div>
+      <div class="hint">PNG at 150 dpi for 22 × 28 in is 3300 × 4200 px. For the sharpest print use <b>Print / Save as PDF</b> (vector text) – choose “Save as PDF”, margins “None”, and turn on background graphics.</div>`,true)
+   +det('View',`${ck('Show trim & safe guides (red = trim, green = 0.5 in safe)','__guides')}`,true)
+   +det('Project file',`
+      <div class="btns"><button class="btn" data-act="json-save">Save project (.json)</button><button class="btn" data-act="json-open">Open project…</button></div>
+      <div class="hint">Your work also autosaves in this browser. The .json file includes your images and uploaded fonts, so you can move it between computers.</div>
+      <div class="btns"><button class="btn danger" data-act="reset">Reset to Leon’s default</button></div>`,true)
+   +det('Shortcuts',`<div class="hint"><span class="kbd">Ctrl</span>+<span class="kbd">Z</span> undo · <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">Z</span> redo<br>Click any text on the poster to edit it directly.<br>Click a card or the header to jump to its settings.</div>`);
+}
+const OPEN={};   /* remembers which sections you opened/closed, per tab */
+function renderSidebar(){
+  const p=$('#panel'),st=p.scrollTop;
+  p.innerHTML={content:tabContent,style:tabStyle,layout:tabLayout,layers:tabLayers,export:tabFile}[tab]();
+  $$('#panel > details').forEach(d=>{const k=tab+':'+d.querySelector('summary').textContent.trim();if(k in OPEN)d.open=OPEN[k];d.dataset.k0=k});
+  p.scrollTop=st;
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  $('#pname').value=S.name;
+  const g=$('input[data-k="__guides"]');if(g)g.checked=guides;
+}
+function fullRender(){loadCustomFonts();renderSidebar();renderPoster();updUndo()}
+function change(){renderPoster();commitSoon();saveSoon()}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+const panel=$('#panel');
+panel.addEventListener('input',e=>{
+  const el=e.target,k=el.dataset&&el.dataset.k;
+  if(el.id==='fontFree'||el.id==='canvasPre'||el.id==='outW'||!k)return;
+  if(k==='__guides'){guides=el.checked;renderPoster();return}
+  let v;
+  switch(el.dataset.t){
+    case 'n':v=parseFloat(el.value);if(!isFinite(v))return;break;
+    case 'b':v=el.checked;break;
+    case 'c':if(!/^#[0-9a-f]{6}$/i.test(el.value))return;v=el.value.toUpperCase();break;
+    default:v=el.value;
+  }
+  const old=get(k);
+  set(k,v);
+  $$(`#panel [data-k="${k}"]`).forEach(o=>{if(o!==el&&o.type!=='checkbox')o.value=v});
+  if(k==='canvas.wIn'||k==='canvas.hIn')autoFit(k,old);
+  change();
+  if(/^cards\.\d+\.title$/.test(k)||/^layers\.\d+\.text$/.test(k)){const i=k.split('.')[1];const it=(k.startsWith('cards')?$$('#panel .item')[i]:null);if(it){const t=$('.t',it);if(t)t.textContent=v||'(untitled)'}}
+  if(k==='fonts.family')loadCustomFonts();
+});
+panel.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='canvasPre'){const c=CANVASES[+el.value];if(!c)return;const old=S.canvas.hIn/S.canvas.wIn;S.canvas.wIn=c[1];S.canvas.hIn=c[2];autoFit('canvas.hIn',null,old);change();renderSidebar()}
+  if(el.dataset&&(el.dataset.k==='canvas.wIn'||el.dataset.k==='canvas.hIn'))renderSidebar();
+  if(el.dataset&&(el.dataset.k==='grid.cols'))renderSidebar();
+});
+function autoFit(k,old,oldRatio){
+  if(!S.canvas.autoFit)return;
+  const prev=oldRatio!==undefined?oldRatio:(k==='canvas.hIn'?old/S.canvas.wIn:S.canvas.hIn/old);
+  const now=S.canvas.hIn/S.canvas.wIn;if(!prev||!isFinite(prev)||prev===now)return;
+  const f=now/prev;
+  S.dome.top=Math.round(S.dome.top*f);S.grid.top=Math.round(S.grid.top*f);
+  S.grid.bottom=Math.round(S.grid.bottom*f);
+}
+
+panel.addEventListener('toggle',e=>{const d=e.target;if(d.tagName==='DETAILS'&&d.dataset.k0)OPEN[d.dataset.k0]=d.open},true);
+/* click actions (sidebar + top bar) */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act],[data-tab]');if(!t)return;
+  if(t.dataset.tab){tab=t.dataset.tab;renderSidebar();return}
+  const a=t.dataset.act,i=+t.dataset.i,id=t.dataset.id,v=t.dataset.v;
+  e.stopPropagation&&0;
+  const rebuild=()=>{renderSidebar();change()};
+  switch(a){
+    case 'undo':undo();break; case 'redo':redo();break;
+    case 'zoom-fit':view.zoom='fit';fitView();placeLeaf();break;
+    case 'zoom-in':view.zoom=clamp((view.s||1)*1.25,.05,3);fitView();placeLeaf();break;
+    case 'zoom-out':view.zoom=clamp((view.s||1)/1.25,.05,3);fitView();placeLeaf();break;
+    case 'export-png':exportPNG();break;
+    case 'export-pdf':window.print();break;
+    case 'out':$('#outW').value=v;break;
+    /* initiatives */
+    case 'card-open':if(e.target.closest('button'))break;openCard=openCard===i?-2:i;sel={t:'card',i};renderSidebar();applySel();break;
+    case 'card-add':S.cards.push({id:uid(),title:'New initiative',desc:'Describe this initiative in a sentence.',icon:'star',visible:true});openCard=S.cards.length-1;sel={t:'card',i:openCard};rebuild();break;
+    case 'card-del':S.cards.splice(i,1);openCard=-2;sel=null;rebuild();break;
+    case 'card-dup':S.cards.splice(i+1,0,{...S.cards[i],id:uid()});openCard=i+1;rebuild();break;
+    case 'card-up':if(i>0){[S.cards[i-1],S.cards[i]]=[S.cards[i],S.cards[i-1]];openCard=i-1;sel={t:'card',i:i-1};rebuild()}break;
+    case 'card-down':if(i<S.cards.length-1){[S.cards[i+1],S.cards[i]]=[S.cards[i],S.cards[i+1]];openCard=i+1;sel={t:'card',i:i+1};rebuild()}break;
+    case 'card-vis':S.cards[i].visible=S.cards[i].visible===false;rebuild();break;
+    case 'card-icon':S.cards[i].icon=v;rebuild();break;
+    /* logo */
+    case 'logo-up':pickImage(ref=>{S.header.logoSrc=ref;S.header.showLogo=true;rebuild()});break;
+    case 'logo-clear':S.header.logoSrc='';rebuild();break;
+    /* themes */
+    case 'preset':{const p=PRESETS[v];Object.assign(S.theme,p.t);S.grid.alt=p.alt;rebuild();break}
+    /* fonts */
+    case 'font-use':{const f=($('#fontFree').value||'').trim();if(f){S.fonts.family=f;rebuild()}break}
+    case 'font-up':$('#fileFont').click();break;
+    /* layers */
+    case 'layer-text':addLayer({type:'text',text:'Your text here',x:300,y:400,w:900,size:90,weight:900,color:'#FFFFFF',align:'left',ls:0,lh:1.1,upper:false});break;
+    case 'layer-shape':addLayer({type:'shape',shape:'rect',x:300,y:400,w:600,h:200,fill:'#FBD90C',stroke:'#000000',strokeW:0,radius:40});break;
+    case 'layer-img':pickImage(ref=>{const im=new Image();im.onload=()=>{const w=Math.min(800,im.naturalWidth);addLayer({type:'image',src:ref,x:300,y:400,w,radius:0})};im.src=src(ref)},{layer:true});break;
+    case 'layer-open':{if(e.target.closest('button'))break;sel=sel&&sel.id===id?null:{t:'layer',id};renderSidebar();applySel();break}
+    case 'layer-del':S.layers=S.layers.filter(l=>l.id!==id);sel=null;rebuild();break;
+    case 'layer-dup':{const L=S.layers.find(l=>l.id===id),n={...L,id:uid(),x:L.x+40,y:L.y+40};S.layers.push(n);sel={t:'layer',id:n.id};rebuild();break}
+    case 'layer-vis':{const L=S.layers.find(l=>l.id===id);L.hidden=!L.hidden;rebuild();break}
+    case 'layer-up':{const k=S.layers.findIndex(l=>l.id===id);if(k<S.layers.length-1){[S.layers[k],S.layers[k+1]]=[S.layers[k+1],S.layers[k]];rebuild()}break}
+    case 'layer-down':{const k=S.layers.findIndex(l=>l.id===id);if(k>0){[S.layers[k],S.layers[k-1]]=[S.layers[k-1],S.layers[k]];rebuild()}break}
+    case 'layer-swap':pickImage(ref=>{S.layers.find(l=>l.id===id).src=ref;rebuild()});break;
+    /* file */
+    case 'json-save':saveJSON();break;
+    case 'json-open':$('#fileJson').click();break;
+    case 'reset':if(confirm('Reset everything to the original Leon’s poster? (You can undo with Ctrl+Z.)')){S=defaults();sel=null;openCard=0;fullRender();commit();saveSoon()}break;
+  }
+});
+function addLayer(o){const L={id:uid(),rot:0,opacity:1,behind:false,...o};S.layers.push(L);sel={t:'layer',id:L.id};tab='layers';renderSidebar();change()}
+
+/* image / font / json pickers */
+let imgCb=null;
+function pickImage(cb){imgCb=cb;const f=$('#fileImg');f.value='';f.click()}
+$('#fileImg').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f||!imgCb)return;
+  try{const ref=await fileToAsset(f);imgCb(ref)}catch(err){toast('Could not read that image')}
+});
+function readURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)})}
+async function fileToAsset(f){
+  let url=await readURL(f);
+  if(f.type!=='image/svg+xml'){
+    const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const max=2800;
+    if(Math.max(im.naturalWidth,im.naturalHeight)>max){
+      const k=max/Math.max(im.naturalWidth,im.naturalHeight),c=document.createElement('canvas');
+      c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      url=c.toDataURL(f.type==='image/jpeg'?'image/jpeg':'image/png',.92);
+    }
+  }
+  const id=uid();ASSETS[id]=url;return 'asset:'+id;
+}
+$('#fileFont').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const url=await readURL(f),id=uid();ASSETS[id]=url;
+  const name=f.name.replace(/\.[^.]+$/,'').replace(/[^\w\- ]+/g,' ').trim()||'Custom font';
+  S.fonts.custom.push({name,asset:id});S.fonts.family=name;
+  loadCustomFonts();renderSidebar();change();toast('Font added: '+name);e.target.value='';
+});
+function saveJSON(){
+  const blob=new Blob([JSON.stringify({app:'poster-studio',state:S,assets:ASSETS})],{type:'application/json'});
+  dl(blob,slug()+'.json');
+}
+$('#fileJson').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());if(!j.state)throw 0;S=merge(defaults(),j.state);S.cards=j.state.cards||S.cards;S.layers=j.state.layers||[];S.fonts.custom=(j.state.fonts&&j.state.fonts.custom)||[];ASSETS=j.assets||{};loadedFonts=new Set();sel=null;openCard=0;fullRender();commit();saveSoon();toast('Project opened')}
+  catch(err){toast('That file is not a Poster Studio project')}
+  e.target.value='';
+});
+const slug=()=>(S.name||'poster').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'poster';
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+$('#pname').addEventListener('input',e=>{S.name=e.target.value;commitSoon();saveSoon()});
+
+/* drag-to-reorder initiatives in the sidebar */
+panel.addEventListener('dragstart',e=>{const it=e.target.closest('.item[data-i]');if(!it)return;dragFrom=+it.dataset.i;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(dragFrom))}catch(_){}});
+panel.addEventListener('dragover',e=>{const it=e.target.closest('.item[data-i]');if(!it||dragFrom==null)return;e.preventDefault();$$('#panel .dragover').forEach(x=>x.classList.remove('dragover'));it.classList.add('dragover')});
+panel.addEventListener('dragleave',e=>{const it=e.target.closest('.item[data-i]');if(it)it.classList.remove('dragover')});
+panel.addEventListener('drop',e=>{const it=e.target.closest('.item[data-i]');if(!it||dragFrom==null)return;e.preventDefault();const to=+it.dataset.i;if(to!==dragFrom){const [m]=S.cards.splice(dragFrom,1);S.cards.splice(to,0,m);openCard=to;sel={t:'card',i:to};renderSidebar();change()}dragFrom=null});
+panel.addEventListener('dragend',()=>{dragFrom=null;$$('#panel .dragover').forEach(x=>x.classList.remove('dragover'))});
+
+/* ---------- poster: inline text editing, selection, layer drag/resize ---------- */
+const poster=$('#poster');
+poster.addEventListener('input',e=>{
+  const el=e.target.closest('[data-bind]');if(!el)return;
+  const path=el.dataset.bind,val=el.dataset.multi?el.innerText.replace(/\n$/,''):el.textContent;
+  set(path,val);
+  $$(`#panel [data-k="${path}"]`).forEach(o=>{if(o!==document.activeElement)o.value=val});
+  if(/^cards\.\d+\.title$/.test(path)){const it=$$('#panel .item')[path.split('.')[1]];const t=it&&$('.t',it);if(t)t.textContent=val||'(untitled)'}
+  fitText();if(/^cards\./.test(path)){const c=el.closest('.card');if(c){const h=$('h3',c),p=$('p',c);h.style.fontSize=S.grid.titleSize+'px';p.style.fontSize=S.grid.descSize+'px'}fitCards()}commitSoon();saveSoon();
+});
+poster.addEventListener('keydown',e=>{
+  const el=e.target.closest('[data-bind]');if(!el)return;
+  if(e.key==='Enter'&&!el.dataset.multi){e.preventDefault();el.blur()}
+  if(e.key==='Escape')el.blur();
+  e.stopPropagation();
+});
+poster.addEventListener('paste',e=>{const el=e.target.closest('[data-bind]');if(!el)return;e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text/plain'))});
+poster.addEventListener('focusin',e=>{
+  const s=e.target.closest('[data-sel]');if(s)selectFrom(s.dataset.sel,false);
+});
+poster.addEventListener('dblclick',e=>{
+  const ed=e.target.closest('.layer .ed');if(!ed)return;
+  ed.setAttribute('contenteditable','true');ed.focus();
+  const r=document.createRange();r.selectNodeContents(ed);const s=getSelection();s.removeAllRanges();s.addRange(r);
+  ed.addEventListener('blur',()=>ed.removeAttribute('contenteditable'),{once:true});
+});
+function selectFrom(v,render=true){
+  const [t,x]=v.split(':');
+  if(t==='card'){sel={t:'card',i:+x};openCard=+x;tab='content'}
+  else if(t==='header'){sel={t:'header'};tab='content';openCard=-1}
+  else if(t==='layer'){sel={t:'layer',id:x};tab='layers'}
+  renderSidebar();applySel();
+  if(t==='card'){const it=$$('#panel .item')[+x];if(it)it.scrollIntoView({block:'nearest'})}
+}
+let drag=null;
+poster.addEventListener('pointerdown',e=>{
+  const lay=e.target.closest('.layer');
+  if(lay&&!(e.target.closest('.ed')&&e.target.closest('.ed').isContentEditable)){
+    selectFrom('layer:'+lay.dataset.layer);
+    const L=S.layers.find(l=>l.id===lay.dataset.layer);if(!L)return;
+    drag={mode:e.target.closest('.rh')?'resize':'move',id:L.id,x:e.clientX,y:e.clientY,lx:L.x,ly:L.y,lw:L.w,lh:L.h,el:lay};
+    e.preventDefault();return;
+  }
+  const s=e.target.closest('[data-sel]');
+  if(s){if(!e.target.closest('.ed'))selectFrom(s.dataset.sel)}
+  else if(!e.target.closest('.ed')){sel=null;applySel();renderSidebar()}
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag)return;const L=S.layers.find(l=>l.id===drag.id);if(!L)return;
+  const k=view.s||1,dx=(e.clientX-drag.x)/k,dy=(e.clientY-drag.y)/k;
+  if(drag.mode==='move'){L.x=Math.round(drag.lx+dx);L.y=Math.round(drag.ly+dy);drag.el.style.left=L.x+'px';drag.el.style.top=L.y+'px'}
+  else{L.w=Math.max(20,Math.round(drag.lw+dx));drag.el.style.width=L.w+'px';if(L.type==='shape'){L.h=Math.max(10,Math.round(drag.lh+dy));drag.el.style.height=L.h+'px'}}
+});
+window.addEventListener('pointerup',()=>{
+  if(!drag)return;const L=S.layers.find(l=>l.id===drag.id);drag=null;
+  if(L){['x','y','w','h'].forEach(p=>$$(`#panel [data-k="layers.${S.layers.indexOf(L)}.${p}"]`).forEach(o=>o.value=L[p]));commitSoon();saveSoon()}
+});
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey,typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)||document.activeElement.isContentEditable;
+  if(mod&&e.key.toLowerCase()==='z'&&!typing){e.preventDefault();e.shiftKey?redo():undo();return}
+  if(mod&&e.key.toLowerCase()==='y'&&!typing){e.preventDefault();redo();return}
+  if(typing||!sel||sel.t!=='layer')return;
+  const L=S.layers.find(l=>l.id===sel.id);if(!L)return;
+  const st=e.shiftKey?10:1;let used=true;
+  if(e.key==='ArrowLeft')L.x-=st;else if(e.key==='ArrowRight')L.x+=st;else if(e.key==='ArrowUp')L.y-=st;else if(e.key==='ArrowDown')L.y+=st;
+  else if(e.key==='Delete'||e.key==='Backspace'){S.layers=S.layers.filter(l=>l.id!==L.id);sel=null;renderSidebar()}
+  else used=false;
+  if(used){e.preventDefault();change()}
+});
+window.addEventListener('resize',()=>{fitView();placeLeaf()});
+if(window.ResizeObserver)new ResizeObserver(()=>{if(view.zoom==='fit'){fitView();placeLeaf()}}).observe($('#work'));
+document.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!e.target.closest('#work'))return;e.preventDefault();view.zoom=clamp((view.s||1)*(e.deltaY<0?1.1:1/1.1),.05,3);fitView();placeLeaf()},{passive:false});
+
+/* =====================================================================
+   PNG EXPORT  (renders an off-screen, un-scaled copy so the result is exact)
+   ===================================================================== */
+async function exportPNG(){
+  if(!window.html2canvas){toast('PNG engine still loading – try again in a second');return}
+  const ov=$('#exporting');ov.classList.add('on');
+  await new Promise(r=>setTimeout(r,60));
+  const b=bleedPx(),tw=DW+2*b,th=DH()+2*b;
+  const wIn=S.canvas.wIn+2*S.canvas.bleed;
+  let outW=parseInt(($('#outW')||{}).value)||Math.round(wIn*150);outW=clamp(outW,300,9000);
+  const host=document.createElement('div');
+  host.style.cssText=`position:fixed;left:0;top:0;width:${tw}px;height:${th}px;z-index:-1;pointer-events:none`;
+  const clone=poster.cloneNode(true);
+  clone.removeAttribute('id');clone.style.cssText=poster.style.cssText+`;position:absolute;left:0;top:0;width:${tw}px;height:${th}px`;
+  $$('.is-sel',clone).forEach(x=>x.classList.remove('is-sel'));
+  $$('.guides,.rh',clone).forEach(x=>x.remove());
+  $$('.ed',clone).forEach(x=>{x.removeAttribute('contenteditable');x.style.boxShadow='none'});
+  host.appendChild(clone);document.body.appendChild(host);
+  try{
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const cv=await html2canvas(clone,{scale:outW/tw,backgroundColor:null,useCORS:true,logging:false,width:tw,height:th,windowWidth:tw,windowHeight:th,scrollX:0,scrollY:0});
+    await new Promise(res=>cv.toBlob(bl=>{dl(bl,`${slug()}-${cv.width}x${cv.height}.png`);res()},'image/png'));
+    toast(`PNG saved (${cv.width} × ${cv.height} px)`);
+  }catch(err){console.error(err);toast('Export failed – try a smaller output width')}
+  finally{host.remove();ov.classList.remove('on')}
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+load();
+commit();
+fullRender();
+$('#saved').textContent='Saved';
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{renderPoster()});
+window.__studio={get S(){return S},get sel(){return sel},exportPNG,undo,redo,commit};
+})();
+</script>
+</body>
+</html>
