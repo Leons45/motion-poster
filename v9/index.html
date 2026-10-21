@@ -1238,7 +1238,8 @@ function bottomArc(c,W,H,topY,fill,t,at){
 }
 function madeInCanada(c,x,y,s,t,at){
   const p=eBack(prog(t,at,.5));if(p<=0)return;
-  c.save();c.translate(x,y);c.scale(p,p);brandBadge(c,BRAND.canada,0,0,s*7);c.restore();
+  const img=BRAND.canada,w=s*7,r=(img&&img.naturalWidth)?img.naturalHeight/img.naturalWidth:.391,h=w*r;
+  objDraw(c,'obj:Canada',x-w/2,y-h/2,w,h,()=>{c.save();c.translate(x,y);c.scale(p,p);brandBadge(c,img,0,0,w);c.restore()});
 }
 const T_LEONS=[
 {id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
@@ -1320,7 +1321,10 @@ const T_LEONS=[
   pop(c,W/2,pcy,t,.55,()=>drawImg(c,I.p,-W*.44,-ph/2,W*.88,ph,{label:'Product photo'}),{from:.8,dur:.9});
   const by=zoneTop+zoneH*.2;
   if(I.b)pop(c,W*.17,by,t,.9,()=>drawImg(c,I.b,-70,-40,140,80,{label:'Brand'}),{from:.7,dur:.5});
-  else if(F.seal)pop(c,W*.14,by,t,.9,()=>brandBadge(c,BRAND.best,0,0,Math.min(150,W*.14)),{from:.3,dur:.7,rot:.5});
+  else if(F.seal)pop(c,W*.14,by,t,.9,()=>{
+    const img=BRAND.best,w=Math.min(150,W*.14),r=(img&&img.naturalWidth)?img.naturalHeight/img.naturalWidth:1.276,h=w*r;
+    objDraw(c,'obj:Seal',-w/2,-h/2,w,h,()=>brandBadge(c,img,0,0,w));
+  },{from:.3,dur:.7,rot:.5});
   pop(c,W*.76,by,t,1.05,()=>{
     const cw=Math.min(W*.4,Math.max(W*.24,240)),chh=F.cname?Math.min(zoneH*.52,190):Math.min(zoneH*.32,120);
     c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=24;c.shadowOffsetY=8;rr(c,-cw/2,-chh/2,cw,chh,10);c.fillStyle='#fff';c.fill();c.restore();
@@ -1957,7 +1961,7 @@ function buildSelPanel(){
   }
   if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo or logo on the canvas to move it, resize it and more. Drag the square handle to resize and the round handle to rotate. Arrow keys nudge.'));objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
-  box.append(el('p','selname',isObj?(sel.key==='obj:Logo'?'Logo':'Photo: '+sel.key.slice(4)):(f?f.l:sel.key)));
+  box.append(el('p','selname',isObj?objLabel(sel.key):(f?f.l:sel.key)));
   const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round(ov.op*100)},set opp(v){ov.op=v/100},
     get wp(){return Math.round((ov.sx||1)*100)},set wp(v){ov.sx=v/100},get hp(){return Math.round((ov.sy||1)*100)},set hp(v){ov.sy=v/100}};
   const r=row2(box);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
@@ -1976,10 +1980,12 @@ function buildSelPanel(){
   btn(b,'Reset everything',()=>{state.ovr[tp.id]={};buildSelPanel();dirty()});box.append(b);
   objPicker(box);
 }
+const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge'};
+function objLabel(k){return OBJ_NAMES[k]||('Photo: '+k.slice(4))}
 function objPicker(box){
   const ks=(LAST&&LAST.objs)||[];if(!ks.length)return;
-  box.append(el('p','note','Photos and logo in this template:'));const w=el('div','btnrow');
-  ks.forEach(k=>btn(w,k==='obj:Logo'?'Logo':k.slice(4),()=>select({type:'text',key:k})));box.append(w);
+  box.append(el('p','note','Photos, logo and badges in this template:'));const w=el('div','btnrow');
+  ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));box.append(w);
 }
 
 /* ----- layers ----- */
