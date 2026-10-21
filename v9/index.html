@@ -110,7 +110,7 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v12 · 51 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v13 · 56 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
@@ -1182,6 +1182,172 @@ const T_COMM=[
  }}
 ];
 
+/* ---------- current Leon's house layouts (from the brand's own posts) ---------- */
+const LY='#FFE81A';
+function yellowField(c,W,H,c1,c2){const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
+function mastCircle(c,W,H,t,I,tag,fill,bf){
+  const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=eEnter(prog(t,0,.7));
+  c.save();c.globalAlpha=p;c.fillStyle=fill;c.beginPath();c.arc(W/2,cy-(1-p)*70,R,0,TAU);c.fill();c.restore();
+  const ly=H*.055;
+  pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65),{from:.7,dur:.6});
+  let top=ly+H*.045;
+  if(tag){c.save();c.globalAlpha=clamp(prog(t,.35,.4));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
+  return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012)};
+}
+function mastCard(c,W,H,t,I,tag,fill){
+  const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=eEnter(prog(t,0,.6));
+  c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;rr(c,x,-40,cw,ch+40,34);c.fill();c.restore();
+  const ly=ch*.40;
+  pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58),{from:.7,dur:.6});
+  if(tag){c.save();c.globalAlpha=clamp(prog(t,.3,.4));c.fillStyle='#fff';font(c,700,Math.min(20,W*.019),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,ly+ch*.3);c.restore()}
+  return {bottom:ch,top:ch+H*.03,band:0};
+}
+/* lay a number + headline lines inside the masthead band so nothing clips */
+function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt){
+  const nShare=num?.52:0, nh=m.band*nShare, hh=m.band-nh, n=Math.max(1,headLines.length);
+  let y=m.top;
+  if(num){
+    const ns=Math.min(nh*.98,fitSize(c,num,900,FN,W*.52,nh*.98));
+    c.save();c.globalAlpha=clamp(prog(t,numAt,.5));font(c,900,ns,FN);c.fillStyle=numFill;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(countText(num,prog(t,numAt+.05,.9)),W/2,y+nh/2);c.restore();y+=nh;
+  }
+  const hs=Math.min(hh/n*.92,W*.062);
+  headLines.forEach((l,i)=>text(c,{s:l,x:W/2,y:y+hh/n*(i+.5),size:Math.min(hs,fitSize(c,l,900,FM,W*.64,hs)),wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:W*.64}));
+}
+function bottomArc(c,W,H,topY,fill,t,at){
+  const p=eEnter(prog(t,at==null?.5:at,.8));if(p<=0)return H;
+  const y=H-(H-topY)*p, R=W*1.15, cy=y+R;
+  c.save();c.fillStyle=fill;c.beginPath();c.arc(W/2,cy,R,0,TAU);c.fill();c.restore();
+  return y;
+}
+function madeInCanada(c,x,y,s,t,at){
+  const p=eBack(prog(t,at,.5));if(p<=0)return;
+  c.save();c.translate(x,y);c.scale(p,p);
+  c.save();c.translate(-s*1.9,0);c.scale(s*.5,s*.5);c.fillStyle='#E4262C';leafPath(c);c.fill();c.restore();
+  c.fillStyle='#E4262C';font(c,900,s*.42,FM);c.textAlign='left';c.textBaseline='middle';
+  c.fillText('MADE IN',-s*1.3,-s*.26);c.fillText('CANADA',-s*1.3,s*.26);c.restore();
+}
+const T_LEONS=[
+{id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
+ fields:[{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ images:[{k:'p',l:'Product photo'}],
+ draw(c,W,H,t,D,F,I){
+  yellowField(c,W,H,F.bg1,F.bg2);
+  const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.355);
+  mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
+  const fh=F.flab?H*.085:0, arcTop=bottomArc(c,W,H-fh,H*.60,'#111111',t,.55);
+  const ph=(arcTop-m.bottom)*.92, pcy=(m.bottom+arcTop)/2;
+  floorShadow(c,W/2,pcy+ph/2-6,W*.5,.26);
+  pop(c,W/2,pcy,t,.5,()=>drawImg(c,I.p,-W*.42,-ph/2,W*.84,ph,{label:'Product photo'}),{from:.78,dur:.9});
+  if(F.maple!=='no')madeInCanada(c,W*.9,arcTop-H*.035,Math.min(24,W*.022),t,1.3);
+  const band=(H-fh)-arcTop, os=Math.min(band*.46,fitSize(c,F.off,900,FN,W*.6,band*.46)), oy=arcTop+band*.42;
+  c.save();c.globalAlpha=clamp(prog(t,1,.5));
+  font(c,900,os,FN);const ow=c.measureText(F.off).width;
+  font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
+  font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
+  text(c,{s:F.osub,x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
+  if(F.flab){
+    const p=eEnter(prog(t,1.4,.6));c.save();c.translate(0,(1-p)*fh);
+    c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
+    font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.flab,W*.54,H-fh/2);
+    font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48;
+    c.fillStyle='#111';rr(c,W*.57,H-fh*.88,pw,fh*.76,10);c.fill();
+    c.fillStyle='#fff';c.textAlign='left';c.fillText(F.fprice,W*.57+24,H-fh/2);c.restore();
+  }
+ }},
+{id:'lclean',name:'Clean Offer',sub:'Logo card, one product, black arc with the offer — the everyday Leon\'s post',
+ fields:[{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ images:[{k:'p',l:'Product photo'}],
+ draw(c,W,H,t,D,F,I){
+  yellowField(c,W,H,F.bg1,F.bg2);
+  const m=mastCard(c,W,H,t,I,F.tag,'#111111');
+  const arcTop=bottomArc(c,W,H,H*.68,'#111111',t,.5);
+  const ph=(arcTop-m.bottom)*.84, pcy=m.bottom+(arcTop-m.bottom)*.5;
+  floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
+  pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
+  const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
+  c.save();c.globalAlpha=clamp(prog(t,.95,.5));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+  const ss=Math.min(band*.13,W*.032);
+  text(c,{s:F.l1,x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
+  text(c,{s:F.l2,x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
+ }},
+{id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
+ fields:[{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
+ images:[{k:'p',l:'Appliance photo'}],
+ draw(c,W,H,t,D,F,I){
+  const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
+  const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.36);
+  mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
+  const arcTop=bottomArc(c,W,H,H*.66,'#111111',t,.7);
+  const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
+  pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
+  const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=W*.2,by=m.bottom+(arcTop-m.bottom)*.42;
+  pop(c,bx,by,t,.95,()=>{
+    c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
+    const bl=F.btxt.split('\n'),bs=br*.26;
+    bl.forEach((l,i)=>{font(c,900,Math.min(bs,fitSize(c,l,900,FM,br*1.5,bs)),FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,-br*.42+i*bs*1.05)});
+    font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
+  },{from:.2,dur:.8,rot:.6});
+  const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
+  c.save();c.globalAlpha=clamp(prog(t,1.2,.5));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
+  c.fillText(countText(F.save,prog(t,1.25,1)),W/2,sy);c.restore();
+  text(c,{s:F.cond,x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
+ }},
+{id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
+ fields:[{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
+ draw(c,W,H,t,D,F,I){
+  yellowField(c,W,H,F.bg1,F.bg2);
+  const m=F.mast==='card'?mastCard(c,W,H,t,I,F.tag,'#111111'):mastCircle(c,W,H,t,I,F.tag,'#111111',.34);
+  if(F.mast!=='card')mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
+  const arcTop=bottomArc(c,W,H,H*.70,'#111111',t,.75);
+  const zoneTop=m.bottom, zoneH=arcTop-zoneTop;
+  const ph=zoneH*.74, pcy=zoneTop+zoneH*.62;
+  floorShadow(c,W/2,pcy+ph/2-8,W*.48,.24);
+  pop(c,W/2,pcy,t,.55,()=>drawImg(c,I.p,-W*.44,-ph/2,W*.88,ph,{label:'Product photo'}),{from:.8,dur:.9});
+  const by=zoneTop+zoneH*.2;
+  if(I.b)pop(c,W*.17,by,t,.9,()=>drawImg(c,I.b,-70,-40,140,80,{label:'Brand'}),{from:.7,dur:.5});
+  else if(F.seal)pop(c,W*.14,by,t,.9,()=>{const r=Math.min(58,W*.055);c.beginPath();c.arc(0,0,r,0,TAU);c.fillStyle='#fff';c.fill();c.lineWidth=3;c.strokeStyle='#111';c.stroke();
+    font(c,900,r*.28,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';wrap(c,F.seal,r*1.7).forEach((l,i,a)=>c.fillText(l,0,(i-(a.length-1)/2)*r*.32))},{from:.3,dur:.7,rot:.5});
+  pop(c,W*.76,by,t,1.05,()=>{
+    const cw=Math.min(W*.4,Math.max(W*.24,240)),chh=F.cname?Math.min(zoneH*.52,190):Math.min(zoneH*.32,120);
+    c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=24;c.shadowOffsetY=8;rr(c,-cw/2,-chh/2,cw,chh,10);c.fillStyle='#fff';c.fill();c.restore();
+    let y=-chh/2+chh*.22;
+    font(c,900,Math.min(chh*.3,54),FN);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.ctitle,0,y,cw-28);y+=chh*.2;
+    if(F.cstrip){c.fillStyle='#111';rr(c,-cw/2+14,y-chh*.08,cw-28,chh*.17,4);c.fill();font(c,900,Math.min(chh*.12,22),FM);c.fillStyle=LY;c.fillText(F.cstrip,0,y,cw-40);y+=chh*.2}
+    if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,0,y+chh*.1+i*chh*.14))}
+  },{from:.4,dur:.7});
+  const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
+  c.save();c.globalAlpha=clamp(prog(t,1.3,.5));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+  text(c,{s:F.osub,x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
+ }},
+{id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
+ fields:[{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
+ images:[{k:'card',l:'Card image (optional)'}],
+ draw(c,W,H,t,D,F,I){
+  c.fillStyle=F.bg;c.fillRect(0,0,W,H);
+  const m=mastCard(c,W,H,t,I,F.tag,'#111111');
+  const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
+  hl.forEach((l,i)=>{
+    const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,.35+i*.14,.55);if(p<=0)return;
+    const e=eEnter(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
+    font(c,900,s,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(l,W/2,m.top+hs*.72+i*hs*1.0);c.restore();
+  });
+  const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
+  [[F.a1,F.a2,1.05],[F.b1,F.b2,1.25]].forEach((q,i)=>{
+    const p=clamp(prog(t,q[2],.5));if(p<=0)return;c.save();c.globalAlpha=p;
+    mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88);c.restore();
+  });
+  const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
+  c.save();c.globalAlpha=clamp(prog(t,1.6,.5));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';c.textAlign='center';c.textBaseline='middle';
+  let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,W/2,fy+fi*flh);fi++}));c.restore();
+  const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
+  pop(c,W/2,cardY,t,1.9,()=>{if(I.card)drawImg(c,I.card,-110,-70,220,140,{label:'Card'});else{rr(c,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
+    font(c,700,20,FM);c.fillStyle='rgba(0,0,0,.45)';c.textAlign='center';c.textBaseline='middle';c.fillText('Card image',0,0)}},{from:.7,dur:.6});
+ }}
+];
+
 const T_CLASSIC=[
 {id:'meme',name:'Seasonal Meme',sub:'Character cutout with falling leaves, snow or confetti',
  fields:[{k:'headline',l:'Headline',t:'text',v:'Me on September 30th:'},{k:'fx',l:'Ambient effect',t:'select',o:['leaves','snow','confetti','sparkle','none'],v:'leaves'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -1381,13 +1547,13 @@ const EASE={enter:eEnter,out:eOut,back:eBack,pop:ePop,elastic:eElastic,exit:eExi
 
 const FREE={id:'free',name:'Free Canvas',sub:'Build any post from layers: text, images, shapes and motion',free:true,fields:[],images:[],draw(c,W,H,t,D){drawFree(c,W,H,t,D)}};
 /* Leon's own on-brand templates come first; ported and open-ended tools sit below. */
-const T=[...T_CLASSIC.map(x=>({grp:"Leon's posts",...x})),
+const T=[...T_LEONS.map(x=>({grp:"Leon's posts",...x})),...T_CLASSIC.map(x=>({grp:"Leon's posts",...x})),
   ...T_PREM.map(x=>({grp:"Leon's campaigns",...x})),...T_PREM2.map(x=>({grp:"Leon's campaigns",...x})),
   ...T_ADV.map(x=>({grp:"Leon's motion",...x})),
   ...T_COMM.map(x=>({grp:'Community ports',...x})),
   {grp:'Free canvas',...FREE}];
 
-const state={tid:'sale',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},logo:null,rec:null,sel:null,
+const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},logo:null,rec:null,sel:null,
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1.6},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   free:{bg:'#FFE81A',bg2:'',fx:'none',layers:[],nextId:1},layerImgs:{},prevLayers:null};
