@@ -110,7 +110,7 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
 
 <div class="top"><h1>Motion Poster Studio</h1><p>Build any Leon's post: motion templates, a free layer canvas, draggable text, and video export.</p></div>
 <div class="app">
-  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v17 · 56 templates</span></h2><div id="tplList"></div></aside>
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v18 · 56 templates</span></h2><div id="tplList"></div></aside>
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
@@ -214,6 +214,29 @@ function postStyle(){
   return POST_STYLES[k]||POST_STYLES.classic;
 }
 function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+/* a handful of interchangeable path shapes for "the box behind the text" — rounded card, pill,
+   sharp corners, chamfered ribbon, and a pointed price-tag — all driven off the same x,y,w,h,r. */
+const BOX_STYLES={
+  rounded:{name:'Rounded corners'}, pill:{name:'Pill capsule'}, sharp:{name:'Sharp corners'},
+  ribbon:{name:'Cut corners (ribbon)'}, tag:{name:'Price tag'}
+};
+function boxPath(c,style,x,y,w,h,r){
+  r=r==null?Math.min(18,h*.3):r;c.beginPath();
+  if(style==='pill'){c.roundRect(x,y,w,h,h/2);return}
+  if(style==='sharp'){c.rect(x,y,w,h);return}
+  if(style==='ribbon'){
+    const k=Math.min(r*1.3,h*.42,w*.42);
+    c.moveTo(x+k,y);c.lineTo(x+w-k,y);c.lineTo(x+w,y+k);c.lineTo(x+w,y+h-k);c.lineTo(x+w-k,y+h);
+    c.lineTo(x+k,y+h);c.lineTo(x,y+h-k);c.lineTo(x,y+k);c.closePath();return;
+  }
+  if(style==='tag'){
+    const pt=Math.min(h*.5,w*.24),k=Math.min(r,h*.3);
+    c.moveTo(x+pt,y);c.lineTo(x+w-k,y);c.quadraticCurveTo(x+w,y,x+w,y+k);
+    c.lineTo(x+w,y+h-k);c.quadraticCurveTo(x+w,y+h,x+w-k,y+h);
+    c.lineTo(x+pt,y+h);c.lineTo(x,y+h/2);c.closePath();return;
+  }
+  c.roundRect(x,y,w,h,r);
+}
 function font(c,wt,sz,fam){c.font=wt+' '+sz+'px '+fam}
 function shade(hex,a){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=a<0?0:255,p=Math.abs(a);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return 'rgb('+r+','+g+','+b+')'}
 function fitSize(c,txt,wt,fam,maxW,max){font(c,wt,max,fam);const w=c.measureText(txt).width;return w>maxW?max*maxW/w:max}
@@ -1226,10 +1249,10 @@ function mastCircle(c,W,H,t,I,tag,fill,bf){
   if(tag){c.save();c.globalAlpha=clamp(prog(t,.35*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
   return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012)};
 }
-function mastCard(c,W,H,t,I,tag,fill){
+function mastCard(c,W,H,t,I,tag,fill,boxStyle){
   const ST=postStyle();
   const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
-  c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;rr(c,x,-40,cw,ch+40,34);c.fill();c.restore();
+  c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;boxPath(c,boxStyle,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
   pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58),{from:.7,dur:.6});
   if(tag){c.save();c.globalAlpha=clamp(prog(t,.3*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(20,W*.019),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,ly+ch*.3);c.restore()}
@@ -1262,84 +1285,114 @@ function madeInCanada(c,x,y,s,t,at){
   objDraw(c,'obj:Canada',x-w/2,y-h/2,w,h,()=>{c.save();c.translate(x,y);c.scale(p,p);brandBadge(c,img,0,0,w);c.restore()});
 }
 const STYLE_FIELD={k:'style',l:'Animation style (whole post)',t:'select',v:'classic',o:Object.keys(POST_STYLES).map(k=>[k,POST_STYLES[k].name])};
+const MCOL_FIELD={k:'mcol',l:'Masthead colour',t:'color',v:'#111111'};
+const BOX_FIELD={k:'boxStyle',l:'Box style (cards, pills, badges)',t:'select',v:'rounded',o:Object.keys(BOX_STYLES).map(k=>[k,BOX_STYLES[k].name])};
 const T_LEONS=[
 {id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
- fields:[STYLE_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
-  const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.355);
-  mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
-  const fh=F.flab?H*.085:0, arcTop=bottomArc(c,W,H-fh,H*.60,'#111111',t,.55);
+  let m;
+  objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
+    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.355);
+    mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
+  });
+  const fh=F.flab?H*.085:0;
+  let arcTop;
+  objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
+    arcTop=bottomArc(c,W,H-fh,H*.60,F.mcol||'#111111',t,.55);
+    const band=(H-fh)-arcTop, os=Math.min(band*.46,fitSize(c,F.off,900,FN,W*.6,band*.46)), oy=arcTop+band*.42;
+    c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));
+    font(c,900,os,FN);const ow=c.measureText(F.off).width;
+    font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
+    font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
+    text(c,{s:F.osub,x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
+    if(F.flab){
+      const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul));c.save();c.translate(0,(1-p)*fh);
+      c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
+      font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.flab,W*.54,H-fh/2);
+      font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48;
+      c.fillStyle='#111';boxPath(c,F.boxStyle,W*.57,H-fh*.88,pw,fh*.76,10);c.fill();
+      c.fillStyle='#fff';c.textAlign='left';c.fillText(F.fprice,W*.57+24,H-fh/2);c.restore();
+    }
+  });
   const ph=(arcTop-m.bottom)*.92, pcy=(m.bottom+arcTop)/2;
   floorShadow(c,W/2,pcy+ph/2-6,W*.5,.26);
   pop(c,W/2,pcy,t,.5,()=>drawImg(c,I.p,-W*.42,-ph/2,W*.84,ph,{label:'Product photo'}),{from:.78,dur:.9});
   if(F.maple!=='no')madeInCanada(c,W*.9,arcTop-H*.035,Math.min(24,W*.022),t,1.3);
-  const band=(H-fh)-arcTop, os=Math.min(band*.46,fitSize(c,F.off,900,FN,W*.6,band*.46)), oy=arcTop+band*.42;
-  c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));
-  font(c,900,os,FN);const ow=c.measureText(F.off).width;
-  font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
-  font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
-  text(c,{s:F.osub,x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
-  if(F.flab){
-    const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul));c.save();c.translate(0,(1-p)*fh);
-    c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
-    font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.flab,W*.54,H-fh/2);
-    font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48;
-    c.fillStyle='#111';rr(c,W*.57,H-fh*.88,pw,fh*.76,10);c.fill();
-    c.fillStyle='#fff';c.textAlign='left';c.fillText(F.fprice,W*.57+24,H-fh/2);c.restore();
-  }
  }},
 {id:'lclean',name:'Clean Offer',sub:'Logo card, one product, black arc with the offer — the everyday Leon\'s post',
- fields:[STYLE_FIELD,{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
-  const m=mastCard(c,W,H,t,I,F.tag,'#111111');
-  const arcTop=bottomArc(c,W,H,H*.68,'#111111',t,.5);
+  let m;
+  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle)});
+  let arcTop;
+  objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
+    arcTop=bottomArc(c,W,H,H*.68,F.mcol||'#111111',t,.5);
+    const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
+    c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+    const ss=Math.min(band*.13,W*.032);
+    text(c,{s:F.l1,x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
+    text(c,{s:F.l2,x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
+  });
   const ph=(arcTop-m.bottom)*.84, pcy=m.bottom+(arcTop-m.bottom)*.5;
   floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
   pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
-  const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
-  c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
-  const ss=Math.min(band*.13,W*.032);
-  text(c,{s:F.l1,x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
-  text(c,{s:F.l2,x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
  }},
 {id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
- fields:[STYLE_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
  images:[{k:'p',l:'Appliance photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
-  const m=mastCircle(c,W,H,t,I,F.tag,'#111111',.36);
-  mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
-  const arcTop=bottomArc(c,W,H,H*.66,'#111111',t,.7);
+  let m;
+  objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
+    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.36);
+    mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
+  });
+  let arcTop;
+  objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
+    arcTop=bottomArc(c,W,H,H*.66,F.mcol||'#111111',t,.7);
+    const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
+    c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),W/2,sy);c.restore();
+    text(c,{s:F.cond,x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
+  });
   const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
   const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=W*.2,by=m.bottom+(arcTop-m.bottom)*.42;
   pop(c,bx,by,t,.95,()=>{
-    c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
-    const bl=F.btxt.split('\n'),bs=br*.26;
-    bl.forEach((l,i)=>{font(c,900,Math.min(bs,fitSize(c,l,900,FM,br*1.5,bs)),FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,-br*.42+i*bs*1.05)});
-    font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
+    objDraw(c,'obj:Stamp badge',-br,-br,br*2,br*2,()=>{
+      c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
+      const bl=F.btxt.split('\n'),bs=br*.26;
+      bl.forEach((l,i)=>{font(c,900,Math.min(bs,fitSize(c,l,900,FM,br*1.5,bs)),FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,-br*.42+i*bs*1.05)});
+      font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
+    });
   },{from:.2,dur:.8,rot:.6});
-  const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
-  c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
-  c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),W/2,sy);c.restore();
-  text(c,{s:F.cond,x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
  }},
 {id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
- fields:[STYLE_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
-  const m=F.mast==='card'?mastCard(c,W,H,t,I,F.tag,'#111111'):mastCircle(c,W,H,t,I,F.tag,'#111111',.34);
-  if(F.mast!=='card')mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
-  const arcTop=bottomArc(c,W,H,H*.70,'#111111',t,.75);
+  let m;
+  objDraw(c,'obj:Masthead',0,0,W,F.mast==='card'?H*.22:H*.4,()=>{
+    m=F.mast==='card'?mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle):mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.34);
+    if(F.mast!=='card')mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
+  });
+  let arcTop;
+  objDraw(c,'obj:Footer',0,H*.55,W,H*.45,()=>{
+    arcTop=bottomArc(c,W,H,H*.70,F.mcol||'#111111',t,.75);
+    const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
+    c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+    text(c,{s:F.osub,x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
+  });
   const zoneTop=m.bottom, zoneH=arcTop-zoneTop;
   const ph=zoneH*.74, pcy=zoneTop+zoneH*.62;
   floorShadow(c,W/2,pcy+ph/2-8,W*.48,.24);
@@ -1352,23 +1405,23 @@ const T_LEONS=[
   },{from:.3,dur:.7,rot:.5});
   pop(c,W*.76,by,t,1.05,()=>{
     const cw=Math.min(W*.4,Math.max(W*.24,240)),chh=F.cname?Math.min(zoneH*.52,190):Math.min(zoneH*.32,120);
-    c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=24;c.shadowOffsetY=8;rr(c,-cw/2,-chh/2,cw,chh,10);c.fillStyle='#fff';c.fill();c.restore();
-    let y=-chh/2+chh*.22;
-    font(c,900,Math.min(chh*.3,54),FN);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.ctitle,0,y,cw-28);y+=chh*.2;
-    if(F.cstrip){c.fillStyle='#111';rr(c,-cw/2+14,y-chh*.08,cw-28,chh*.17,4);c.fill();font(c,900,Math.min(chh*.12,22),FM);c.fillStyle=LY;c.fillText(F.cstrip,0,y,cw-40);y+=chh*.2}
-    if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,0,y+chh*.1+i*chh*.14))}
+    objDraw(c,'obj:Price card',-cw/2,-chh/2,cw,chh,()=>{
+      c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=24;c.shadowOffsetY=8;boxPath(c,F.boxStyle,-cw/2,-chh/2,cw,chh,10);c.fillStyle='#fff';c.fill();c.restore();
+      let y=-chh/2+chh*.22;
+      font(c,900,Math.min(chh*.3,54),FN);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.ctitle,0,y,cw-28);y+=chh*.2;
+      if(F.cstrip){c.fillStyle='#111';boxPath(c,F.boxStyle,-cw/2+14,y-chh*.08,cw-28,chh*.17,4);c.fill();font(c,900,Math.min(chh*.12,22),FM);c.fillStyle=LY;c.fillText(F.cstrip,0,y,cw-40);y+=chh*.2}
+      if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,0,y+chh*.1+i*chh*.14))}
+    });
   },{from:.4,dur:.7});
-  const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
-  c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
-  text(c,{s:F.osub,x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
  }},
 {id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
- fields:[STYLE_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
  images:[{k:'card',l:'Card image (optional)'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  const m=mastCard(c,W,H,t,I,F.tag,'#111111');
+  let m;
+  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle)});
   const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
   hl.forEach((l,i)=>{
     const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
@@ -1385,8 +1438,13 @@ const T_LEONS=[
   c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';c.textAlign='center';c.textBaseline='middle';
   let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,W/2,fy+fi*flh);fi++}));c.restore();
   const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
-  pop(c,W/2,cardY,t,1.9,()=>{if(I.card)drawImg(c,I.card,-110,-70,220,140,{label:'Card'});else{rr(c,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
-    font(c,700,20,FM);c.fillStyle='rgba(0,0,0,.45)';c.textAlign='center';c.textBaseline='middle';c.fillText('Card image',0,0)}},{from:.7,dur:.6});
+  pop(c,W/2,cardY,t,1.9,()=>{
+    objDraw(c,'obj:Card',-110,-70,220,140,()=>{
+      if(I.card)drawImgRaw(c,I.card,-110,-70,220,140,{label:'Card'});
+      else{boxPath(c,F.boxStyle,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
+        font(c,700,20,FM);c.fillStyle='rgba(0,0,0,.45)';c.textAlign='center';c.textBaseline='middle';c.fillText('Card image',0,0)}
+    });
+  },{from:.7,dur:.6});
  }}
 ];
 
@@ -2006,7 +2064,8 @@ function buildSelPanel(){
   btn(b,'Reset everything',()=>{state.ovr[tp.id]={};buildSelPanel();dirty()});box.append(b);
   objPicker(box);
 }
-const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge'};
+const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge',
+  'obj:Masthead':'Masthead block','obj:Footer':'Footer band','obj:Stamp badge':'Stamp badge','obj:Price card':'Price/name card'};
 function objLabel(k){return OBJ_NAMES[k]||('Photo: '+k.slice(4))}
 function objPicker(box){
   const ks=(LAST&&LAST.objs)||[];if(!ks.length)return;
