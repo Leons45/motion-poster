@@ -1785,7 +1785,7 @@ const T=[...T_LEONS.map(x=>({grp:"Leon's posts",...x})),...T_CLASSIC.map(x=>({gr
   {grp:'Free canvas',...FREE}];
 
 const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},logo:null,rec:null,sel:null,
-  logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1.6},
+  logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   free:{bg:'#FFE81A',bg2:'',fx:'none',layers:[],nextId:1},layerImgs:{},prevLayers:null};
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
@@ -2331,7 +2331,7 @@ function selectTemplate(id){
 const LOGOFX=[['none','No reveal'],['fade','Fade in'],['blur','Blur focus pull'],['bounce','Bounce drop'],['spin','Spin in'],['scaleRot','Scale and rotate'],['split','Split halves'],['wipe','Mask wipe'],['glitch','Glitch'],['strokeDraw','Stroke draw frame']];
 function buildLogoFx(){
   const box=$('#logoFxBox');if(!box)return;box.innerHTML='';const S=state.logo2;
-  const lp={get pct(){return Math.round((S.scale==null?1.6:S.scale)*100)},set pct(v){S.scale=v/100}};
+  const lp={get pct(){return Math.round((S.scale==null?1:S.scale)*100)},set pct(v){S.scale=v/100}};
   ctl(box,'Logo size %','range',lp,'pct',{min:40,max:400,step:5});
   ctl(box,'Logo reveal','select',S,'fx',{o:LOGOFX,on:()=>buildLogoFx()});
   if(S.fx==='none')return;
@@ -2553,7 +2553,17 @@ function fontNote(){const n=fontInstalled('Proxima Nova')||fontInstalled('proxim
 restore();
 $('#dur').value=state.D;$('#durOut').textContent=state.D+'s';
 $('#ratioSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===state.ratio));$('#ratioNote').textContent=RNOTE[state.ratio];
-if(typeof state.logo2.scale!=='number')state.logo2.scale=1.6;
+if(typeof state.logo2.scale!=='number')state.logo2.scale=1;
+/* one-time migration: an old default (160% logo size) and any leftover letterbox-bars
+   setting saved to this browser before v20 shipped get cleared once, silently. */
+try{
+  if(!localStorage.getItem('mps_fix_v20')){
+    if(state.logo2.scale===1.6)state.logo2.scale=1;
+    if(state.film.bars&&state.film.bars!=='off')state.film.bars='off';
+    localStorage.setItem('mps_fix_v20','1');
+    persist();
+  }
+}catch(e){}
 HIST.last=snapState();histBtns();
 loadBrand(()=>{if(!state.logo)applyLogo(BRAND.logo);paintThumbs();});
 (function(){try{
