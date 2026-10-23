@@ -2177,10 +2177,13 @@ const row2=p=>{const r=el('div','row2');p.append(r);return r};
 function btn(parent,label,fn,cls){const b=el('button','btn sm'+(cls?' '+cls:''),label);b.type='button';b.addEventListener('click',fn);parent.append(b);return b}
 
 /* ----- selection ----- */
-function select(sel){
+function select(sel,opts){
   state.sel=sel;buildSelPanel();
   if(cur().free)buildLayers();
-  highlightSel(sel);
+  /* opts.silent: selecting by focusing the Content field on the right already puts the
+     person right where they need to be, so don't also scroll/flash the panel at them —
+     that's only useful when the selection came from clicking the artboard. */
+  if(!(opts&&opts.silent))highlightSel(sel);
 }
 /* Flash the inspector section(s) that control whatever was just selected on the canvas,
    so the person can find the right knob without hunting through the whole panel. */
@@ -2389,7 +2392,7 @@ function buildInspector(){
   const v=state.vals[tp.id],box=$('#fields');box.innerHTML='';
   tp.fields.forEach(f=>{
     const t=f.t==='select'?'select':f.t,o={};if(f.t==='select')o.o=f.o;
-    if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k});
+    if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
     o.wrapKey=f.k;
     ctl(box,f.l,t,v,f.k,o);
   });
