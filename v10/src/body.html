@@ -1,0 +1,45 @@
+<div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 5 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
+<div class="app">
+  <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v10 · One-stop Leon's posts</span></h2><div id="catChips" role="group" aria-label="Filter by campaign"></div><div id="tplList"></div></aside>
+  <section style="min-width:0">
+    <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
+    <div class="bar">
+      <button class="btn" id="playBtn" type="button">Pause</button>
+      <button class="btn" id="restartBtn" type="button">Restart</button>
+      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+      <span class="time" id="time">0.0s / 6s</span>
+    </div>
+    <p id="status"></p>
+  </section>
+  <aside class="panel insp" id="insp">
+    <h3>Brand logo</h3>
+    <div class="slot" id="logoSlot"><div class="pv" id="logoPv"></div><div class="lbl">Brand logo<small id="logoSm">Leon’s brand logo</small></div><button class="btn sm" id="logoBtn" type="button">Upload</button><button class="btn sm" id="logoClr" type="button">Clear</button></div>
+    <div id="logoFxBox"></div>
+    <h3>Film effects</h3><p class="note">These stack on top of any template.</p><div id="filmBox"></div>
+    <div id="sectContent"><h3>Content</h3><div id="fields"></div></div>
+    <div id="sectSel"><h3>Selected</h3><div id="selPanel"></div></div>
+    <div id="sectLayers" hidden><h3>Layers</h3><div id="freeBox"></div></div>
+    <div id="sectQuick" hidden><h3>Quick Leon's elements</h3><div id="quickBox"></div></div>
+    <div id="sectImages"><h3>Images</h3><div id="images"></div></div>
+    <h3>Format</h3>
+    <div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div>
+    <p class="note" id="ratioNote"></p>
+    <label class="fld" style="margin-top:12px"><span>Loop length</span><div class="range"><input type="range" id="dur" min="3" max="12" step="1" value="6"><output id="durOut">6s</output></div></label>
+    <div class="row2">
+      <label class="fld"><span>Video loops</span><select id="loops"><option value="1">1 loop</option><option value="2">2 loops</option><option value="3">3 loops</option></select></label>
+      <label class="fld"><span>Frame rate</span><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
+    </div>
+    <h3>Fonts</h3>
+    <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
+    <p class="note" id="fontNote" style="margin-top:0"></p>
+    <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
+    <div class="exp">
+      <button class="btn primary" id="vidBtn" type="button">Export video</button>
+      <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
+    </div>
+    <p class="note">Video records in real time, so keep this tab open until it finishes. Chrome and Edge save MP4; other browsers may save WebM. Your text, positions and layers are remembered in this browser.</p>
+    <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px">Reset every template</button>
+  </aside>
+</div>
+<input type="file" id="fileIn" accept="image/*" hidden>
