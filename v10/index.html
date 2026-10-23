@@ -1404,7 +1404,13 @@ function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt){
     c.fillText(countText(num,prog(t,(numAt+.05)*ST.stagger,.9*ST.durMul)),W/2,y+nh/2);c.restore();y+=nh;
   }
   const hs=Math.min(hh/n*.92,W*.062);
-  headLines.forEach((l,i)=>text(c,{s:l,x:W/2,y:y+hh/n*(i+.5),size:Math.min(hs,fitSize(c,l,900,FM,W*.64,hs)),wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:W*.64}));
+  /* Centre a TIGHT block of lines within the available band, rather than spreading them
+     evenly across the whole band height. The band can be much taller than the text
+     actually needs (e.g. no "num" above it leaves the full band to the headline), and
+     spacing by band-share instead of by font size turned one extra line (one Enter in
+     the Headline field) into a visually oversized gap between lines. */
+  const lineGap=hs*1.08, blockH=lineGap*n, blockY=y+Math.max(0,(hh-blockH)/2)+lineGap/2;
+  headLines.forEach((l,i)=>text(c,{s:l,x:W/2,y:blockY+i*lineGap,size:Math.min(hs,fitSize(c,l,900,FM,W*.64,hs)),wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:W*.64}));
 }
 function bottomArc(c,W,H,topY,fill,t,at){
   const ST=postStyle();
@@ -1590,7 +1596,11 @@ const EVENT_CATS=[
   ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday']
 ];
 const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',stacked:'Stacked bars'};
-const LAYOUT_FIELD={k:'layout',l:'Layout',t:'select',v:'circle',o:Object.keys(LAYOUT_NAMES).map(k=>[k,LAYOUT_NAMES[k]])};
+/* A function, not a shared object: each event template needs its OWN field object with
+   its own default `v` (a fixed shared object here previously meant every category's
+   "Layout" field silently defaulted to 'circle', ignoring the distinct layout each one
+   was actually designed around). */
+const layoutField=v=>({k:'layout',l:'Layout',t:'select',v:v||'circle',o:Object.keys(LAYOUT_NAMES).map(k=>[k,LAYOUT_NAMES[k]])});
 
 /* ---------- layout 1: circle masthead + bottom arc (the house style) ---------- */
 function layoutCircle(c,W,H,t,D,F,I){
@@ -1781,7 +1791,7 @@ function evFields(def){
     pre:'UP TO',off:'50% OFF',osub:'SELECT ITEMS',flab:'STARTING FROM',fprice:'$599',seal:'',
     mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',boxStyle:'rounded',maple:'yes'};
   const v=Object.assign({},base,def);
-  return [STYLE_FIELD,LAYOUT_FIELD,MCOL_FIELD,BOX_FIELD,
+  return [STYLE_FIELD,layoutField(def&&def.layout),MCOL_FIELD,BOX_FIELD,
     {k:'acc',l:'Accent colour',t:'color',v:v.acc},
     {k:'kicker',l:'Eyebrow / kicker',t:'text',v:v.kicker},
     {k:'num',l:'Big number (circle & full-bleed layouts)',t:'text',v:v.num},
@@ -2040,7 +2050,7 @@ const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({gr
   ...T_COMM.map(x=>({grp:'Community ports',...x})),
   {grp:'Free canvas',...FREE}].map(tp=>({cat:CAT_MAP[tp.id]||'classic',...tp}));
 
-const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},logo:null,rec:null,sel:null,
+const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},style:{},logo:null,rec:null,sel:null,
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   quick:{},quickNextId:1,
@@ -2050,12 +2060,29 @@ const cur=()=>T.find(x=>x.id===state.tid);
 const Hnow=()=>RATIOS[state.ratio];
 
 /* ----- per-text overrides (works on every template through a canvas proxy) -----
-   Overrides are scoped per (template, ratio): a 1:1 post and a 9:16 post wrap text
-   differently and sit in a different frame, so a drag/resize/line-height tweak made
-   on one ratio must not silently reposition or reflow the others. */
+   Position/size/rotation ("layout") overrides are scoped per (template, ratio): a 1:1
+   post and a 9:16 post wrap text differently and sit in a different frame, so a
+   drag/resize tweak made on one ratio must not silently reposition or reflow the
+   others. Typography ("style": weight, typeface, colour, letter/line spacing,
+   opacity) is a design decision that isn't tied to any one frame, so it's stored per
+   template only and shared across every ratio of that post — set it once on 1:1 and
+   it already applies to 4:5 and 9:16. */
 const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false};
+const STD={col:'',wt:'',fam:'',ls:0,lh:1,op:1};
 function ovKey(tid){return tid+'@'+state.ratio}
 function ovFor(tid,key,create){const k=ovKey(tid),o=(state.ovr[k]=state.ovr[k]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
+function styleFor(tid,key,create){const o=(state.style[tid]=state.style[tid]||{});if(!o[key]&&create)o[key]={...STD};return o[key]}
+/* The merged view draw code actually reads: layout overrides as the base shape, with
+   any shared style overrides laid on top. Built lazily per key so a write to either
+   store (through ovFor/styleFor) is picked up on the next read without extra bookkeeping. */
+function ovProxy(tid){
+  return new Proxy({},{get(_,key){
+    if(typeof key!=='string')return undefined;
+    const lay=(state.ovr[ovKey(tid)]||{})[key],sty=(state.style[tid]||{})[key];
+    if(!lay&&!sty)return undefined;
+    return Object.assign({},lay||OVD,sty||{});
+  }});
+}
 const nz=s=>String(s).toUpperCase().replace(/\s+/g,' ').trim().replace(/\d[\d,]*/g,'#');
 
 /* ----- quick Leon's elements: ready-made brand stickers droppable onto ANY template,
@@ -2095,7 +2122,7 @@ let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[ovKey(tp.id)]||{},mcache:{},seen:{},counts:{}};
+  return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{}};
 }
 function matchKey(s){
   const n=nz(s);if(!n)return null;
@@ -2391,7 +2418,7 @@ function drawOverlay(){
 const HIST={past:[],future:[],last:null};let REPLAY=false;
 function snapState(){
   return JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,loops:state.loops,fps:state.fps,
-    vals:state.vals,ovr:state.ovr,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
+    vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
     free:{bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,
       layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})}});
 }
@@ -2405,7 +2432,7 @@ function histApply(s){
   const d=JSON.parse(s);REPLAY=true;
   state.ratio=d.ratio;state.D=d.D;state.loops=d.loops;state.fps=d.fps;
   Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.assign(state.vals[id],d.vals[id])});
-  state.ovr=d.ovr||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
+  state.ovr=d.ovr||{};state.style=d.style||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
   state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
   Object.assign(state.free,{bg:d.free.bg,bg2:d.free.bg2,fx:d.free.fx,nextId:d.free.nextId,layers:d.free.layers||[]});
   if(state.sel&&state.sel.type==='layer'&&!state.free.layers.some(l=>l.id===state.sel.id))state.sel=null;
@@ -2426,7 +2453,7 @@ let saveTimer=null;
 function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700)}
 function persist(){
   histPush();
-  try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,logo2:state.logo2,film:state.film,
+  try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
     quick:state.quick,quickNextId:state.quickNextId,
     free:{bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})}}))}catch(e){}
 }
@@ -2434,7 +2461,7 @@ function restore(){
   try{const d=JSON.parse(localStorage.getItem('mps_state')||'null');if(!d)return;
     if(T.find(x=>x.id===d.tid))state.tid=d.tid;if(RATIOS[d.ratio])state.ratio=d.ratio;if(d.D>=3&&d.D<=12)state.D=d.D;
     Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.keys(d.vals[id]).forEach(k=>{if(k in state.vals[id])state.vals[id][k]=d.vals[id][k]})});
-    state.ovr=d.ovr||{};
+    state.ovr=d.ovr||{};state.style=d.style||{};
     state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
     if(d.logo2)Object.assign(state.logo2,d.logo2);if(d.film)Object.assign(state.film,d.film);
     if(d.free){Object.assign(state.free,{bg:d.free.bg,bg2:d.free.bg2,fx:d.free.fx,nextId:d.free.nextId||1,layers:d.free.layers||[]})}
@@ -2495,23 +2522,27 @@ function buildSelPanel(){
   }
   if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo or logo on the canvas to move it, resize it and more. Drag the square handle to resize and the round handle to rotate. Arrow keys nudge.'));objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
+  /* Typography (weight/typeface/colour/spacing/opacity) is stored per template, shared
+     across every ratio, so it's only created — and only read — for text selections. */
+  const sov=!isObj?styleFor(tp.id,sel.key,true):null;
   box.append(el('p','selname',isObj?objLabel(sel.key):(f?f.l:sel.key)));
-  const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round(ov.op*100)},set opp(v){ov.op=v/100},
+  const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round((isObj?ov:sov).op*100)},set opp(v){(isObj?ov:sov).op=v/100},
     get wp(){return Math.round((ov.sx||1)*100)},set wp(v){ov.sx=v/100},get hp(){return Math.round((ov.sy||1)*100)},set hp(v){ov.sy=v/100}};
   const r=row2(box);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
   ctl(box,'Size %','range',proxy,'pct',{min:10,max:500,step:1});
   if(isObj){ctl(box,'Stretch width %','range',proxy,'wp',{min:20,max:300,step:1});ctl(box,'Stretch height %','range',proxy,'hp',{min:20,max:300,step:1})}
   ctl(box,'Rotation (degrees)','range',ov,'rot',{min:-180,max:180,step:1});
   if(!isObj){
-    const r2=row2(box);ctl(r2,'Weight','select',ov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',ov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
-    const cr=row2(box);ctl(cr,'Colour','color',ov,'col');
-    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='10px';btn(rb,'Default colour',()=>{ov.col='';buildSelPanel();dirty()});cr.append(rb);
-    ctl(box,'Letter spacing','range',ov,'ls',{min:-10,max:40,step:1});
-    ctl(box,'Line spacing','range',ov,'lh',{min:.6,max:2.2,step:.05});
+    box.append(el('p','note','Weight, typeface, colour and spacing below apply to every aspect ratio of this post — position, size and rotation above stay per ratio.'));
+    const r2=row2(box);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
+    const cr=row2(box);ctl(cr,'Colour','color',sov,'col');
+    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='10px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);
+    ctl(box,'Letter spacing','range',sov,'ls',{min:-10,max:40,step:1});
+    ctl(box,'Line spacing','range',sov,'lh',{min:.6,max:2.2,step:.05});
   }else ctl(box,'Flip horizontally','check',ov,'flip');
   ctl(box,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
-  const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);buildSelPanel();dirty()});
-  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};buildSelPanel();dirty()});
+  const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);if(sov)Object.assign(sov,STD);buildSelPanel();dirty()});
+  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};buildSelPanel();dirty()});
   if(sel.key.startsWith('obj:Quick')){
     const qid=+sel.key.slice(9);
     btn(b,'Remove element',()=>{delQuick(tp.id,qid);select(null);buildQuick();dirty()});
