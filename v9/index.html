@@ -90,6 +90,16 @@ input[type=color]{width:100%;height:36px;padding:3px;border:1px solid var(--line
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 
+/* flashed briefly on the inspector section/field that controls whatever was just
+   selected on the canvas, so it's easy to spot without hunting through the panel */
+.flash-hl{animation:flashHl 1.3s ease-out;border-radius:10px}
+@keyframes flashHl{
+  0%{box-shadow:0 0 0 3px var(--acc),0 0 0 3px var(--acc);background-color:color-mix(in srgb,var(--acc) 22%,transparent)}
+  70%{box-shadow:0 0 0 3px var(--acc),0 0 0 3px var(--acc);background-color:color-mix(in srgb,var(--acc) 10%,transparent)}
+  100%{box-shadow:0 0 0 0 transparent;background-color:transparent}
+}
+@media (prefers-reduced-motion:reduce){.flash-hl{animation:none}}
+
 .cvwrap{position:relative;width:480px;height:600px;max-width:100%;line-height:0}
 #cv{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.28)}
 #ov{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -1792,15 +1802,19 @@ T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>st
 const cur=()=>T.find(x=>x.id===state.tid);
 const Hnow=()=>RATIOS[state.ratio];
 
-/* ----- per-text overrides (works on every template through a canvas proxy) ----- */
+/* ----- per-text overrides (works on every template through a canvas proxy) -----
+   Overrides are scoped per (template, ratio): a 1:1 post and a 9:16 post wrap text
+   differently and sit in a different frame, so a drag/resize/line-height tweak made
+   on one ratio must not silently reposition or reflow the others. */
 const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false};
-function ovFor(tid,key,create){const o=(state.ovr[tid]=state.ovr[tid]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
+function ovKey(tid){return tid+'@'+state.ratio}
+function ovFor(tid,key,create){const k=ovKey(tid),o=(state.ovr[k]=state.ovr[k]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
 const nz=s=>String(s).toUpperCase().replace(/\s+/g,' ').trim().replace(/\d[\d,]*/g,'#');
 let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[tp.id]||{},mcache:{},seen:{},counts:{}};
+  return {tid:tp.id,fields,hits:[],anch:{},ov:state.ovr[ovKey(tp.id)]||{},mcache:{},seen:{},counts:{}};
 }
 function matchKey(s){
   const n=nz(s);if(!n)return null;
@@ -2156,6 +2170,7 @@ function ctl(parent,label,type,obj,key,o){
   inp.addEventListener('input',()=>{let v=type==='check'?inp.checked:inp.value;if(type==='number'||type==='range'){v=parseFloat(v);if(isNaN(v))return}obj[key]=v;show();if(o.on)o.on(v);dirty()});
   if(o.focus)inp.addEventListener('focus',o.focus);
   if(type==='check'){wrap.className='fld chk';wrap.prepend(inp)}else wrap.append(inp);
+  if(o.wrapKey!=null)wrap.dataset.key=o.wrapKey;
   parent.append(wrap);return inp;
 }
 const row2=p=>{const r=el('div','row2');p.append(r);return r};
@@ -2165,6 +2180,23 @@ function btn(parent,label,fn,cls){const b=el('button','btn sm'+(cls?' '+cls:''),
 function select(sel){
   state.sel=sel;buildSelPanel();
   if(cur().free)buildLayers();
+  highlightSel(sel);
+}
+/* Flash the inspector section(s) that control whatever was just selected on the canvas,
+   so the person can find the right knob without hunting through the whole panel. */
+function flashEl(node){
+  if(!node)return;
+  node.classList.remove('flash-hl');void node.offsetWidth;node.classList.add('flash-hl');
+  clearTimeout(node._flashT);node._flashT=setTimeout(()=>node.classList.remove('flash-hl'),1300);
+}
+function highlightSel(sel){
+  if(!sel)return;
+  const sect=document.getElementById('sectSel');
+  if(sect){sect.scrollIntoView({behavior:'smooth',block:'nearest'});flashEl(sect)}
+  if(sel.type==='text'&&!sel.key.startsWith('obj:')){
+    const row=document.querySelector('#fields [data-key="'+CSS.escape(sel.key)+'"]');
+    if(row)flashEl(row);
+  }
 }
 const WEIGHTS=[['','Template default'],['300','Light 300'],['400','Regular 400'],['500','Medium 500'],['600','Semibold 600'],['700','Bold 700'],['800','Extrabold 800'],['900','Black 900']];
 function buildSelPanel(){
@@ -2192,7 +2224,7 @@ function buildSelPanel(){
   }else ctl(box,'Flip horizontally','check',ov,'flip');
   ctl(box,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);buildSelPanel();dirty()});
-  btn(b,'Reset everything',()=>{state.ovr[tp.id]={};buildSelPanel();dirty()});box.append(b);
+  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};buildSelPanel();dirty()});box.append(b);
   objPicker(box);
 }
 const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge',
@@ -2358,6 +2390,7 @@ function buildInspector(){
   tp.fields.forEach(f=>{
     const t=f.t==='select'?'select':f.t,o={};if(f.t==='select')o.o=f.o;
     if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k});
+    o.wrapKey=f.k;
     ctl(box,f.l,t,v,f.k,o);
   });
   if(free)buildFreePanel();
@@ -2417,7 +2450,7 @@ $('#resetPostBtn').addEventListener('click',()=>{
   /* back to the template's own layout: default copy, no moved or resized elements.
      Uploaded photos and the logo are kept, so nothing has to be re-uploaded. */
   tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v);
-  delete state.ovr[tp.id];
+  delete state.ovr[ovKey(tp.id)];
   if(tp.free){state.free.layers=[];state.free.bg='#FFE81A';state.free.bg2='';state.free.fx='none'}
   state.sel=null;state.t=0;
   buildInspector();persist();
@@ -2561,6 +2594,23 @@ try{
     if(state.logo2.scale===1.6)state.logo2.scale=1;
     if(state.film.bars&&state.film.bars!=='off')state.film.bars='off';
     localStorage.setItem('mps_fix_v20','1');
+    persist();
+  }
+}catch(e){}
+/* one-time migration: per-element overrides (position/size/line-spacing/etc.) used to be
+   shared across all 3 aspect ratios of a template, which is what caused edits on one ratio
+   to misalign another. Move any old bare-template-id overrides onto the ratio the user was
+   last on (their best-guess origin) so nothing is silently lost when this ships. */
+try{
+  if(!localStorage.getItem('mps_fix_v21')){
+    Object.keys(state.ovr).forEach(k=>{
+      if(k.indexOf('@')===-1){
+        const nk=k+'@'+state.ratio;
+        if(!state.ovr[nk])state.ovr[nk]=state.ovr[k];
+        delete state.ovr[k];
+      }
+    });
+    localStorage.setItem('mps_fix_v21','1');
     persist();
   }
 }catch(e){}
