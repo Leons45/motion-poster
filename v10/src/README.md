@@ -93,3 +93,7 @@ Run it from this directory (or anywhere — it locates itself and writes to
   per-ratio moved/resized elements, typography, stickers, free-canvas layers; never photos/logo) per
   template id. "Reset this post" and "Reset every template" (clears `mps_state`, boot snippet re-applies
   defaults) return to it; "Clear my default" / "Forget my saved defaults" return to the factory design.
+- **Portable defaults**: "Export my defaults" downloads `motion-poster-defaults.json`; "Import my defaults"
+  loads one in any browser. To make defaults the app-wide factory design, replace `v10/src/defaults.json`
+  with the exported file and rebuild (`build.py` embeds it as `BAKED_DEFAULTS`); this browser's own saves
+  still win per post, and "Clear my default" falls back to the baked one.

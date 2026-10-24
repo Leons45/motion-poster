@@ -470,7 +470,9 @@ $('#resetPostBtn').addEventListener('click',()=>{
    part of it, so nothing has to be re-uploaded. */
 const DEF_KEY='mps_defaults';
 const jclone=o=>JSON.parse(JSON.stringify(o));
-function defLoad(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||{}}catch(e){return {}}}
+function defLocal(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||{}}catch(e){return {}}}
+/* defaults baked into the app (src/defaults.json) apply everywhere; this browser's own saved defaults win per post */
+function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},defLocal())}
 function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function defSnapshot(tp){
   const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
@@ -493,15 +495,29 @@ function refreshDefBtn(){
   if(b){b.textContent=has?'Update my default':'Save as my default';
     b.title=has?'Overwrite your saved default for this post with the current design':"Save this post's current design (copy, layout, positions, styling, stickers) as YOUR default; Reset comes back to it"}
   if(rb)rb.title=has?'Back to YOUR saved default for this post':'Put this template back to its original layout';
-  if(cb)cb.hidden=!has;if(fb)fb.hidden=!Object.keys(D).length;
+  if(cb)cb.hidden=!Object.keys(defLocal()).includes(state.tid);if(fb)fb.hidden=!Object.keys(defLocal()).length;
 }
 $('#saveDefBtn').addEventListener('click',()=>{
-  if(state.rec)return;const tp=cur(),D=defLoad();D[tp.id]=defSnapshot(tp);
+  if(state.rec)return;const tp=cur(),D=defLocal();D[tp.id]=defSnapshot(tp);
   const ok=defStore(D),b=$('#saveDefBtn');refreshDefBtn();
   const keep=b.textContent;b.textContent=ok?'Saved \u2713':'Could not save (browser storage blocked)';setTimeout(()=>refreshDefBtn(),1600);
 });
-$('#clearDefBtn').addEventListener('click',()=>{const D=defLoad();delete D[state.tid];defStore(D);refreshDefBtn()});
+$('#clearDefBtn').addEventListener('click',()=>{const D=defLocal();delete D[state.tid];defStore(D);refreshDefBtn()});
 $('#forgetDefBtn').addEventListener('click',()=>{if(confirm('Forget every default you have saved? Reset will go back to the original designs.')){defStore({});refreshDefBtn()}});
+$('#expDefBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(defLoad(),null,1)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='motion-poster-defaults.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)});
+$('#impDefBtn').addEventListener('click',()=>$('#impDefFile').click());
+$('#impDefFile').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{
+    const o=JSON.parse(r.result);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;
+    const ids=new Set(T.map(t=>t.id)),D=defLocal();let n=0;
+    Object.keys(o).forEach(k=>{if(ids.has(k)&&o[k]&&typeof o[k]==='object'){D[k]=o[k];n++}});
+    if(!n)throw 0;defStore(D);refreshDefBtn();
+    $('#impDefBtn').textContent='Imported '+n+' \u2713';setTimeout(()=>{$('#impDefBtn').textContent='Import my defaults'},1800)
+  }catch(x){$('#impDefBtn').textContent='Not a defaults file';setTimeout(()=>{$('#impDefBtn').textContent='Import my defaults'},1800)}};
+  r.readAsText(f)});
 $('#undoBtn').addEventListener('click',()=>{if(!state.rec)undo()});
 $('#redoBtn').addEventListener('click',()=>{if(!state.rec)redo()});
 $('#restartBtn').addEventListener('click',()=>{if(state.rec)return;state.t=0;state.playing=true;$('#playBtn').textContent='Pause'});
