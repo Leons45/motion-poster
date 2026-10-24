@@ -12,34 +12,48 @@
     </div>
     <p id="status"></p>
   </section>
-  <aside class="panel insp" id="insp">
+<aside class="panel insp" id="insp">
+  <div class="fmtbar"><span>Format</span><div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Panel sections">
+    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button>
+  </div>
+  <div class="tabbody" id="tabBody">
+  <div class="pane" data-pane="content">
+    <div id="sectContent"><h3>Content</h3><div id="fields"></div></div>
+    <div id="sectImages"><h3>Images</h3><div id="images"></div></div>
+  </div>
+  <div class="pane" data-pane="object" hidden>
+    <div id="sectSel"><h3>Selected</h3><div id="selPanel"></div></div>
+  </div>
+  <div class="pane" data-pane="add" hidden>
+    <div id="sectLayers" hidden><h3>Layers</h3><div id="freeBox"></div></div>
+    <div id="sectQuick" hidden><h3>Quick Leon's elements</h3><div id="quickBox"></div></div>
+  </div>
+  <div class="pane" data-pane="style" hidden>
     <h3>Brand logo</h3>
     <div class="slot" id="logoSlot"><div class="pv" id="logoPv"></div><div class="lbl">Brand logo<small id="logoSm">Leon’s brand logo</small></div><button class="btn sm" id="logoBtn" type="button">Upload</button><button class="btn sm" id="logoClr" type="button">Clear</button></div>
     <div id="logoFxBox"></div>
     <h3>Film effects</h3><p class="note">These stack on top of any template.</p><div id="filmBox"></div>
-    <div id="sectContent"><h3>Content</h3><div id="fields"></div></div>
-    <div id="sectSel"><h3>Selected</h3><div id="selPanel"></div></div>
-    <div id="sectLayers" hidden><h3>Layers</h3><div id="freeBox"></div></div>
-    <div id="sectQuick" hidden><h3>Quick Leon's elements</h3><div id="quickBox"></div></div>
-    <div id="sectImages"><h3>Images</h3><div id="images"></div></div>
-    <h3>Format</h3>
-    <div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div>
-    <p class="note" id="ratioNote"></p>
+    <h3>Fonts</h3>
+    <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
+    <p class="note" id="fontNote" style="margin-top:0"></p>
+    <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
+  </div>
+  <div class="pane" data-pane="export" hidden>
+    <p class="note" id="ratioNote" style="margin-top:0"></p>
     <label class="fld" style="margin-top:12px"><span>Loop length</span><div class="range"><input type="range" id="dur" min="3" max="12" step="1" value="6"><output id="durOut">6s</output></div></label>
     <div class="row2">
       <label class="fld"><span>Video loops</span><select id="loops"><option value="1">1 loop</option><option value="2">2 loops</option><option value="3">3 loops</option></select></label>
       <label class="fld"><span>Frame rate</span><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
     </div>
-    <h3>Fonts</h3>
-    <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
-    <p class="note" id="fontNote" style="margin-top:0"></p>
-    <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
     <div class="exp">
       <button class="btn primary" id="vidBtn" type="button">Export video</button>
       <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
     </div>
     <p class="note">Video records in real time, so keep this tab open until it finishes. Chrome and Edge save MP4; other browsers may save WebM. Your text, positions and layers are remembered in this browser.</p>
     <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px" title="Back to your saved defaults (the original design for any post you have not saved a default for)">Reset every template</button> <button class="btn sm" id="forgetDefBtn" type="button" style="margin-top:6px" hidden title="Delete every default you have saved">Forget my saved defaults</button> <button class="btn sm" id="expDefBtn" type="button" style="margin-top:6px" title="Download all your defaults as a file you can load in any browser">Export my defaults</button> <button class="btn sm" id="impDefBtn" type="button" style="margin-top:6px" title="Load a defaults file saved from another browser">Import my defaults</button><button class="btn sm" id="liveBtn" type="button" style="margin-top:6px" title="Save defaults to the GitHub repo so every browser sees them">Connect live save</button><div id="syncNote" class="note" style="margin-top:4px;font-size:11px"></div><input type="file" id="impDefFile" accept="application/json,.json" hidden>
+  </div>
+  </div>
   </aside>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>

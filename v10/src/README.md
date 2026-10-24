@@ -102,3 +102,8 @@ Run it from this directory (or anywhere — it locates itself and writes to
   `v10/src/defaults.json` through the GitHub API; on the website the app fetches `src/defaults.json` at
   load (layers: baked < live file < this browser's saves). Pages redeploys in about a minute. Fails soft:
   the default is still saved locally and the error is shown under the button.
+- **Right panel** (`body.html`, `ui.js` `setTab`/`card`/`regroup`/`buildFields`/`objColours`): a pinned Format
+  selector plus five tabs: Content (text, layout & look, colours, photos), Object (everything for the
+  selected item: position/size, text style, and the template colours, most relevant first), Add (free-canvas
+  layers, quick elements), Style (logo, film effects, fonts), Export. Clicking an object on the canvas
+  jumps to the Object tab. Collapsible cards remember open/closed. Element ids are unchanged.

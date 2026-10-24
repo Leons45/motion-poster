@@ -150,41 +150,88 @@ function flashEl(node){
 function highlightSel(sel){
   if(!sel)return;
   const sect=document.getElementById('sectSel');
-  if(sect){sect.scrollIntoView({behavior:'smooth',block:'nearest'});flashEl(sect)}
+  setTab('object');
+  if(sect)flashEl(sect);
   if(sel.type==='text'&&!sel.key.startsWith('obj:')){
     const row=document.querySelector('#fields [data-key="'+CSS.escape(sel.key)+'"]');
     if(row)flashEl(row);
   }
 }
+/* ----- right panel: tabs and collapsible cards ----- */
+let curTab='content';
+function setTab(name){
+  curTab=name;
+  document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  document.querySelectorAll('#insp .pane').forEach(p=>p.hidden=p.dataset.pane!==name);
+  const tb=document.getElementById('tabBody');if(tb)tb.scrollTop=0;
+}
+const CARD_OPEN={};
+function card(parent,title,open,id){
+  id=id||title;const d=el('details','card');d.open=id in CARD_OPEN?CARD_OPEN[id]:open;
+  d.append(el('summary','',title));d.addEventListener('toggle',()=>{CARD_OPEN[id]=d.open});
+  const b=el('div','cardbody');d.append(b);parent.append(d);return b;
+}
+/* turn a flat run of controls (split by <h3> headings) into collapsible cards */
+function regroup(box,firstTitle){
+  const kids=[...box.childNodes];box.innerHTML='';let body=card(box,firstTitle,true,'L:'+firstTitle);
+  kids.forEach(k=>{
+    if(k.tagName==='H3'){body=card(box,k.textContent,true,'L:'+k.textContent);return}
+    if(k.classList&&k.classList.contains('selname')){box.insertBefore(k,box.firstChild);return}
+    body.append(k);
+  });
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.tab==='content'||b.dataset.tab==='object')buildFields();   /* both show the template colours: keep them in step */
+  setTab(b.dataset.tab);if(b.dataset.tab==='object')buildSelPanel();
+}));
 const WEIGHTS=[['','Template default'],['300','Light 300'],['400','Regular 400'],['500','Medium 500'],['600','Semibold 600'],['700','Bold 700'],['800','Extrabold 800'],['900','Black 900']];
+function objDot(on){const d=document.getElementById('objDot');if(d)d.hidden=!on}
+/* template colour fields (masthead, accent, background...) shown beside the selected object,
+   the ones most likely to colour that object first, so nothing needs a trip back to Content */
+function objColours(box,tp,sel,isObj){
+  const cf=tp.fields.filter(f=>f.t==='color');if(!cf.length)return;
+  const k=sel.key.toLowerCase(),pref=[];
+  if(/mast/.test(k))pref.push('mcol');
+  if(/footer|price|badge|seal|stamp|button|burst|ribbon|tag|ticket|coupon|pill|band|corner|bar|dot|leaf|stat|step|feature|toggle|code|burst/.test(k))pref.push('acc','panel','c1');
+  if(/card|panel|polaroid|flyer|frame|avatar|ticket/.test(k))pref.push('ink','panel','acc');
+  if(/photo|image|background|bg|cutout|character/.test(k))pref.push('bg','bg1');
+  const rank=f=>{const i=pref.indexOf(f.k);return i<0?99:i};
+  const list=[...cf].sort((a,b)=>rank(a)-rank(b)),v=state.vals[tp.id];
+  const g=card(box,isObj?'Colours':'Template colours',isObj,'selcols'+(isObj?'O':'T')),grid=el('div','cgrid');g.append(grid);
+  list.forEach(f=>ctl(grid,f.l,'color',v,f.k));
+}
 function buildSelPanel(){
   const box=$('#selPanel');box.innerHTML='';const tp=cur(),sel=state.sel;
   if(tp.free){
-    const L=selLayer();
+    const L=selLayer();objDot(!!L);
     if(!L){box.append(el('p','note','Click a layer on the canvas or in the list to edit it. Drag to move, use the square handle to resize and the round handle to rotate.'));return}
-    buildLayerProps(box,L);return;
+    buildLayerProps(box,L);regroup(box,'Position & look');return;
   }
-  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo or logo on the canvas to move it, resize it and more. Drag the square handle to resize and the round handle to rotate. Arrow keys nudge.'));objPicker(box);return}
+  objDot(!!(sel&&sel.type==='text'));
+  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
   /* Typography (weight/typeface/colour/spacing/opacity) is stored per template, shared
-     across every ratio, so it's only created — and only read — for text selections. */
+     across every ratio, so it's only created, and only read, for text selections. */
   const sov=!isObj?styleFor(tp.id,sel.key,true):null;
   box.append(el('p','selname',isObj?objLabel(sel.key):(f?f.l:sel.key)));
   const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round((isObj?ov:sov).op*100)},set opp(v){(isObj?ov:sov).op=v/100},
     get wp(){return Math.round((ov.sx||1)*100)},set wp(v){ov.sx=v/100},get hp(){return Math.round((ov.sy||1)*100)},set hp(v){ov.sy=v/100}};
-  const r=row2(box);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
-  ctl(box,'Size %','range',proxy,'pct',{min:10,max:500,step:1});
-  if(isObj){ctl(box,'Stretch width %','range',proxy,'wp',{min:20,max:300,step:1});ctl(box,'Stretch height %','range',proxy,'hp',{min:20,max:300,step:1})}
-  ctl(box,'Rotation (degrees)','range',ov,'rot',{min:-180,max:180,step:1});
+  const g1=card(box,'Position & size',true,'pos');
+  const r=row2(g1);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
+  const r1=row2(g1);ctl(r1,'Size %','range',proxy,'pct',{min:10,max:500,step:1});ctl(r1,'Rotation','range',ov,'rot',{min:-180,max:180,step:1});
+  if(isObj){const r3=row2(g1);ctl(r3,'Stretch W %','range',proxy,'wp',{min:20,max:300,step:1});ctl(r3,'Stretch H %','range',proxy,'hp',{min:20,max:300,step:1})}
+  ctl(g1,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
+  if(isObj)ctl(g1,'Flip horizontally','check',ov,'flip');
   if(!isObj){
-    box.append(el('p','note','Weight, typeface, colour and spacing below apply to every aspect ratio of this post — position, size and rotation above stay per ratio.'));
-    const r2=row2(box);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
-    const cr=row2(box);ctl(cr,'Colour','color',sov,'col');
-    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='10px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);
-    ctl(box,'Letter spacing','range',sov,'ls',{min:-10,max:40,step:1});
-    ctl(box,'Line spacing','range',sov,'lh',{min:.6,max:2.2,step:.05});
-  }else ctl(box,'Flip horizontally','check',ov,'flip');
-  ctl(box,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
+    const g2=card(box,'Text style',true,'tstyle');
+    const r2=row2(g2);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
+    const cr=row2(g2);ctl(cr,'Text colour','color',sov,'col');
+    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='8px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);
+    ctl(g2,'Letter spacing','range',sov,'ls',{min:-10,max:40,step:1});
+    ctl(g2,'Line spacing','range',sov,'lh',{min:.6,max:2.2,step:.05});
+    g2.append(el('p','note','Style applies to every aspect ratio of this post. Position, size and rotation stay per ratio.'));
+  }
+  objColours(box,tp,sel,isObj);
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);if(sov)Object.assign(sov,STD);buildSelPanel();dirty()});
   btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};buildSelPanel();dirty()});
   if(sel.key.startsWith('obj:Quick')){
@@ -206,8 +253,8 @@ function objLabel(k){
 }
 function objPicker(box){
   const ks=(LAST&&LAST.objs)||[];if(!ks.length)return;
-  box.append(el('p','note','Photos, logo and badges in this template:'));const w=el('div','btnrow');
-  ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));box.append(w);
+  const g=card(box,'Pick another object',!state.sel,'picker'),w=el('div','btnrow');
+  ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));g.append(w);
 }
 
 /* ----- layers ----- */
@@ -386,17 +433,28 @@ function buildQuick(){
   add.append(sel);btn(add,'Add',()=>{const e=addQuick(tp.id,sel.value);select({type:'text',key:'obj:Quick'+e.id});buildQuick();dirty()},'primary');
   box.append(add);
 }
+function buildFields(){
+  const tp=cur(),v=state.vals[tp.id],box=$('#fields');if(!box||tp.free)return;box.innerHTML='';
+  const groups=[['Text',f=>f.t==='text'||f.t==='area',true],['Layout & look',f=>f.t==='select',true],['Colours',f=>f.t==='color',false]];
+  const used=new Set();
+  groups.forEach(([title,test,open])=>{
+    const list=tp.fields.filter(f=>test(f));list.forEach(f=>used.add(f.k));if(!list.length)return;
+    const g=card(box,title,open,'fld:'+title),col=title==='Colours'?el('div','cgrid'):g;if(col!==g)g.append(col);
+    list.forEach(f=>{
+      const t=f.t==='select'?'select':f.t==='text'?'area':f.t,o={};if(f.t==='select')o.o=f.o;if(f.t==='text')o.auto=true;
+      if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
+      o.wrapKey=f.k;ctl(col,f.l,t,v,f.k,o);
+    });
+  });
+  const rest=tp.fields.filter(f=>!used.has(f.k));
+  if(rest.length){const g=card(box,'Other',true,'fld:Other');rest.forEach(f=>{const o={wrapKey:f.k};if(f.t==='select')o.o=f.o;ctl(g,f.l,f.t,v,f.k,o)})}
+}
 function buildInspector(){
   const tp=cur(),free=!!tp.free;
   buildLogoFx();buildFilm();
   $('#sectContent').hidden=free||!tp.fields.length;$('#sectImages').hidden=free||!tp.images.length;$('#sectLayers').hidden=!free;
-  const v=state.vals[tp.id],box=$('#fields');box.innerHTML='';
-  tp.fields.forEach(f=>{
-    const t=f.t==='select'?'select':f.t==='text'?'area':f.t,o={};if(f.t==='select')o.o=f.o;if(f.t==='text')o.auto=true;
-    if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
-    o.wrapKey=f.k;
-    ctl(box,f.l,t,v,f.k,o);
-  });
+  buildFields();
+    if(free&&curTab==='content')setTab('add');
   if(free)buildFreePanel();
   buildQuick();
   buildImages();buildSelPanel();refreshStatus();refreshDefBtn();

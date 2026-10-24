@@ -110,7 +110,7 @@ input[type=color]{width:100%;height:36px;padding:3px;border:1px solid var(--line
 #ov{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 h4.grp{font:700 11px/1 var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--mute);margin:14px 4px 6px}
 h4.grp:first-child{margin-top:0}
-.insp{max-height:calc(100vh - 32px);overflow-y:auto;position:sticky;top:16px}
+.insp{height:calc(100vh - 124px);min-height:520px;position:sticky;top:16px;display:flex;flex-direction:column;padding:0;overflow:hidden}
 #rail{max-height:calc(100vh - 32px);overflow-y:auto;position:sticky;top:16px}
 .selname{font:800 15px var(--f-ui);margin:0 0 10px}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
@@ -125,10 +125,42 @@ h4.grp:first-child{margin-top:0}
 .fld.chk>span{margin:0}
 .fld.chk input{width:auto}
 input[type=range]{width:100%;accent-color:var(--acc)}
-@media (max-width:1020px){.insp,#rail{position:static;max-height:none}}
+@media (max-width:1020px){.insp{position:static;height:auto;max-height:none}#rail{position:static;max-height:none}.tabbody{overflow:visible}}
 
 .row2>*{min-width:0}input,select{min-width:0}
 input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit}input[type=text],textarea,select{box-sizing:border-box}
+
+/* ----- right panel: format bar, tabs, collapsible cards ----- */
+.fmtbar{display:flex;align-items:center;gap:10px;padding:10px 12px 0}
+.fmtbar>span{font:700 11px/1 var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--mute)}
+.fmtbar .seg{flex:1}
+.fmtbar .seg button{padding:5px 0;font-size:12px}
+.tabs{display:flex;gap:2px;margin:10px 12px 0;padding:3px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+.tabs button{flex:1;position:relative;padding:7px 0;border:0;border-radius:999px;background:transparent;color:var(--mute);font:700 12px var(--f-ui);cursor:pointer}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{background:var(--acc);color:var(--acc-ink)}
+.tdot{position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+.tabbody{flex:1;min-height:0;overflow-y:auto;padding:12px 14px 16px}
+.pane[hidden]{display:none}
+.tabbody h3{margin-top:0}
+.pane h3+*{margin-top:0}
+details.card{border:1px solid var(--line);border-radius:10px;background:var(--field);margin:0 0 8px;overflow:hidden}
+details.card>summary{list-style:none;cursor:pointer;padding:9px 12px;font:700 12px var(--f-ui);display:flex;align-items:center;gap:8px;user-select:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:"";margin-left:auto;width:7px;height:7px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
+details.card[open]>summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top:1px solid var(--line)}
+.cardbody .fld{margin-bottom:8px}
+.cardbody .fld>span{font-size:11px;color:var(--mute);margin-bottom:3px}
+.cardbody input[type=color]{height:30px}
+.cardbody .row2{gap:8px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.selhead{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.selhead .selname{margin:0;flex:1;min-width:0}
+#sectSel>h3,#sectContent>h3{display:none}
+.cardbody .fld{margin-bottom:6px}
+.cardbody input[type=text],.cardbody textarea,.cardbody select,.cardbody input[type=number]{padding:6px 9px}
+.cardbody .row2 .fld>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 </style>
 
@@ -146,34 +178,48 @@ input[type=number]{width:100%;box-sizing:border-box;padding:8px 10px;border:1px 
     </div>
     <p id="status"></p>
   </section>
-  <aside class="panel insp" id="insp">
+<aside class="panel insp" id="insp">
+  <div class="fmtbar"><span>Format</span><div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Panel sections">
+    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button>
+  </div>
+  <div class="tabbody" id="tabBody">
+  <div class="pane" data-pane="content">
+    <div id="sectContent"><h3>Content</h3><div id="fields"></div></div>
+    <div id="sectImages"><h3>Images</h3><div id="images"></div></div>
+  </div>
+  <div class="pane" data-pane="object" hidden>
+    <div id="sectSel"><h3>Selected</h3><div id="selPanel"></div></div>
+  </div>
+  <div class="pane" data-pane="add" hidden>
+    <div id="sectLayers" hidden><h3>Layers</h3><div id="freeBox"></div></div>
+    <div id="sectQuick" hidden><h3>Quick Leon's elements</h3><div id="quickBox"></div></div>
+  </div>
+  <div class="pane" data-pane="style" hidden>
     <h3>Brand logo</h3>
     <div class="slot" id="logoSlot"><div class="pv" id="logoPv"></div><div class="lbl">Brand logo<small id="logoSm">Leon’s brand logo</small></div><button class="btn sm" id="logoBtn" type="button">Upload</button><button class="btn sm" id="logoClr" type="button">Clear</button></div>
     <div id="logoFxBox"></div>
     <h3>Film effects</h3><p class="note">These stack on top of any template.</p><div id="filmBox"></div>
-    <div id="sectContent"><h3>Content</h3><div id="fields"></div></div>
-    <div id="sectSel"><h3>Selected</h3><div id="selPanel"></div></div>
-    <div id="sectLayers" hidden><h3>Layers</h3><div id="freeBox"></div></div>
-    <div id="sectQuick" hidden><h3>Quick Leon's elements</h3><div id="quickBox"></div></div>
-    <div id="sectImages"><h3>Images</h3><div id="images"></div></div>
-    <h3>Format</h3>
-    <div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div>
-    <p class="note" id="ratioNote"></p>
+    <h3>Fonts</h3>
+    <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
+    <p class="note" id="fontNote" style="margin-top:0"></p>
+    <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
+  </div>
+  <div class="pane" data-pane="export" hidden>
+    <p class="note" id="ratioNote" style="margin-top:0"></p>
     <label class="fld" style="margin-top:12px"><span>Loop length</span><div class="range"><input type="range" id="dur" min="3" max="12" step="1" value="6"><output id="durOut">6s</output></div></label>
     <div class="row2">
       <label class="fld"><span>Video loops</span><select id="loops"><option value="1">1 loop</option><option value="2">2 loops</option><option value="3">3 loops</option></select></label>
       <label class="fld"><span>Frame rate</span><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
     </div>
-    <h3>Fonts</h3>
-    <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
-    <p class="note" id="fontNote" style="margin-top:0"></p>
-    <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
     <div class="exp">
       <button class="btn primary" id="vidBtn" type="button">Export video</button>
       <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
     </div>
     <p class="note">Video records in real time, so keep this tab open until it finishes. Chrome and Edge save MP4; other browsers may save WebM. Your text, positions and layers are remembered in this browser.</p>
     <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px" title="Back to your saved defaults (the original design for any post you have not saved a default for)">Reset every template</button> <button class="btn sm" id="forgetDefBtn" type="button" style="margin-top:6px" hidden title="Delete every default you have saved">Forget my saved defaults</button> <button class="btn sm" id="expDefBtn" type="button" style="margin-top:6px" title="Download all your defaults as a file you can load in any browser">Export my defaults</button> <button class="btn sm" id="impDefBtn" type="button" style="margin-top:6px" title="Load a defaults file saved from another browser">Import my defaults</button><button class="btn sm" id="liveBtn" type="button" style="margin-top:6px" title="Save defaults to the GitHub repo so every browser sees them">Connect live save</button><div id="syncNote" class="note" style="margin-top:4px;font-size:11px"></div><input type="file" id="impDefFile" accept="application/json,.json" hidden>
+  </div>
+  </div>
   </aside>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
@@ -2766,41 +2812,88 @@ function flashEl(node){
 function highlightSel(sel){
   if(!sel)return;
   const sect=document.getElementById('sectSel');
-  if(sect){sect.scrollIntoView({behavior:'smooth',block:'nearest'});flashEl(sect)}
+  setTab('object');
+  if(sect)flashEl(sect);
   if(sel.type==='text'&&!sel.key.startsWith('obj:')){
     const row=document.querySelector('#fields [data-key="'+CSS.escape(sel.key)+'"]');
     if(row)flashEl(row);
   }
 }
+/* ----- right panel: tabs and collapsible cards ----- */
+let curTab='content';
+function setTab(name){
+  curTab=name;
+  document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  document.querySelectorAll('#insp .pane').forEach(p=>p.hidden=p.dataset.pane!==name);
+  const tb=document.getElementById('tabBody');if(tb)tb.scrollTop=0;
+}
+const CARD_OPEN={};
+function card(parent,title,open,id){
+  id=id||title;const d=el('details','card');d.open=id in CARD_OPEN?CARD_OPEN[id]:open;
+  d.append(el('summary','',title));d.addEventListener('toggle',()=>{CARD_OPEN[id]=d.open});
+  const b=el('div','cardbody');d.append(b);parent.append(d);return b;
+}
+/* turn a flat run of controls (split by <h3> headings) into collapsible cards */
+function regroup(box,firstTitle){
+  const kids=[...box.childNodes];box.innerHTML='';let body=card(box,firstTitle,true,'L:'+firstTitle);
+  kids.forEach(k=>{
+    if(k.tagName==='H3'){body=card(box,k.textContent,true,'L:'+k.textContent);return}
+    if(k.classList&&k.classList.contains('selname')){box.insertBefore(k,box.firstChild);return}
+    body.append(k);
+  });
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.tab==='content'||b.dataset.tab==='object')buildFields();   /* both show the template colours: keep them in step */
+  setTab(b.dataset.tab);if(b.dataset.tab==='object')buildSelPanel();
+}));
 const WEIGHTS=[['','Template default'],['300','Light 300'],['400','Regular 400'],['500','Medium 500'],['600','Semibold 600'],['700','Bold 700'],['800','Extrabold 800'],['900','Black 900']];
+function objDot(on){const d=document.getElementById('objDot');if(d)d.hidden=!on}
+/* template colour fields (masthead, accent, background...) shown beside the selected object,
+   the ones most likely to colour that object first, so nothing needs a trip back to Content */
+function objColours(box,tp,sel,isObj){
+  const cf=tp.fields.filter(f=>f.t==='color');if(!cf.length)return;
+  const k=sel.key.toLowerCase(),pref=[];
+  if(/mast/.test(k))pref.push('mcol');
+  if(/footer|price|badge|seal|stamp|button|burst|ribbon|tag|ticket|coupon|pill|band|corner|bar|dot|leaf|stat|step|feature|toggle|code|burst/.test(k))pref.push('acc','panel','c1');
+  if(/card|panel|polaroid|flyer|frame|avatar|ticket/.test(k))pref.push('ink','panel','acc');
+  if(/photo|image|background|bg|cutout|character/.test(k))pref.push('bg','bg1');
+  const rank=f=>{const i=pref.indexOf(f.k);return i<0?99:i};
+  const list=[...cf].sort((a,b)=>rank(a)-rank(b)),v=state.vals[tp.id];
+  const g=card(box,isObj?'Colours':'Template colours',isObj,'selcols'+(isObj?'O':'T')),grid=el('div','cgrid');g.append(grid);
+  list.forEach(f=>ctl(grid,f.l,'color',v,f.k));
+}
 function buildSelPanel(){
   const box=$('#selPanel');box.innerHTML='';const tp=cur(),sel=state.sel;
   if(tp.free){
-    const L=selLayer();
+    const L=selLayer();objDot(!!L);
     if(!L){box.append(el('p','note','Click a layer on the canvas or in the list to edit it. Drag to move, use the square handle to resize and the round handle to rotate.'));return}
-    buildLayerProps(box,L);return;
+    buildLayerProps(box,L);regroup(box,'Position & look');return;
   }
-  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo or logo on the canvas to move it, resize it and more. Drag the square handle to resize and the round handle to rotate. Arrow keys nudge.'));objPicker(box);return}
+  objDot(!!(sel&&sel.type==='text'));
+  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
   /* Typography (weight/typeface/colour/spacing/opacity) is stored per template, shared
-     across every ratio, so it's only created — and only read — for text selections. */
+     across every ratio, so it's only created, and only read, for text selections. */
   const sov=!isObj?styleFor(tp.id,sel.key,true):null;
   box.append(el('p','selname',isObj?objLabel(sel.key):(f?f.l:sel.key)));
   const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round((isObj?ov:sov).op*100)},set opp(v){(isObj?ov:sov).op=v/100},
     get wp(){return Math.round((ov.sx||1)*100)},set wp(v){ov.sx=v/100},get hp(){return Math.round((ov.sy||1)*100)},set hp(v){ov.sy=v/100}};
-  const r=row2(box);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
-  ctl(box,'Size %','range',proxy,'pct',{min:10,max:500,step:1});
-  if(isObj){ctl(box,'Stretch width %','range',proxy,'wp',{min:20,max:300,step:1});ctl(box,'Stretch height %','range',proxy,'hp',{min:20,max:300,step:1})}
-  ctl(box,'Rotation (degrees)','range',ov,'rot',{min:-180,max:180,step:1});
+  const g1=card(box,'Position & size',true,'pos');
+  const r=row2(g1);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
+  const r1=row2(g1);ctl(r1,'Size %','range',proxy,'pct',{min:10,max:500,step:1});ctl(r1,'Rotation','range',ov,'rot',{min:-180,max:180,step:1});
+  if(isObj){const r3=row2(g1);ctl(r3,'Stretch W %','range',proxy,'wp',{min:20,max:300,step:1});ctl(r3,'Stretch H %','range',proxy,'hp',{min:20,max:300,step:1})}
+  ctl(g1,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
+  if(isObj)ctl(g1,'Flip horizontally','check',ov,'flip');
   if(!isObj){
-    box.append(el('p','note','Weight, typeface, colour and spacing below apply to every aspect ratio of this post — position, size and rotation above stay per ratio.'));
-    const r2=row2(box);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
-    const cr=row2(box);ctl(cr,'Colour','color',sov,'col');
-    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='10px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);
-    ctl(box,'Letter spacing','range',sov,'ls',{min:-10,max:40,step:1});
-    ctl(box,'Line spacing','range',sov,'lh',{min:.6,max:2.2,step:.05});
-  }else ctl(box,'Flip horizontally','check',ov,'flip');
-  ctl(box,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
+    const g2=card(box,'Text style',true,'tstyle');
+    const r2=row2(g2);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
+    const cr=row2(g2);ctl(cr,'Text colour','color',sov,'col');
+    const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='8px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);
+    ctl(g2,'Letter spacing','range',sov,'ls',{min:-10,max:40,step:1});
+    ctl(g2,'Line spacing','range',sov,'lh',{min:.6,max:2.2,step:.05});
+    g2.append(el('p','note','Style applies to every aspect ratio of this post. Position, size and rotation stay per ratio.'));
+  }
+  objColours(box,tp,sel,isObj);
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);if(sov)Object.assign(sov,STD);buildSelPanel();dirty()});
   btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};buildSelPanel();dirty()});
   if(sel.key.startsWith('obj:Quick')){
@@ -2822,8 +2915,8 @@ function objLabel(k){
 }
 function objPicker(box){
   const ks=(LAST&&LAST.objs)||[];if(!ks.length)return;
-  box.append(el('p','note','Photos, logo and badges in this template:'));const w=el('div','btnrow');
-  ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));box.append(w);
+  const g=card(box,'Pick another object',!state.sel,'picker'),w=el('div','btnrow');
+  ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));g.append(w);
 }
 
 /* ----- layers ----- */
@@ -3002,17 +3095,28 @@ function buildQuick(){
   add.append(sel);btn(add,'Add',()=>{const e=addQuick(tp.id,sel.value);select({type:'text',key:'obj:Quick'+e.id});buildQuick();dirty()},'primary');
   box.append(add);
 }
+function buildFields(){
+  const tp=cur(),v=state.vals[tp.id],box=$('#fields');if(!box||tp.free)return;box.innerHTML='';
+  const groups=[['Text',f=>f.t==='text'||f.t==='area',true],['Layout & look',f=>f.t==='select',true],['Colours',f=>f.t==='color',false]];
+  const used=new Set();
+  groups.forEach(([title,test,open])=>{
+    const list=tp.fields.filter(f=>test(f));list.forEach(f=>used.add(f.k));if(!list.length)return;
+    const g=card(box,title,open,'fld:'+title),col=title==='Colours'?el('div','cgrid'):g;if(col!==g)g.append(col);
+    list.forEach(f=>{
+      const t=f.t==='select'?'select':f.t==='text'?'area':f.t,o={};if(f.t==='select')o.o=f.o;if(f.t==='text')o.auto=true;
+      if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
+      o.wrapKey=f.k;ctl(col,f.l,t,v,f.k,o);
+    });
+  });
+  const rest=tp.fields.filter(f=>!used.has(f.k));
+  if(rest.length){const g=card(box,'Other',true,'fld:Other');rest.forEach(f=>{const o={wrapKey:f.k};if(f.t==='select')o.o=f.o;ctl(g,f.l,f.t,v,f.k,o)})}
+}
 function buildInspector(){
   const tp=cur(),free=!!tp.free;
   buildLogoFx();buildFilm();
   $('#sectContent').hidden=free||!tp.fields.length;$('#sectImages').hidden=free||!tp.images.length;$('#sectLayers').hidden=!free;
-  const v=state.vals[tp.id],box=$('#fields');box.innerHTML='';
-  tp.fields.forEach(f=>{
-    const t=f.t==='select'?'select':f.t==='text'?'area':f.t,o={};if(f.t==='select')o.o=f.o;if(f.t==='text')o.auto=true;
-    if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
-    o.wrapKey=f.k;
-    ctl(box,f.l,t,v,f.k,o);
-  });
+  buildFields();
+    if(free&&curTab==='content')setTab('add');
   if(free)buildFreePanel();
   buildQuick();
   buildImages();buildSelPanel();refreshStatus();refreshDefBtn();
