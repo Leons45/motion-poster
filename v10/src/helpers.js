@@ -106,17 +106,24 @@ function ph(c,x,y,w,h,label,dark){
   c.fillText('+',x+w/2,y+h/2-s*.8);font(c,700,s*.8,FM);
   wrap(c,label,w-40).forEach((l,i)=>c.fillText(l,x+w/2,y+h/2+s*.5+i*s));c.restore();
 }
+/* wrappers that only group other objects (the logo row) must not be clickable themselves: clicking the
+   empty space between the logo and the badge used to grab an invisible full-width box */
+const OBJ_NOHIT=new Set(['obj:Logo bar']);
 function objDraw(c,key,x,y,w,h,fn){
   if(typeof FR==='undefined'||!FR){fn();return}
-  const m=c.getTransform(),ov=FR.ov[key];let a=FR.anch[key];
+  const m=c.getTransform(),ov=FR.ov[key],nohit=OBJ_NOHIT.has(key);let a=FR.anch[key];
   if(!a){const p=m.transformPoint(new DOMPoint(x+w/2,y+h/2));a=FR.anch[key]={x:p.x,y:p.y}}
-  (FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key);
+  if(!nohit){(FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key)}
+  if(ov&&ov.hide)return;   /* deleted by the person: not drawn, not clickable (kept in the list so it can be restored) */
   let M=m;c.save();
   if(ov){const k=ov.sc||1,sx=k*(ov.sx||1)*(ov.flip?-1:1),sy=k*(ov.sy||1);
     M=new DOMMatrix().translateSelf(ov.dx,ov.dy).translateSelf(a.x,a.y).rotateSelf(ov.rot).scaleSelf(sx,sy).translateSelf(-a.x,-a.y).multiplySelf(m);
     c.setTransform(M);if(ov.op!==1&&ov.op!==undefined)c.globalAlpha*=ov.op}
-  if(!(w>=W*.95&&h>=cv.height*.9)&&c.globalAlpha>.05)FR.hits.push({key,poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]].map(p=>{const q=M.transformPoint(new DOMPoint(p[0],p[1]));return [q.x,q.y]})});
-  fn();c.restore();
+  if(!nohit&&!(w>=W*.95&&h>=cv.height*.9)&&c.globalAlpha>.05)FR.hits.push({key,poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]].map(p=>{const q=M.transformPoint(new DOMPoint(p[0],p[1]));return [q.x,q.y]})});
+  /* text inside a sticker / quick element belongs to that element, never to a template field with similar words
+     (a sticker saying "OFF" was being fused with the "OFF STOREWIDE" line into one giant selection box) */
+  const own=key.startsWith('obj:Quick');if(own)FR.noMatch=(FR.noMatch||0)+1;
+  try{fn()}finally{if(own)FR.noMatch--;c.restore()}
 }
 function drawImg(c,img,x,y,w,h,o={}){const lab=o.label||'Image';objDraw(c,'obj:'+lab,x,y,w,h,()=>drawImgRaw(c,img,x,y,w,h,o))}
 function drawImgRaw(c,img,x,y,w,h,o={}){

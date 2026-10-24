@@ -113,3 +113,12 @@ Run it from this directory (or anywhere — it locates itself and writes to
   `since`). Factory defaults: Mega Sale = Sunray, Financing = Gallery, Appreciation = Ticket,
   Super Sale = Diagonal, Seasonal = Gallery, Black Friday = Arch. Sunray switches to a compact
   ribbon-with-price form on square canvases.
+- **Editing UX** (`ui.js`): pinned Background bar (presets + custom, `bgTargets`/`buildBgBar`; works for event,
+  legacy and free-canvas posts); Design gallery of all 13 layouts with live previews at the top of Content
+  (`buildLayoutGallery`, `previewInto`; `sample.js` is a small stand-in photo used only for previews); rail
+  thumbnails render from the post's CURRENT values so they always match the canvas; colour swatches under every
+  colour input; hover tooltips; Delete = red button in the Object header + red x on the canvas selection + Delete
+  key (template objects get `hide:true` in their override, listed under "Removed from this post" with Restore;
+  quick elements and free layers are really removed; all undoable). `flushPending()` commits the pending
+  history entry before Undo/Redo. Hit-testing rules: `OBJ_NOHIT` wrappers (Logo bar) are not clickable and text
+  inside `obj:Quick*` never matches template fields (`FR.noMatch`).

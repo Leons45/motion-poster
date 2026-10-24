@@ -33,7 +33,7 @@ const Hnow=()=>RATIOS[state.ratio];
    opacity) is a design decision that isn't tied to any one frame, so it's stored per
    template only and shared across every ratio of that post — set it once on 1:1 and
    it already applies to 4:5 and 9:16. */
-const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false};
+const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false,hide:false};
 const STD={col:'',wt:'',fam:'',ls:0,lh:1,op:1};
 function ovKey(tid){return tid+'@'+state.ratio}
 function ovFor(tid,key,create){const k=ovKey(tid),o=(state.ovr[k]=state.ovr[k]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
@@ -91,6 +91,7 @@ function buildFR(tp){
   return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{}};
 }
 function matchKey(s){
+  if(FR&&FR.noMatch>0)return null;
   const n=nz(s);if(!n)return null;
   let cands=FR.mcache[n];
   if(!cands){
@@ -127,6 +128,7 @@ function fillTextHook(s,x,y,mw){
   /* which line of this field we are on, and how many it had last frame */
   const li=(FR.counts[key]||0);FR.counts[key]=li+1;
   const m=c.getTransform(),ov=FR.ov[key];
+  if(ov&&ov.hide)return;   /* deleted by the person: not drawn, not clickable */
   let a=FR.anch[key];if(!a){const p=m.transformPoint(new DOMPoint(x,y));a=FR.anch[key]={x:p.x,y:p.y}}
   c.save();let M=m;
   if(ov){
