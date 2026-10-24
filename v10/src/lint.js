@@ -31,7 +31,7 @@ function lintCapture(){
   return {rec,done(){ctx.fillText=ft;ctx.drawImage=di;objDraw=od}};
 }
 function lintCurrent(){
-  const tp=cur();if(tp.free||!state.vals[tp.id])return {issues:[],stats:{}};
+  const tp=cur();if(!state.vals[tp.id])return {issues:[],stats:{}};
   const H=Hnow(),F=state.vals[tp.id],cap=lintCapture();
   try{render()}finally{cap.done()}
   const T=cap.rec.texts,issues=[],M=evM(W),add=(sev,code,msg,fix)=>issues.push({sev,code,msg,fix:fix||null});

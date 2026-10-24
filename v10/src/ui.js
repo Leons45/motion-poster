@@ -15,8 +15,7 @@ function render(){
   ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,W,H);ctx.save();
   NT=state.t;ND=state.D;
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
-  if(tp.free){FR=null;LAST=null;drawFree(ctx,W,H,state.t,state.D)}
-  else{FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
+  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
   filmPost(ctx,W,H,state.t,state.D,state.film);
   drawOverlay();
@@ -25,7 +24,6 @@ const clampV=(v,a,b)=>Math.max(a,Math.min(b,v));
 function sHandles(b){const H=Hnow();return{del:[clampV(b.x1+14,24,W-24),clampV(b.y0-14,24,H-24)],resize:[clampV(b.x1+10,24,W-24),clampV(b.y1+10,24,H-24)],rotate:[clampV((b.x0+b.x1)/2,30,W-30),clampV(b.y0-70,30,H-30)]}}
 function outline(pts,w,col,dash){octx.save();octx.beginPath();pts.forEach((p,i)=>i?octx.lineTo(p[0],p[1]):octx.moveTo(p[0],p[1]));octx.closePath();octx.lineWidth=w;octx.strokeStyle=col;if(dash)octx.setLineDash(dash);octx.stroke();octx.restore()}
 const boxPts=(b,pad)=>[[b.x0-pad,b.y0-pad],[b.x1+pad,b.y0-pad],[b.x1+pad,b.y1+pad],[b.x0-pad,b.y1+pad]];
-function layerDel(L){const p=layerPoly(L)[1],H=Hnow();return [clampV(p[0]+16,24,W-24),clampV(p[1]-16,24,H-24)]}
 function drawDel(p){
   octx.save();octx.fillStyle='#D92D20';octx.strokeStyle='#fff';octx.lineWidth=5;octx.beginPath();octx.arc(p[0],p[1],20,0,TAU);octx.fill();octx.stroke();
   octx.strokeStyle='#fff';octx.lineWidth=5;octx.lineCap='round';octx.beginPath();octx.moveTo(p[0]-8,p[1]-8);octx.lineTo(p[0]+8,p[1]+8);octx.moveTo(p[0]+8,p[1]-8);octx.lineTo(p[0]-8,p[1]+8);octx.stroke();octx.restore();
@@ -34,15 +32,6 @@ function drawOverlay(){
   const H=Hnow();octx.clearRect(0,0,W,H);if(state.rec)return;
   if(SAFE)drawSafe(H);
   const tp=cur();
-  if(tp.free){
-    const L=selLayer(),hv=hover&&hover.type==='layer'?state.free.layers.find(l=>l.id===hover.id):null;
-    if(hv&&hv!==L)outline(layerPoly(hv),3,'rgba(37,99,235,.7)');
-    if(L){const pp=layerPoly(L),h=layerHandles(L);outline(pp,8,'#fff');outline(pp,4,'#2563EB',[16,10]);
-      octx.save();octx.fillStyle='#fff';octx.strokeStyle='#2563EB';octx.lineWidth=5;
-      octx.beginPath();octx.rect(h.resize[0]-15,h.resize[1]-15,30,30);octx.fill();octx.stroke();
-      const top=[(pp[0][0]+pp[1][0])/2,(pp[0][1]+pp[1][1])/2];octx.beginPath();octx.moveTo(top[0],top[1]);octx.lineTo(h.rotate[0],h.rotate[1]);octx.stroke();
-      octx.beginPath();octx.arc(h.rotate[0],h.rotate[1],16,0,TAU);octx.fill();octx.stroke();octx.restore();drawDel(layerDel(L))}
-  }else{
     const hb=hover&&hover.type==='text'?textBox(hover.key):null;
     if(hb&&!(state.sel&&state.sel.key===hover.key))outline(boxPts(hb,8),3,'rgba(37,99,235,.7)');
     const sb=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
@@ -51,7 +40,6 @@ function drawOverlay(){
       octx.beginPath();octx.rect(hd.resize[0]-15,hd.resize[1]-15,30,30);octx.fill();octx.stroke();
       octx.beginPath();octx.moveTo((sb.x0+sb.x1)/2,sb.y0-10);octx.lineTo(hd.rotate[0],hd.rotate[1]);octx.stroke();
       octx.beginPath();octx.arc(hd.rotate[0],hd.rotate[1],16,0,TAU);octx.fill();octx.stroke();octx.restore();drawDel(hd.del)}
-  }
   if(GUIDE.x||GUIDE.y){octx.save();octx.strokeStyle='#E4262C';octx.lineWidth=3;octx.setLineDash([12,8]);
     if(GUIDE.x){octx.beginPath();octx.moveTo(W/2,0);octx.lineTo(W/2,H);octx.stroke()}
     if(GUIDE.y){octx.beginPath();octx.moveTo(0,H/2);octx.lineTo(W,H/2);octx.stroke()}octx.restore()}
@@ -62,8 +50,7 @@ const HIST={past:[],future:[],last:null};let REPLAY=false;
 function snapState(){
   return JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,loops:state.loops,fps:state.fps,
     vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
-    free:{bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,
-      layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})}});
+    });
 }
 function histPush(){
   if(REPLAY)return;
@@ -77,8 +64,6 @@ function histApply(s){
   Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.assign(state.vals[id],d.vals[id])});
   state.ovr=d.ovr||{};state.style=d.style||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
   state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
-  Object.assign(state.free,{bg:d.free.bg,bg2:d.free.bg2,fx:d.free.fx,nextId:d.free.nextId,layers:d.free.layers||[]});
-  if(state.sel&&state.sel.type==='layer'&&!state.free.layers.some(l=>l.id===state.sel.id))state.sel=null;
   const sameTpl=state.tid===d.tid;state.tid=d.tid;
   document.querySelectorAll('.tpl-item').forEach(b=>b.classList.toggle('active',b.dataset.id===d.tid));
   if(!sameTpl)state.sel=null;
@@ -99,8 +84,7 @@ function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(ty
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
-    quick:state.quick,quickNextId:state.quickNextId,
-    free:{bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})}}))}catch(e){}
+    quick:state.quick,quickNextId:state.quickNextId}))}catch(e){}
 }
 function restore(){
   try{const d=JSON.parse(localStorage.getItem('mps_state')||'null');if(!d)return;
@@ -109,7 +93,6 @@ function restore(){
     state.ovr=d.ovr||{};state.style=d.style||{};
     state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
     if(d.logo2)Object.assign(state.logo2,d.logo2);if(d.film)Object.assign(state.film,d.film);
-    if(d.free){Object.assign(state.free,{bg:d.free.bg,bg2:d.free.bg2,fx:d.free.fx,nextId:d.free.nextId||1,layers:d.free.layers||[]})}
   }catch(e){}
 }
 
@@ -149,7 +132,6 @@ function btn(parent,label,fn,cls){const b=el('button','btn sm'+(cls?' '+cls:''),
 /* ----- selection ----- */
 function select(sel,opts){
   state.sel=sel;buildSelPanel();
-  if(cur().free)buildLayers();
   /* opts.silent: selecting by focusing the Content field on the right already puts the
      person right where they need to be, so don't also scroll/flash the panel at them —
      that's only useful when the selection came from clicking the artboard. */
@@ -203,12 +185,11 @@ document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',
 let toastT=null;
 function toast(msg){setStatus(msg,'ok');clearTimeout(toastT);toastT=setTimeout(refreshStatus,5000)}
 function selLabel(){
-  const tp=cur(),s=state.sel;if(tp.free){const L=selLayer();return L?(L.name||L.type):''}
+  const tp=cur(),s=state.sel;
   if(!s||s.type!=='text')return '';return s.key.startsWith('obj:')?objLabel(s.key):((tp.fields.find(f=>f.k===s.key)||{}).l||s.key);
 }
 function deleteSelected(){
   if(state.rec)return;const tp=cur(),nm=selLabel();
-  if(tp.free){const L=selLayer();if(!L)return;delLayer(L.id);buildLayers();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
   const s=state.sel;if(!s||s.type!=='text')return;
   if(s.key.startsWith('obj:Quick')){delQuick(tp.id,+s.key.slice(9));select(null);buildQuick();dirty();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
   ovFor(tp.id,s.key,true).hide=true;select(null);dirty();buildSelPanel();
@@ -245,11 +226,6 @@ function objColours(box,tp,sel,isObj){
 }
 function buildSelPanel(){
   const box=$('#selPanel');box.innerHTML='';const tp=cur(),sel=state.sel;
-  if(tp.free){
-    const L=selLayer();objDot(!!L);
-    if(!L){box.append(el('p','note','Click a layer on the canvas or in the list to edit it. Drag to move, use the square handle to resize and the round handle to rotate.'));return}
-    buildLayerProps(box,L);regroup(box,'Position & look');return;
-  }
   objDot(!!(sel&&sel.type==='text'));
   if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));removedList(box,tp);objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
@@ -300,99 +276,6 @@ function objPicker(box){
   ks.forEach(k=>btn(w,objLabel(k),()=>select({type:'text',key:k})));g.append(w);
 }
 
-/* ----- layers ----- */
-const ADD=[['text','Text'],['headline','Headline (big text)'],['image','Image'],['logo','Leon\u2019s logo'],['best','Best Seller seal'],['canada','Made in Canada'],['rect','Rectangle'],['pill','Pill'],['circle','Circle'],['burst','Burst'],['star','Star'],['leaf','Maple leaf'],['curve','Curve band'],['ring','Ring']];
-function addLayer(kind){
-  const H=Hnow(),n=state.free.layers.length,dl=Math.min(2,.3+n*.12);let L;
-  if(kind==='text')L=newLayer('text',{});
-  else if(kind==='headline')L=newLayer('text',{name:'Headline',text:'HEADLINE',size:200,fam:'soft',w:980});
-  else if(kind==='image')L=newLayer('image',{});
-  else if(kind==='logo')L=newLayer('logo',{});
-  else if(kind==='best'||kind==='canada'){
-    const im=BRAND[kind],ar=im&&im.naturalWidth?im.naturalHeight/im.naturalWidth:1;
-    const w=kind==='best'?300:420;
-    L=newLayer('image',{name:kind==='best'?'Best Seller seal':'Made in Canada',w,h:Math.round(w*ar),fit:'contain',shadow:0});
-  }
-  else{const sp={rect:{shape:'rect',name:'Rectangle'},pill:{shape:'rect',name:'Pill',w:520,h:120,r:60},circle:{shape:'circle',name:'Circle',w:360,h:360,fill:Y},burst:{shape:'burst',name:'Burst',w:460,h:460,fill:Y,pts:16},star:{shape:'star',name:'Star',w:360,h:360,fill:Y},leaf:{shape:'leaf',name:'Maple leaf',w:520,h:560,fill:'#FFFFFF'},curve:{shape:'curve',name:'Curve band',w:1080,h:700,r:120,x:540,y:350},ring:{shape:'ring',name:'Ring',w:420,h:420,fill:'#111111',r:12}}[kind];L=newLayer('shape',sp)}
-  L.y=L.y===H/2||L.y===675?H/2:L.y;L.an.delay=dl;
-  state.free.layers.push(L);if(kind==='best'||kind==='canada')state.layerImgs[L.id]=BRAND[kind];select({type:'layer',id:L.id});dirty();
-}
-function delLayer(id){const ls=state.free.layers,i=ls.findIndex(l=>l.id===id);if(i<0)return;ls.splice(i,1);select(null);dirty()}
-function dupLayer(id){const L=state.free.layers.find(l=>l.id===id);if(!L)return;const c={...L,an:{...L.an},id:state.free.nextId++,name:L.name+' copy',x:L.x+40,y:L.y+40};delete c._h;
-  state.free.layers.push(c);if(state.layerImgs[id])state.layerImgs[c.id]=state.layerImgs[id];select({type:'layer',id:c.id});dirty()}
-function moveLayer(id,dir){const ls=state.free.layers,i=ls.findIndex(l=>l.id===id),j=i+dir;if(i<0||j<0||j>=ls.length)return;[ls[i],ls[j]]=[ls[j],ls[i]];buildLayers();dirty()}
-function buildLayers(){
-  const box=$('#layerList');box.innerHTML='';
-  [...state.free.layers].reverse().forEach(L=>{
-    const r=el('div','lrow'+(state.sel&&state.sel.id===L.id?' on':''));
-    r.append(el('span','ltype',L.type==='text'?'T':L.type==='image'?'IMG':L.type==='logo'?'LOGO':'SH'),el('span','nm',L.name||L.type));
-    const v=el('button','btn xs',L.vis?'Hide':'Show');v.type='button';v.addEventListener('click',e=>{e.stopPropagation();L.vis=!L.vis;buildLayers();dirty()});
-    const up=el('button','btn xs','Up');up.type='button';up.addEventListener('click',e=>{e.stopPropagation();moveLayer(L.id,1)});
-    const dn=el('button','btn xs','Down');dn.type='button';dn.addEventListener('click',e=>{e.stopPropagation();moveLayer(L.id,-1)});
-    r.append(up,dn,v);r.addEventListener('click',()=>select({type:'layer',id:L.id}));box.append(r);
-  });
-  if(!state.free.layers.length)box.append(el('p','note','No layers yet. Add one below or start from a preset.'));
-}
-const ANIN=[['none','None (always visible)'],['fade','Fade'],['slideUp','Slide up'],['slideDown','Slide down'],['slideLeft','Slide from left'],['slideRight','Slide from right'],['pop','Pop'],['zoom','Zoom in'],['spin','Spin in'],['drop','Drop from top'],['wipe','Wipe reveal'],['maskRise','Mask rise (text)'],['blurIn','Blur in (text)'],['chars','Letter by letter (text)'],['typewriter','Typewriter (text)'],['words','Word slam (text)'],['count','Count up (text with numbers)']];
-const ANLOOP=[['none','None'],['float','Float'],['pulse','Pulse'],['sway','Sway'],['wiggle','Wiggle'],['shake','Shake'],['spin','Spin']];
-function buildLayerProps(box,L){
-  selHead(box,(L.name||L.type));
-  ctl(box,'Layer name','text',L,'name',{on:()=>buildLayers()});
-  const r=row2(box);ctl(r,'X','number',L,'x',{step:1});ctl(r,'Y','number',L,'y',{step:1});
-  const r2=row2(box);ctl(r2,L.type==='text'?'Wrap width':'Width','number',L,'w',{step:1});if(L.type!=='text')ctl(r2,'Height','number',L,'h',{step:1});
-  ctl(box,'Rotation (degrees)','range',L,'rot',{min:-180,max:180,step:1});
-  const proxy={get pct(){return Math.round(L.op*100)},set pct(v){L.op=v/100}};ctl(box,'Opacity %','range',proxy,'pct',{min:0,max:100,step:1});
-  if(L.type==='text'){
-    box.append(el('h3','','Text'));
-    ctl(box,'Text','area',L,'text');
-    ctl(box,'Size','range',L,'size',{min:16,max:600,step:1});
-    const a=row2(box);ctl(a,'Weight','select',L,'wt',{o:WEIGHTS.slice(1).map(w=>[+w[0],w[1]])});ctl(a,'Typeface','select',L,'fam',{o:[['nova','Proxima Nova'],['soft','Proxima Soft']]});
-    const b=row2(box);ctl(b,'Colour','color',L,'col');ctl(b,'Align','select',L,'al',{o:['left','center','right']});
-    ctl(box,'Letter spacing','range',L,'ls',{min:-10,max:40,step:1});ctl(box,'Line spacing','range',L,'lh',{min:.6,max:2.2,step:.05});
-    ctl(box,'Uppercase','check',L,'up');
-    const c2=row2(box);ctl(c2,'Outline width','number',L,'sk',{min:0,max:40,step:1});ctl(c2,'Outline colour','color',L,'skc');
-    const c3=row2(box);ctl(c3,'Drop shadow','check',L,'sh');ctl(c3,'Shadow colour','color',L,'shc');
-  }
-  if(L.type==='shape'){
-    box.append(el('h3','','Shape'));
-    ctl(box,'Shape','select',L,'shape',{o:['rect','circle','burst','star','leaf','curve','ring'],on:()=>buildSelPanel()});
-    const a=row2(box);ctl(a,'Fill','color',L,'fill');ctl(a,'Gradient to','color',L,'fill2');
-    btn(box,'Clear gradient',()=>{L.fill2='';buildSelPanel();dirty()});
-    ctl(box,L.shape==='ring'?'Ring thickness':L.shape==='curve'?'Curve depth':'Corner radius','range',L,'r',{min:0,max:600,step:1});
-    if(L.shape==='burst'){ctl(box,'Spikes','range',L,'pts',{min:5,max:40,step:1});ctl(box,'Spike depth','range',L,'inner',{min:.5,max:.98,step:.01})}
-    const s=row2(box);ctl(s,'Outline width','number',L,'stroke',{min:0,max:60,step:1});ctl(s,'Outline colour','color',L,'strokec');
-  }
-  if(L.type==='image'){
-    box.append(el('h3','','Image'));
-    const b=el('div','btnrow');btn(b,state.layerImgs[L.id]?'Replace image':'Upload image',()=>pickFile(f=>loadImageFile(f,im=>{state.layerImgs[L.id]=im;buildSelPanel()})),'primary');
-    if(state.layerImgs[L.id])btn(b,'Remove image',()=>{delete state.layerImgs[L.id];buildSelPanel()});box.append(b);
-    ctl(box,'Fit','select',L,'fit',{o:['contain','cover']});ctl(box,'Corner radius','range',L,'rad',{min:0,max:400,step:1});ctl(box,'Shadow','range',L,'shadow',{min:0,max:80,step:1});
-  }
-  if(L.type==='logo')box.append(el('p','note','Draws your brand logo from the Brand logo slot above.'));
-  box.append(el('h3','','Motion'));
-  const a=L.an;
-  ctl(box,'Entrance','select',a,'in',{o:ANIN});
-  const m=row2(box);ctl(m,'Delay (s)','number',a,'delay',{min:0,max:12,step:.1});ctl(m,'Duration (s)','number',a,'dur',{min:.1,max:6,step:.1});
-  const m2=row2(box);ctl(m2,'Easing','select',a,'ease',{o:[['enter','Snap in (recommended)'],['out','Smooth'],['pop','Branded pop'],['back','Overshoot'],['elastic','Elastic'],['move','Ease in-out'],['inout','Ease in-out (soft)'],['exit','Accelerate away'],['linear','Linear (loops only)']]});ctl(m2,'Slide distance','number',a,'dist',{min:0,max:2000,step:10});
-  const m3=row2(box);ctl(m3,'Idle loop','select',a,'loop',{o:ANLOOP});ctl(m3,'Loop speed','number',a,'lspd',{min:1,max:8,step:1});
-  const b=el('div','btnrow');btn(b,'Duplicate',()=>dupLayer(L.id));btn(b,'Delete',()=>delLayer(L.id));box.append(b);
-}
-function buildFreePanel(){
-  const F=state.free,box=$('#freeBox');box.innerHTML='';
-  const lst=el('div');lst.id='layerList';box.append(lst);
-  const add=el('div','addrow'),sel=el('select');sel.id='addSel';ADD.forEach(a=>{const o=el('option');o.value=a[0];o.textContent=a[1];sel.append(o)});add.append(sel);btn(add,'Add layer',()=>addLayer(sel.value),'primary');box.append(add);
-  box.append(el('h3','','Start from a preset'));
-  const pr=el('div','addrow'),ps=el('select');ps.id='presetSel';Object.keys(PRESETS).forEach(k=>{const o=el('option');o.value=k;o.textContent=k;ps.append(o)});pr.append(ps);
-  btn(pr,'Apply',()=>{state.prevLayers={layers:state.free.layers,bg:F.bg,bg2:F.bg2,fx:F.fx,next:F.nextId};F.nextId=1;F.layers=PRESETS[ps.value]();state.layerImgs={};select(null);buildFreePanel();dirty()});
-  btn(pr,'Undo',()=>{const p=state.prevLayers;if(!p)return;F.layers=p.layers;F.bg=p.bg;F.bg2=p.bg2;F.fx=p.fx;F.nextId=p.next;state.prevLayers=null;select(null);buildFreePanel()});box.append(pr);
-  box.append(el('p','note','Applying a preset replaces the current layers. Undo restores them.'));
-  box.append(el('h3','','Background'));
-  const b=row2(box);ctl(b,'Colour','color',F,'bg');ctl(b,'Gradient to','color',F,'bg2');
-  btn(box,'Clear gradient',()=>{F.bg2='';buildFreePanel();dirty()});
-  ctl(box,'Ambient effect','select',F,'fx',{o:['none','leaves','snow','confetti','sparkle']});
-  buildLayers();
-}
-
 /* ----- templates rail, fields, images ----- */
 let catFilter='all';
 function buildCatChips(){
@@ -407,8 +290,8 @@ function buildCatChips(){
 function buildTemplates(){
   buildCatChips();
   const box=$('#tplList');box.innerHTML='';
-  ["Leon's events","Leon's posts","Leon's campaigns","Leon's motion",'Community ports','Free canvas'].forEach(g=>{
-    const items=T.filter(x=>x.grp===g&&(catFilter==='all'||x.cat===catFilter||x.grp==='Free canvas'));
+  ["Leon's events","Leon's posts","Leon's campaigns","Leon's motion",'Community ports'].forEach(g=>{
+    const items=T.filter(x=>x.grp===g&&(catFilter==='all'||x.cat===catFilter));
     if(!items.length)return;
     box.append(el('h4','grp',g));
     items.forEach(tp=>{
@@ -426,8 +309,7 @@ function previewInto(canvas,tp,F,I){
   const off=previewInto._c||(previewInto._c=document.createElement('canvas'));off.width=W;off.height=1350;const oc=off.getContext('2d');
   oc.clearRect(0,0,W,1350);oc.save();const _l=state.logo2,_f=state.film;state.logo2={fx:'none',at:0,dur:1};state.film=null;NT=4.2;ND=6;
   try{
-    if(tp.free){oc.fillStyle=Y;oc.fillRect(0,0,W,1350);oc.fillStyle='#000';oc.beginPath();oc.roundRect(90,160,900,300,40);oc.fill();oc.fillStyle='#fff';oc.beginPath();oc.arc(300,820,190,0,TAU);oc.fill();oc.fillStyle='#E4262C';oc.fillRect(560,680,420,60);oc.fillStyle='#000';oc.fillRect(560,780,420,60)}
-    else tp.draw(oc,W,1350,4.2,6,F,I||{});
+        tp.draw(oc,W,1350,4.2,6,F,I||{});
   }catch(e){}
   oc.restore();state.logo2=_l;state.film=_f;
   const g=canvas.getContext('2d');g.clearRect(0,0,canvas.width,canvas.height);g.drawImage(off,0,0,canvas.width,canvas.height);
@@ -471,7 +353,6 @@ function buildFilm(){
 function buildQuick(){
   const sect=$('#sectQuick');if(!sect)return;
   const tp=cur();
-  if(tp.free){sect.hidden=true;return}
   sect.hidden=false;
   const box=$('#quickBox');box.innerHTML='';
   const list=quickFor(tp.id);
@@ -503,7 +384,7 @@ function buildLayoutGallery(box,tp){
   g.append(el('p','note','Click a design to switch. Your text, colours and photos stay.'));
 }
 function buildFields(){
-  const tp=cur(),v=state.vals[tp.id],box=$('#fields');if(!box||tp.free)return;box.innerHTML='';
+  const tp=cur(),v=state.vals[tp.id],box=$('#fields');if(!box)return;box.innerHTML='';
   buildLayoutGallery(box,tp);
   const fl=tp.fields.filter(f=>f.k!=='layout');
   const groups=[['Text',f=>f.t==='text'||f.t==='area',true],['Look',f=>f.t==='select',true],['Colours',f=>f.t==='color',false]];
@@ -525,7 +406,6 @@ function buildFields(){
 const BG_PRESETS=[['#FFE81A','Leon\u2019s yellow'],['#C8102E','Leon\u2019s red'],['#111111','Black'],['#FFFFFF','White'],['#F4F1EA','Cream'],['#6B6B6B','Grey'],['#00BA99','Little Leon\u2019s teal']];
 function shadeHex(h,p){const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return h;const n=parseInt(m[1],16);const f=s=>Math.max(0,Math.min(255,Math.round(((n>>s)&255)*(1+p))));return '#'+[16,8,0].map(s=>f(s).toString(16).padStart(2,'0')).join('')}
 function bgTargets(tp){
-  if(tp.free)return {o:state.free,k1:'bg',k2:'bg2',l1:'Background',l2:'Gradient to'};
   const v=state.vals[tp.id],cf=tp.fields.filter(f=>f.t==='color'),pick=cf.find(f=>/^bg\d?$/.test(f.k));
   if(!pick)return cf.length?{o:v,k1:cf[0].k,k2:null,l1:cf[0].l}:null;
   const second=cf.find(f=>f.k==='bg2'&&pick.k==='bg1');
@@ -538,23 +418,21 @@ function buildBgBar(){
   const sw=el('div','bgsw');
   BG_PRESETS.forEach(([hex,name])=>{
     const b=el('button','sw'+(String(T0.o[T0.k1]).toLowerCase()===hex.toLowerCase()?' on':''));b.type='button';b.style.background=hex;b.title=name;b.setAttribute('aria-label','Background: '+name);
-    b.addEventListener('click',()=>{if(state.rec)return;T0.o[T0.k1]=hex;if(T0.k2)T0.o[T0.k2]=shadeHex(hex,lum(hex)>.5?-.07:.18);if(T0.o===state.free)state.free.bg2='';dirty();buildBgBar();buildFields0()});
+    b.addEventListener('click',()=>{if(state.rec)return;T0.o[T0.k1]=hex;if(T0.k2)T0.o[T0.k2]=shadeHex(hex,lum(hex)>.5?-.07:.18);dirty();buildBgBar();buildFields0()});
     sw.append(b)});
   bar.append(sw);
   const c1=el('input');c1.type='color';c1.value=/^#[0-9a-f]{6}$/i.test(T0.o[T0.k1])?T0.o[T0.k1]:'#ffffff';c1.title=T0.l1+' (custom colour)';c1.setAttribute('aria-label',T0.l1);
   c1.addEventListener('input',()=>{T0.o[T0.k1]=c1.value;dirty()});c1.addEventListener('change',()=>{buildBgBar();buildFields0()});bar.append(c1);
-  if(T0.k2&&!tp.free){const c2=el('input');c2.type='color';c2.value=/^#[0-9a-f]{6}$/i.test(T0.o[T0.k2])?T0.o[T0.k2]:'#ffffff';c2.title=(T0.l2||'Second background colour')+' (custom colour)';c2.setAttribute('aria-label',T0.l2||'Second background colour');
+  if(T0.k2){const c2=el('input');c2.type='color';c2.value=/^#[0-9a-f]{6}$/i.test(T0.o[T0.k2])?T0.o[T0.k2]:'#ffffff';c2.title=(T0.l2||'Second background colour')+' (custom colour)';c2.setAttribute('aria-label',T0.l2||'Second background colour');
     c2.className='c2';c2.addEventListener('input',()=>{T0.o[T0.k2]=c2.value;dirty()});c2.addEventListener('change',()=>{buildBgBar();buildFields0()});bar.append(c2)}
 }
 /* refresh the colour inputs inside the Content / Object panes after the bar changed a value */
-function buildFields0(){if(!cur().free)buildFields();if(state.sel)buildSelPanel()}
+function buildFields0(){buildFields();if(state.sel)buildSelPanel()}
 function buildInspector(){
-  const tp=cur(),free=!!tp.free;
+  const tp=cur();
   buildLogoFx();buildFilm();
-  $('#sectContent').hidden=free||!tp.fields.length;$('#sectImages').hidden=free||!tp.images.length;$('#sectLayers').hidden=!free;
+  $('#sectContent').hidden=!tp.fields.length;$('#sectImages').hidden=!tp.images.length;
   buildFields();buildBgBar();
-    if(free&&curTab==='content')setTab('add');
-  if(free)buildFreePanel();
   buildQuick();
   buildImages();buildSelPanel();refreshStatus();refreshDefBtn();
 }
@@ -584,10 +462,8 @@ function setStatus(msg,cls){const s=$('#status');s.textContent=msg||'';s.classNa
 function refreshStatus(){
   if(state.rec)return;
   const tp=cur();let miss=0;
-  if(tp.free){miss=state.free.layers.filter(l=>l.type==='image'&&!state.layerImgs[l.id]).length}
-  else{const I=state.imgs[tp.id];miss=tp.images.filter(i=>!I[i.k]&&!(i.k==='logo'&&state.logo)).length}
-  const usesLogo=tp.free?state.free.layers.some(l=>l.type==='logo'):true;
-  if(!state.logo&&usesLogo&&!(!tp.free&&state.imgs[tp.id].logo))miss++;
+  const I=state.imgs[tp.id];miss=tp.images.filter(i=>!/^x\d$/.test(i.k)&&!I[i.k]&&!(i.k==='logo'&&state.logo)).length;
+  if(!state.logo&&!I.logo)miss++;
   if(miss)setStatus(miss+(miss===1?' slot is':' slots are')+' still empty. Dashed placeholders will appear in the export.','warn');
   else setStatus('All slots filled. Ready to export.','ok');
 }
@@ -615,7 +491,6 @@ $('#resetPostBtn').addEventListener('click',()=>{
        Uploaded photos and the logo are kept, so nothing has to be re-uploaded. */
     tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v);
     delete state.ovr[ovKey(tp.id)];
-    if(tp.free){state.free.layers=[];state.free.bg='#FFE81A';state.free.bg2='';state.free.fx='none'}
   }
   state.sel=null;state.t=0;
   buildInspector();persist();
@@ -635,7 +510,6 @@ function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return 
 function defSnapshot(tp){
   const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
   Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k])});
-  if(tp.free)s.free={bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})};
   return s;
 }
 function defApply(tp,s){
@@ -646,7 +520,6 @@ function defApply(tp,s){
   Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;
     if(s.ovr&&s.ovr[r])state.ovr[k]=jclone(s.ovr[r]);else delete state.ovr[k];
     if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k]});
-  if(tp.free&&s.free){state.free.bg=s.free.bg;state.free.bg2=s.free.bg2;state.free.fx=s.free.fx;state.free.nextId=s.free.nextId||1;state.free.layers=jclone(s.free.layers||[]);state.layerImgs={}}
 }
 function refreshDefBtn(){
   const D=defLoad(),has=!!D[state.tid],b=$('#saveDefBtn'),rb=$('#resetPostBtn'),cb=$('#clearDefBtn'),fb=$('#forgetDefBtn');
@@ -728,15 +601,7 @@ const toCanvas=e=>{const r=ovc.getBoundingClientRect();return [(e.clientX-r.left
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 ovc.addEventListener('pointerdown',e=>{
   if(state.rec)return;const [x,y]=toCanvas(e),tp=cur();
-  if(tp.free){
-    const sl=selLayer();
-    if(sl){const h=layerHandles(sl);
-      if(dist(layerDel(sl),[x,y])<28){deleteSelected();return}
-      if(dist(h.resize,[x,y])<40){drag={mode:'resize',id:sl.id,orig:{...sl,_h:sl._h}};ovc.setPointerCapture(e.pointerId);return}
-      if(dist(h.rotate,[x,y])<40){drag={mode:'rotate',id:sl.id};ovc.setPointerCapture(e.pointerId);return}}
-    const L=hitLayer(x,y);
-    if(L){select({type:'layer',id:L.id});drag={mode:'move',id:L.id,ox:L.x,oy:L.y,sx:x,sy:y}}else select(null);
-  }else{
+  {
     const sb0=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
     if(sb0){const hd=sHandles(sb0),an=LAST&&LAST.anch[state.sel.key],o0=ovFor(tp.id,state.sel.key,true);
       if(dist(hd.del,[x,y])<28){deleteSelected();return}
@@ -750,24 +615,13 @@ ovc.addEventListener('pointerdown',e=>{
 ovc.addEventListener('pointermove',e=>{
   const [x,y]=toCanvas(e),tp=cur(),H=Hnow();
   if(!drag){
-    if(tp.free){const L=hitLayer(x,y);hover=L?{type:'layer',id:L.id}:null;const sl=selLayer();let cur0=L?'move':'default';if(sl){const h=layerHandles(sl);if(dist(layerDel(sl),[x,y])<28){cur0='pointer';ovc.title='Delete'}else if(dist(h.resize,[x,y])<40)cur0='nwse-resize';else if(dist(h.rotate,[x,y])<40)cur0='grab'}ovc.style.cursor=cur0}
-    else{const k=hitText(x,y);hover=k?{type:'text',key:k}:null;let cu=k?'move':'default';
+    {const k=hitText(x,y);hover=k?{type:'text',key:k}:null;let cu=k?'move':'default';
       const sb1=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;if(sb1){const hd=sHandles(sb1);if(dist(hd.del,[x,y])<28)cu='pointer';else if(dist(hd.resize,[x,y])<40)cu='nwse-resize';else if(dist(hd.rotate,[x,y])<40)cu='grab'}
       ovc.style.cursor=cu;ovc.title=k?('Click to edit: '+(k.startsWith('obj:')?objLabel(k):((cur().fields.find(f=>f.k===k)||{}).l||k))):''}
     return;
   }
   GUIDE.x=GUIDE.y=false;
-  if(tp.free){
-    const L=state.free.layers.find(l=>l.id===drag.id);if(!L)return;
-    if(drag.mode==='move'){let nx=drag.ox+x-drag.sx,ny=drag.oy+y-drag.sy;if(Math.abs(nx-W/2)<12){nx=W/2;GUIDE.x=true}if(Math.abs(ny-H/2)<12){ny=H/2;GUIDE.y=true}L.x=Math.round(nx);L.y=Math.round(ny);buildPosLive(L)}
-    else if(drag.mode==='rotate'){let a=Math.atan2(y-L.y,x-L.x)*180/Math.PI+90;if(e.shiftKey)a=Math.round(a/15)*15;L.rot=Math.round(a)}
-    else if(drag.mode==='resize'){
-      const o=drag.orig,r=o.rot*Math.PI/180,dx=x-o.x,dy=y-o.y,lx=dx*Math.cos(r)+dy*Math.sin(r),ly=-dx*Math.sin(r)+dy*Math.cos(r);
-      const nw=Math.max(30,Math.round(2*Math.abs(lx))),nh=Math.max(30,Math.round(2*Math.abs(ly))),s=nw/o.w;
-      if(L.type==='text'){L.size=Math.max(12,Math.round(o.size*s));L.w=nw}
-      else{L.w=nw;L.h=(e.shiftKey||L.type==='logo')?Math.round(o.h*s):nh}
-    }
-  }else{
+  {
     const o=ovFor(tp.id,drag.key,true);
     if(drag.mode==='sresize'){o.sc=Math.max(.1,Math.min(5,Math.round(drag.sc0*dist([x,y],[drag.a.x,drag.a.y])/drag.d0*100)/100))}
     else if(drag.mode==='srotate'){let r=drag.r0+(Math.atan2(y-drag.a.y,x-drag.a.x)-drag.g0)*180/Math.PI;if(e.shiftKey)r=Math.round(r/15)*15;r=((r+540)%360)-180;o.rot=Math.round(r)}
@@ -784,8 +638,7 @@ ovc.addEventListener('dragover',e=>e.preventDefault());
 ovc.addEventListener('drop',e=>{
   e.preventDefault();const f=e.dataTransfer.files[0];if(!f)return;const tp=cur(),[x,y]=toCanvas(e);
   loadImageFile(f,im=>{
-    if(tp.free){const L=newLayer('image',{x:Math.round(x),y:Math.round(y),w:600,h:Math.round(600*im.naturalHeight/im.naturalWidth)});L.an.delay=Math.min(2,.3+state.free.layers.length*.12);state.free.layers.push(L);state.layerImgs[L.id]=im;select({type:'layer',id:L.id});dirty()}
-    else{const I=state.imgs[tp.id],slot=tp.images.find(s=>!I[s.k]&&s.k!=='logo')||tp.images[0];if(slot){I[slot.k]=im;buildImages();refreshStatus()}}
+    {const I=state.imgs[tp.id],slot=tp.images.find(s=>!I[s.k]&&s.k!=='logo')||tp.images[0];if(slot){I[slot.k]=im;buildImages();refreshStatus()}}
   });
 });
 document.addEventListener('keydown',e=>{
@@ -799,13 +652,9 @@ document.addEventListener('keydown',e=>{
   const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   if(arrows[e.key]&&state.sel){
     e.preventDefault();const [ax,ay]=arrows[e.key];
-    if(tp.free){const L=selLayer();if(L){L.x+=ax*step;L.y+=ay*step;buildSelPanel();dirty()}}
-    else if(state.sel.type==='text'){const o=ovFor(tp.id,state.sel.key,true);o.dx+=ax*step;o.dy+=ay*step;buildSelPanel();dirty()}
+    if(state.sel.type==='text'){const o=ovFor(tp.id,state.sel.key,true);o.dx+=ax*step;o.dy+=ay*step;buildSelPanel();dirty()}
   }
-  if((e.key==='Delete'||e.key==='Backspace')&&(tp.free?selLayer():state.sel)){e.preventDefault();deleteSelected();return}
-  if(tp.free&&selLayer()){
-    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='d'){e.preventDefault();dupLayer(selLayer().id)}
-  }
+  if((e.key==='Delete'||e.key==='Backspace')&&state.sel){e.preventDefault();deleteSelected();return}
 });
 
 /* ----- export ----- */
@@ -913,7 +762,7 @@ let chkT=null,CHK_RES=null;
 function scheduleCheck(){clearTimeout(chkT);chkT=setTimeout(runCheck,450)}
 function runCheck(){
   const b=$('#checkBtn');if(!b)return;const tp=cur();
-  if(state.rec||tp.free||!tp.id.startsWith('ev_')||!state.vals[tp.id]){b.hidden=true;return}
+  if(state.rec||!tp.id.startsWith('ev_')||!state.vals[tp.id]){b.hidden=true;return}
   b.hidden=false;const t0=state.t;state.t=state.D*.92;let res;
   try{res=lintCurrent()}catch(e){res={issues:[]}}finally{state.t=t0;render()}
   const seen=new Set(),iss=res.issues.filter(i=>{const k=i.code+i.msg;if(seen.has(k))return false;seen.add(k);return true});
@@ -957,6 +806,6 @@ function buildGuide(){
   H('5 · Before you post');
   const u2=el('ul');['Design check says “passed”.','One idea only: one event name, one offer, one price.','Headline readable at thumbnail size (squint test).','Legal line (O.A.C., dates) is in the sub line, not hidden.'].forEach(t=>u2.append(el('li','',t)));g.append(u2);
 }
-buildGuide();fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();if(!cur().free)buildFields()});fitStage();requestAnimationFrame(tick);
+buildGuide();fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();buildFields()});fitStage();requestAnimationFrame(tick);
 document.fonts.addEventListener('loadingdone',()=>{paintThumbs();fontNote()});
 Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px "proxima-nova"'),document.fonts.load('800 40px "proxima-soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});

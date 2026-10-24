@@ -122,7 +122,7 @@ Run it from this directory (or anywhere — it locates itself and writes to
   thumbnails render from the post's CURRENT values so they always match the canvas; colour swatches under every
   colour input; hover tooltips; Delete = red button in the Object header + red x on the canvas selection + Delete
   key (template objects get `hide:true` in their override, listed under "Removed from this post" with Restore;
-  quick elements and free layers are really removed; all undoable). `flushPending()` commits the pending
+  quick elements are really removed; all undoable). `flushPending()` commits the pending
   history entry before Undo/Redo. Hit-testing rules: `OBJ_NOHIT` wrappers (Logo bar) are not clickable and text
   inside `obj:Quick*` never matches template fields (`FR.noMatch`).
 - **Design system** (`events.js` `DS(W,H)`): one function owns every size that depends on the canvas shape. `k`
@@ -141,3 +141,4 @@ Run it from this directory (or anywhere — it locates itself and writes to
 - **Extra images**: every Event template has `x1..x3` ("Extra image 1-3", `EV_EXTRA`) drawn by `evExtras` above the
   layout as free objects (drag/resize/rotate/delete); nothing is drawn until one is uploaded. Sunray's product is
   no longer masked by default (`pmask`: free | circle; the disc is only a backdrop). Preview thumbnails only use the `p` image.
+- **Free canvas removed** (template, Layers panel, layer engine, `state.free`): old saved state that still contains it loads safely and falls back to a normal template. Extra-image slots (`x1..x3`) are optional and never counted as empty slots.

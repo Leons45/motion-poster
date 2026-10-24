@@ -105,10 +105,6 @@ h4.grp:first-child{margin-top:0}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
 .addrow{display:flex;gap:8px;margin:10px 0}
 .addrow select{flex:1;min-width:0}
-.lrow{display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:4px;cursor:pointer;background:var(--field)}
-.lrow.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,var(--surface))}
-.lrow .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lrow .ltype{font:700 10px var(--f-ui);color:var(--mute);min-width:30px}
 .btn.xs{padding:3px 7px;font-size:11px}
 .fld.chk{display:flex;align-items:center;gap:8px}
 .fld.chk>span{margin:0}
