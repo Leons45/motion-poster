@@ -107,3 +107,9 @@ Run it from this directory (or anywhere — it locates itself and writes to
   selected item: position/size, text style, and the template colours, most relevant first), Add (free-canvas
   layers, quick elements), Style (logo, film effects, fonts), Export. Clicking an object on the canvas
   jumps to the Object tab. Collapsible cards remember open/closed. Element ids are unchanged.
+- **Signature layouts** (`events.js`, `layoutGallery/Arch/Diagonal/Sunray/Ticket`, shared `evTopRow`, `evBlocks`,
+  `evOffer`, `evPhoto`, `evSince`): five premium compositions built from the leons.ca language (brand
+  yellow, black, red accent, all-caps headlines, "Proudly Canadian since 1909" heritage line = field
+  `since`). Factory defaults: Mega Sale = Sunray, Financing = Gallery, Appreciation = Ticket,
+  Super Sale = Diagonal, Seasonal = Gallery, Black Friday = Arch. Sunray switches to a compact
+  ribbon-with-price form on square canvases.

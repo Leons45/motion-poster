@@ -164,7 +164,7 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 
 </style>
 
-<div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 8 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
+<div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 13 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
 <div class="app">
   <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v10 · One-stop Leon's posts</span></h2><div id="catChips" role="group" aria-label="Filter by campaign"></div><div id="tplList"></div></aside>
   <section style="min-width:0">
@@ -1656,7 +1656,7 @@ const EVENT_CATS=[
   ['megasale','Mega Sale'],['financing','Financing'],['appreciation','Appreciation'],
   ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday']
 ];
-const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',stacked:'Stacked bars',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge'};
+const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',stacked:'Stacked bars',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
    its own default `v` (a fixed shared object here previously meant every category's
    "Layout" field silently defaulted to 'circle', ignoring the distinct layout each one
@@ -2061,14 +2061,183 @@ function layoutBadge(c,W,H,t,D,F,I){
   if(sb.h)evLines(c,sb,M,yb-sb.h,{wt:700,fill:'rgba(255,255,255,.9)',t,at:1.6,maxW:sw-2*r-gap});
 }
 
-const LAYOUTS={circle:layoutCircle,split:layoutSplit,fullbleed:layoutFullbleed,corner:layoutCorner,stacked:layoutStacked,poster:layoutPoster,card:layoutCard,badge:layoutBadge};
+/* ---------- SIGNATURE layouts: five high-end compositions drawn from the leons.ca language
+   (brand yellow, black, a red accent, all-caps headlines, "proudly Canadian since 1909" heritage line).
+   They use the same grid, measured text and type hierarchy as the layouts above. ---------- */
+const evSinceDefault='PROUDLY CANADIAN · SINCE 1909';
+function evTopRow(c,W,M,t,I,F,o){
+  o=o||{};const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=M+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
+  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
+    if(o.ring){c.save();c.strokeStyle='#111';c.lineWidth=Math.max(2,W*.0025);c.beginPath();c.ellipse(lw*.02,0,lw*.5,lh*.5,0,0,TAU);c.stroke();c.restore()}
+    logo(c,I,0,0,lw,lh)},{from:.7,dur:.6})});
+  if(F.maple!=='no')evMade(c,W-M,cy,micS,t,.3,!!o.chip,'right');
+  return M+rowH;
+}
+const evSinceH=(W,F)=>String(F.since==null?evSinceDefault:F.since).trim()?W*.021*1.5:0;
+function evSince(c,W,M,t,F,cy,fill,al){
+  const s=String(F.since==null?evSinceDefault:F.since);if(!s.trim())return;
+  const sz=W*.021,x=al==='left'?M:al==='right'?W-M:W/2;
+  evTracked(c,sz*.18,()=>text(c,{s:s.toUpperCase(),x,y:cy-sz*.55,size:sz,wt:700,fam:FM,fill,al:al||'center',t,at:2,maxW:W-2*M}));
+}
+/* measured kicker / headline / offer / sub blocks, headline first in rank */
+function evBlocks(c,W,H,F,o){
+  const base=Math.min(W*(o.bw||.12),H*(o.bh||.088)),wO=o.wO||o.sw;
+  const {tb:hb,ob}=evDisplay(c,F,o.sw,wO,base,false,base*.7);
+  const sb=evFitM(c,F.osub,700,FM,wO,Math.max(W*.032,evCap(ob,.32,base*.3)),1.12,W*.028);
+  const kMax=Math.max(W*.028,evCap(sb,.95,base*.26));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,o.sw,kMax,1.08,W*.026));
+  return {hb,ob,sb,kb};
+}
+function evOffer(c,ob,x,y,fill,al,t,maxW){
+  const ST=postStyle();c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
+  ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=fill;c.textAlign=al;c.textBaseline='middle';c.fillText(l,x,y+i*ob.size*ob.lh+ob.size*ob.lh/2,maxW)});c.restore();
+}
+function evKick(c,kb,x,y,fill,al,t,maxW){evTracked(c,evTrk(kb.size),()=>evLines(c,kb,x,y,{wt:800,fill,al,t,at:.3,maxW}))}
+/* photo revealed inside any clip shape (default: rounded rectangle) */
+function evPhoto(c,I,x,y,w,h,r,t,at,pathFn){
+  const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.7*ST.durMul));
+  c.save();c.globalAlpha=p;c.translate(0,(1-p)*h*.03);
+  c.beginPath();if(pathFn)pathFn();else c.roundRect(x,y,w,h,r);c.clip();
+  drawImg(c,I.p,x,y,w,h,{label:'Product photo',fit:'cover'});c.restore();
+}
+const evRise=(c,t,at,H,fn)=>{const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.03);fn();c.restore()};
+
+/* S1 Gallery: editorial, keylined frame, headline above a wide framed photo, offer + price on a clean base */
+function layoutGallery(c,W,H,t,D,F,I){
+  const M=evM(W),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=accOn(g,F.acc||LY),sw=W-2*M;
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  const fi=W*.024;c.save();c.strokeStyle=dark?'rgba(255,255,255,.42)':'rgba(17,17,17,.9)';c.lineWidth=Math.max(2,W*.0028);c.strokeRect(fi,fi,W-2*fi,H-2*fi);c.restore();
+  const hasP=!!F.flab,pw=W*.29,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
+  const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.115,bh:.082});
+  const top=evTopRow(c,W,M,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.45:0;
+  const botH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0);
+  let y=top+H*.03;
+  if(kb.h){evKick(c,kb,M,y,acc,'left',t,sw);y+=kb.h+gK}
+  if(hb.h){evLines(c,hb,M,y,{wt:900,fill:ink,t,at:.9,maxW:sw});y+=hb.h+gH}
+  const pTop=y+H*.012,pBot=H-M-sinceH-H*.02-botH-H*.028,pH=Math.max(pBot-pTop,H*.16);
+  evPhoto(c,I,M,pTop,sw,pH,W*.014,t,.35);
+  let by=pTop+pH+H*.028;
+  if(ob.h)evOffer(c,ob,M,by,acc,'left',t,wO);
+  if(sb.h)evLines(c,sb,M,by+ob.h+gS,{wt:700,fill:dark?'rgba(255,255,255,.85)':'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
+  if(hasP)evPrice(c,W-M-pw/2,by+botH/2,pw,F,dark,t,1.7);
+  evSince(c,W,M,t,F,H-M-sinceH/2,dark?'rgba(255,255,255,.7)':'rgba(17,17,17,.62)','center');
+}
+
+/* S2 Arch: black luxe, centred; photo in an arched window with a brand-yellow keyline, offer set into its foot */
+function layoutArch(c,W,H,t,D,F,I){
+  const M=evM(W),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  const gl=c.createRadialGradient(W/2,H*.55,W*.05,W/2,H*.55,W*.8);gl.addColorStop(0,'rgba(255,255,255,.12)');gl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gl;c.fillRect(0,0,W,H);
+  const top=evTopRow(c,W,M,t,I,F,{centre:true,chip:true});
+  const hasP=!!F.flab,pw=W*.27,ph=pw*.355,wI=sw*.66;
+  const base=Math.min(W*.11,H*.08);
+  const {tb:hb,ob}=evDisplay(c,F,sw,wI,base,false,base*.7);
+  const sb=evFitM(c,F.osub,700,FM,wI,Math.max(W*.03,evCap(ob,.32,base*.3)),1.12,W*.018);
+  const kMax=Math.max(W*.028,evCap(sb,.95,base*.26));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.026));
+  const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,lowH=ob.h+(sb.h?gS+sb.h:0);
+  let y=top+H*.026;
+  if(kb.h){evKick(c,kb,W/2,y,hl,'center',t,sw);y+=kb.h+gK}
+  if(hb.h){evLines(c,hb,W/2,y,{wt:900,fill:'#fff',al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
+  const aTop=y+H*.034,aBot=H-M-sinceH-H*.022,ah=Math.max(aBot-aTop,H*.22),aw=Math.min(sw*.8,ah*1.02),ax=(W-aw)/2;
+  const path=(o)=>{const x=ax-o,w=aw+2*o,rr2=w/2,yt=aTop-o;c.moveTo(x,aBot);c.lineTo(x,yt+rr2);c.arc(W/2,yt+rr2,rr2,Math.PI,0);c.lineTo(x+w,aBot);c.closePath()};
+  const ko=W*.017;evRise(c,t,.25,H,()=>{c.strokeStyle=hl;c.lineWidth=Math.max(2.5,W*.003);c.beginPath();path(ko);c.stroke()});
+  evPhoto(c,I,ax,aTop,aw,aBot-aTop,0,t,.35,()=>path(0));
+  /* offer set into the foot of the arch on a dark fade */
+  const fh=lowH+H*.075,fy=aBot-fh;
+  evRise(c,t,1,H,()=>{c.save();c.beginPath();path(0);c.clip();const fg=c.createLinearGradient(0,fy,0,aBot);fg.addColorStop(0,'rgba(0,0,0,0)');fg.addColorStop(.55,'rgba(0,0,0,.78)');fg.addColorStop(1,'rgba(0,0,0,.9)');c.fillStyle=fg;c.fillRect(ax-2,fy,aw+4,fh+2);c.restore()});
+  const ly=aBot-H*.026-lowH;
+  if(ob.h)evOffer(c,ob,W/2,ly,hl,'center',t,aw*.88);
+  if(sb.h)evLines(c,sb,W/2,ly+ob.h+gS,{wt:700,fill:'rgba(255,255,255,.9)',al:'center',t,at:1.6,maxW:aw*.88});
+  if(hasP)evPrice(c,ax+aw-pw*.12,aTop+(aBot-aTop)*.5,pw,F,true,t,1.7);
+  evSince(c,W,M,t,F,H-M-sinceH/2,'rgba(255,255,255,.62)','center');
+}
+
+/* S3 Diagonal: photo cut on a slant, brand-yellow stripe along the cut, black field with copy */
+function layoutDiagonal(c,W,H,t,D,F,I){
+  const M=evM(W),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  const hasP=!!F.flab,pw=W*.3,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw,slant=W*.1,st=W*.03;
+  const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.12,bh:.087});
+  const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.1:0,gS=sb.h?sb.size*.45:0;
+  const rowH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0),T=kb.h+gK+hb.h+gH+rowH+H*.02+sinceH;
+  const yL=Math.max(H*.3,H-M-T-st*1.4-W*.03),yR=yL-slant;
+  evPhoto(c,I,0,0,W,yL,0,t,.2,()=>{c.moveTo(0,0);c.lineTo(W,0);c.lineTo(W,yR);c.lineTo(0,yL);c.closePath()});
+  const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
+  evRise(c,t,.3,H,()=>{c.fillStyle=LY;c.beginPath();c.moveTo(0,yL);c.lineTo(W,yR);c.lineTo(W,yR+st);c.lineTo(0,yL+st);c.closePath();c.fill();
+    if((F.acc||'').toLowerCase()!==LY.toLowerCase()&&contrast(F.acc||LY,g)>=2.2){c.fillStyle=F.acc;c.beginPath();c.moveTo(0,yL+st);c.lineTo(W,yR+st);c.lineTo(W,yR+st*1.35);c.lineTo(0,yL+st*1.35);c.closePath();c.fill()}});
+  evTopRow(c,W,M,t,I,F,{chip:true});
+  let y=yL+st*1.4+W*.03;
+  if(kb.h){evKick(c,kb,M,y,hl,'left',t,sw);y+=kb.h+gK}
+  if(hb.h){evLines(c,hb,M,y,{wt:900,fill:'#fff',t,at:.9,maxW:sw});y+=hb.h+gH}
+  if(ob.h)evOffer(c,ob,M,y,hl,'left',t,wO);
+  if(sb.h)evLines(c,sb,M,y+ob.h+gS,{wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:wO});
+  if(hasP)evPrice(c,W-M-pw/2,y+rowH-ph/2,pw,F,true,t,1.7);
+  evSince(c,W,M,t,F,H-M-sinceH/2,'rgba(255,255,255,.6)','left');
+}
+
+/* S4 Sunray: tonal rays behind a round photo, offer on a full-width banner, price tag on the ring */
+function layoutSunray(c,W,H,t,D,F,I){
+  const M=evM(W),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=F.acc||'#C8102E',ai=inkOn(acc),sw=W-2*M;
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  const hasP=!!F.flab,pw=W*.27,ph=pw*.355,compact=H<W*1.25,inRibbon=compact&&hasP,wR=inRibbon?sw-pw-W*.03:sw*.9;
+  const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw:sw*.96,wO:wR,bw:.115,bh:.082});
+  const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,padR=W*.022,rb=Math.max(ob.h+(sb.h?gS+sb.h:0)+2*padR,inRibbon?ph+2*padR*.8:0);
+  const lw=evLogoW(W),lh=lw/2,MB=evMadeBox(W*.019,dark),topB=M+Math.max(lh,MB.h);
+  const yK=topB+H*.026,yH=yK+kb.h+gK,cT=yH+hb.h+(hb.h?gH:0)+H*.02;
+  const cB=H-M-sinceH-H*.014-(hasP&&!inRibbon?ph*.3:0),d=Math.max(Math.min(W*.7,cB-cT),H*.2),cx=W/2,cy=cT+d/2;
+  /* rays first, so no copy is ever painted over; a tint of the ground, never a second hard colour */
+  c.save();c.fillStyle=dark?'rgba(255,255,255,.055)':'rgba(0,0,0,.065)';const n=24,R=Math.hypot(W,H),rot=t*.035;
+  for(let i=0;i<n;i+=2){const a0=rot+i*TAU/n,a1=rot+(i+1)*TAU/n;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a0)*R,cy+Math.sin(a0)*R);c.lineTo(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R);c.closePath();c.fill()}
+  c.restore();
+  evTopRow(c,W,M,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  if(kb.h)evKick(c,kb,W/2,yK,accOn(g,acc),'center',t,sw);
+  if(hb.h)evLines(c,hb,W/2,yH,{wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});
+  c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
+  evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
+  const by=cy+d*.27-rb/2;
+  evRise(c,t,1.1,H,()=>{c.save();c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=W*.02;c.shadowOffsetY=W*.006;c.fillStyle=acc;c.fillRect(0,by,W,rb);c.restore()});
+  const tx0=inRibbon?M:W/2,al0=inRibbon?'left':'center',txH=ob.h+(sb.h?gS+sb.h:0),ty0=by+(rb-txH)/2;
+  if(ob.h)evOffer(c,ob,tx0,ty0,ai,al0,t,wR);
+  if(sb.h)evLines(c,sb,tx0,ty0+ob.h+gS,{wt:700,fill:ai==='#ffffff'?'rgba(255,255,255,.9)':'rgba(17,17,17,.85)',al:al0,t,at:1.6,maxW:wR});
+  if(hasP)evPrice(c,inRibbon?W-M-pw/2:cx+d*.36,inRibbon?by+rb/2:cy+d*.5+ph*.1,pw,F,true,t,1.7);
+  evSince(c,W,M,t,F,H-M-sinceH/2,dark?'rgba(255,255,255,.65)':'rgba(17,17,17,.6)','center');
+}
+
+/* S5 Ticket: a white coupon ticket on the brand ground, perforated stub carrying offer + price */
+function layoutTicket(c,W,H,t,D,F,I){
+  const M=evM(W),g=lum(F.bg1)>.9?(F.bg2||'#F2F2F2'):F.bg1,gd=isDark(g),acc=accOn('#ffffff',F.acc||'#C8102E');
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  const sinceH=evSinceH(W,F),tx=M*.5,ty=M*.5,tw=W-2*tx,th=H-ty-M*.5-sinceH-H*.006,P=W*.05,x0=tx+P,sw=tw-2*P,nr=W*.026;
+  c.save();c.shadowColor='rgba(0,0,0,.22)';c.shadowBlur=W*.035;c.shadowOffsetY=W*.012;c.fillStyle='#fff';c.beginPath();c.roundRect(tx,ty,tw,th,W*.03);c.fill();c.restore();
+  const hasP=!!F.flab,pw=W*.28,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
+  const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.108,bh:.078});
+  const top=evTopRow(c,W,ty+P,t,I,F,{chip:false});
+  const gK=kb.h?kb.size*.5:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,botH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0),perfGap=H*.028;
+  let y=top+H*.022;
+  if(kb.h){evKick(c,kb,x0,y,acc,'left',t,sw);y+=kb.h+gK}
+  if(hb.h){evLines(c,hb,x0,y,{wt:900,fill:'#111111',t,at:.9,maxW:sw});y+=hb.h+gH}
+  const perfY=ty+th-P-botH-perfGap,pTop=y+H*.01,pH=Math.max(perfY-perfGap-pTop,H*.16);
+  evPhoto(c,I,x0,pTop,sw,pH,W*.012,t,.35);
+  const py=pTop+pH+perfGap;
+  evRise(c,t,1,H,()=>{c.save();c.strokeStyle='rgba(17,17,17,.38)';c.lineWidth=Math.max(2,W*.0026);c.setLineDash([W*.012,W*.012]);c.beginPath();c.moveTo(tx+nr,py);c.lineTo(tx+tw-nr,py);c.stroke();c.setLineDash([]);
+    c.fillStyle=g;c.beginPath();c.arc(tx,py,nr,0,TAU);c.fill();c.beginPath();c.arc(tx+tw,py,nr,0,TAU);c.fill();c.restore()});
+  const by=py+perfGap;
+  if(ob.h)evOffer(c,ob,x0,by,acc,'left',t,wO);
+  if(sb.h)evLines(c,sb,x0,by+ob.h+gS,{wt:700,fill:'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
+  if(hasP)evPrice(c,tx+tw-P-pw/2,by+botH/2,pw,F,false,t,1.7);
+  evSince(c,W,M,t,F,H-M*.5-sinceH/2-H*.002,gd?'rgba(255,255,255,.75)':'rgba(17,17,17,.62)','center');
+}
+
+const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sunray:layoutSunray,ticket:layoutTicket,circle:layoutCircle,split:layoutSplit,fullbleed:layoutFullbleed,corner:layoutCorner,stacked:layoutStacked,poster:layoutPoster,card:layoutCard,badge:layoutBadge};
 
 /* ---------- field schema shared by every event-category template, so switching the
    Layout dropdown never loses or breaks any of the person's content ---------- */
 function evFields(def){
   const base={num:'',head:'HEADLINE\nHERE',tag:'That\'s comfortable.',kicker:'FOR A LIMITED TIME',
     pre:'UP TO',off:'50% OFF',osub:'SELECT ITEMS',flab:'STARTING FROM',fprice:'$599',seal:'',
-    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',boxStyle:'rounded',maple:'yes'};
+    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',boxStyle:'rounded',maple:'yes',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
   const v=Object.assign({},base,def);
   return [STYLE_FIELD,layoutField(def&&def.layout),MCOL_FIELD,BOX_FIELD,
     {k:'acc',l:'Accent colour',t:'color',v:v.acc},
@@ -2081,6 +2250,7 @@ function evFields(def){
     {k:'osub',l:'Offer sub line',t:'text',v:v.osub},
     {k:'flab',l:'Price label (blank hides)',t:'text',v:v.flab},
     {k:'fprice',l:'Price',t:'text',v:v.fprice},
+    {k:'since',l:'Heritage line (Signature layouts, blank hides)',t:'text',v:v.since},
     {k:'seal',l:'Best Seller badge (blank hides, circle/split only)',t:'select',v:v.seal,o:[['','Hidden'],['yes','Shown']]},
     {k:'maple',l:'Made in Canada badge',t:'select',v:v.maple,o:['yes','no']},
     {k:'bg1',l:'Background 1',t:'color',v:v.bg1},{k:'bg2',l:'Background 2',t:'color',v:v.bg2}];
@@ -2089,22 +2259,22 @@ function evDraw(c,W,H,t,D,F,I){(LAYOUTS[F.layout]||layoutCircle)(c,W,H,t,D,F,I)}
 
 const T_EVENTS=[
  {id:'ev_megasale',name:'Mega Sale',sub:'Big number, bold percent-off — the flagship Leon\'s sale post',cat:'megasale',
-  fields:evFields({layout:'circle',num:'100',head:'MEGA SOFA\nSALE!',kicker:'FIRST EVER',off:'50% OFF',osub:'SELECT FABRIC SOFAS',flab:'STARTING FROM',fprice:'$499',seal:'yes',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
+  fields:evFields({layout:'sunray',num:'100',head:'MEGA SOFA\nSALE!',kicker:'FIRST EVER',off:'50% OFF',osub:'SELECT FABRIC SOFAS',flab:'STARTING FROM',fprice:'$499',seal:'yes',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_financing',name:'Financing Event',sub:'Pay-nothing / no-interest offers — white layout, oversized accent type',cat:'financing',
-  fields:evFields({layout:'split',num:'',head:'PAY NOTHING\n\'TIL 2028*',kicker:'DON\'T PAY A CENT EVENT',off:'0% INTEREST',osub:'O.A.C. ON YOUR FLEXITICARD',flab:'AS LOW AS',fprice:'$0 DOWN',bg1:'#FFFFFF',bg2:'#F2F2F2',mcol:'#111111',acc:'#E5376F'}),
+  fields:evFields({layout:'gallery',num:'',head:'PAY NOTHING\n\'TIL 2028*',kicker:'DON\'T PAY A CENT EVENT',off:'0% INTEREST',osub:'O.A.C. ON YOUR FLEXITICARD',flab:'AS LOW AS',fprice:'$0 DOWN',bg1:'#FFFFFF',bg2:'#F2F2F2',mcol:'#111111',acc:'#E5376F'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
-  fields:evFields({layout:'stacked',head:'CUSTOMER\nAPPRECIATION',kicker:'IT\'S OUR BIGGEST SALE OF THE YEAR',off:'12% BACK',osub:'IN REWARDS ON YOUR PURCHASE',flab:'INSTANT CREDIT',fprice:'$50',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
+  fields:evFields({layout:'ticket',head:'CUSTOMER\nAPPRECIATION',kicker:'IT\'S OUR BIGGEST SALE OF THE YEAR',off:'12% BACK',osub:'IN REWARDS ON YOUR PURCHASE',flab:'INSTANT CREDIT',fprice:'$50',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_supersale',name:'Canada-Wide Super Sale',sub:'National super-sale push — red wordmark energy, maple leaf',cat:'supersale',
-  fields:evFields({layout:'corner',pre:'',head:'CANADA-WIDE\nSUPER SALE',kicker:'ONE WEEK ONLY',off:'UP TO 50%',osub:'OFF SELECT SOFAS',flab:'SAVE UP TO',fprice:'$1000',bg1:'#FFFFFF',bg2:'#FFE81A',mcol:'#111111',acc:'#C8102E'}),
+  fields:evFields({layout:'diagonal',pre:'',head:'CANADA-WIDE\nSUPER SALE',kicker:'ONE WEEK ONLY',off:'UP TO 50%',osub:'OFF SELECT SOFAS',flab:'SAVE UP TO',fprice:'$1000',bg1:'#FFFFFF',bg2:'#FFE81A',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
-  fields:evFields({layout:'circle',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
+  fields:evFields({layout:'gallery',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
-  fields:evFields({layout:'fullbleed',num:'',pre:'',head:'BLACK\nFRIDAY',kicker:'DOORBUSTERS',off:'UP TO 60%',osub:'OFF STOREWIDE',flab:'STARTING FROM',fprice:'$299',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
+  fields:evFields({layout:'arch',num:'',pre:'',head:'BLACK\nFRIDAY',kicker:'DOORBUSTERS',off:'UP TO 60%',osub:'OFF STOREWIDE',flab:'STARTING FROM',fprice:'$299',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
   images:[{k:'p',l:'Product photo'}],draw:evDraw}
 ];
 
