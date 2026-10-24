@@ -106,8 +106,22 @@ function matchKey(s){
   const i=FR.seen[n]=(FR.seen[n]==null?0:FR.seen[n]+1);
   return cands[Math.min(i,cands.length-1)];
 }
+/* A string with a line break is drawn as a tight stacked block (lines ~1.08 apart) centred on
+   the anchor the single line would have had, then each line goes back through fillTextHook
+   so every line stays selectable/styleable as part of its field. Extra lines shrink the type
+   slightly (see MLK) so a 2-3 line value still fits roughly where one line used to sit. */
+const MLK=n=>1/(1+.35*(n-1));
+function drawMultiline(s,x,y,mw){
+  const c=realCtx,lines=s.split('\n'),n=lines.length,k=MLK(n);
+  const sz0=parseFloat(/(\d+(?:\.\d+)?)px/.exec(c.font)[1])||16,sz=sz0*k,lh=sz*1.08,y0=y-(n-1)*lh/2;
+  c.save();c.font=c.font.replace(/(\d+(?:\.\d+)?)px/,sz+'px');
+  lines.forEach((ln,i)=>{if(ln.trim()!=='')fillTextHook(ln,x,y0+i*lh,mw)});
+  c.restore();
+}
 function fillTextHook(s,x,y,mw){
-  const c=realCtx;s=String(s);
+  s=String(s);
+  if(s.indexOf('\n')>=0){drawMultiline(s,x,y,mw);return}
+  const c=realCtx;
   const key=FR?matchKey(s):null;
   if(!key){mw===undefined?c.fillText(s,x,y):c.fillText(s,x,y,mw);return}
   /* which line of this field we are on, and how many it had last frame */
@@ -141,7 +155,11 @@ function fillTextHook(s,x,y,mw){
 function wrapCtx(real){
   realCtx=real;
   return new Proxy(real,{
-    get(t,k){const v=t[k];return typeof v==='function'?(k==='fillText'?fillTextHook:v.bind(t)):v},
+    get(t,k){const v=t[k];
+      if(k==='measureText')return s=>{s=String(s);if(s.indexOf('\n')<0)return t.measureText(s);
+        /* canvas treats \n as a space, so measure a multi-line value by its widest line */
+        let m=null;s.split('\n').forEach(l=>{const r=t.measureText(l);if(!m||r.width>m.width)m=r});return m};
+      return typeof v==='function'?(k==='fillText'?fillTextHook:v.bind(t)):v},
     set(t,k,v){t[k]=v;return true}
   });
 }

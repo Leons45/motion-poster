@@ -108,7 +108,15 @@ function restore(){
 function ctl(parent,label,type,obj,key,o){
   o=o||{};const wrap=el('label','fld'),sp=el('span','',label);wrap.append(sp);let inp;
   if(type==='select'){inp=el('select');o.o.forEach(v=>{const op=el('option');op.value=Array.isArray(v)?v[0]:v;op.textContent=Array.isArray(v)?v[1]:v;inp.append(op)})}
-  else if(type==='area'){inp=el('textarea');inp.rows=2}
+  else if(type==='area'){inp=el('textarea');
+    if(o.auto){
+      /* single-line-looking content fields that still accept Enter for a line break; the box
+         grows with its content (up to a cap) so it reads like the input it replaced */
+      inp.className='auto';inp.title='Press Enter for a new line';
+      inp.rows=Math.max(1,String(obj[key]==null?'':obj[key]).split('\n').length);
+      const grow=()=>{inp.style.height='auto';if(inp.scrollHeight)inp.style.height=Math.min(inp.scrollHeight+2,220)+'px'};
+      inp.addEventListener('input',grow);o.afterAttach=()=>requestAnimationFrame(grow);
+    }else inp.rows=2}
   else{inp=el('input');inp.type=type==='color'?'color':type==='number'?'number':type==='range'?'range':type==='check'?'checkbox':'text';
     if(o.min!=null)inp.min=o.min;if(o.max!=null)inp.max=o.max;if(o.step!=null)inp.step=o.step}
   const show=()=>{if(type==='range')sp.textContent=label+': '+Math.round(parseFloat(inp.value)*100)/100};
@@ -118,7 +126,7 @@ function ctl(parent,label,type,obj,key,o){
   if(o.focus)inp.addEventListener('focus',o.focus);
   if(type==='check'){wrap.className='fld chk';wrap.prepend(inp)}else wrap.append(inp);
   if(o.wrapKey!=null)wrap.dataset.key=o.wrapKey;
-  parent.append(wrap);return inp;
+  parent.append(wrap);if(o.afterAttach)o.afterAttach();return inp;
 }
 const row2=p=>{const r=el('div','row2');p.append(r);return r};
 function btn(parent,label,fn,cls){const b=el('button','btn sm'+(cls?' '+cls:''),label);b.type='button';b.addEventListener('click',fn);parent.append(b);return b}
@@ -384,7 +392,7 @@ function buildInspector(){
   $('#sectContent').hidden=free||!tp.fields.length;$('#sectImages').hidden=free||!tp.images.length;$('#sectLayers').hidden=!free;
   const v=state.vals[tp.id],box=$('#fields');box.innerHTML='';
   tp.fields.forEach(f=>{
-    const t=f.t==='select'?'select':f.t,o={};if(f.t==='select')o.o=f.o;
+    const t=f.t==='select'?'select':f.t==='text'?'area':f.t,o={};if(f.t==='select')o.o=f.o;if(f.t==='text')o.auto=true;
     if(f.t==='text'||f.t==='area')o.focus=()=>select({type:'text',key:f.k},{silent:true});
     o.wrapKey=f.k;
     ctl(box,f.l,t,v,f.k,o);

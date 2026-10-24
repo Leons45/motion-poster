@@ -58,6 +58,19 @@ Run it from this directory (or anywhere — it locates itself and writes to
   happens to be available — the latter looks fine until the available
   band is taller than the text needs, then one extra line creates a
   disproportionate gap (this bit us once in `mastText`, see its comments).
+- **Line breaks in every text field**: all content fields are auto-growing multi-line boxes
+  (`ctl` in `ui.js`, `o.auto`), so Enter inserts a line break anywhere. On the canvas,
+  `fillTextHook`/`drawMultiline` in `engine.js` stack a value's lines as a tight block centred on the
+  anchor the single line had (extra lines shrink the type slightly, `MLK`), and the `PC` proxy's
+  `measureText` reports the widest line, so legacy templates that call `c.fillText(F.x,...)` /
+  `fitSize` keep working untouched. New layouts should measure first instead (see below).
+- **Event Posts layout grid** (`events.js`): every layout hangs off one margin (`evM(W)` = 7% of
+  width) and stacks measured blocks (`evFit` / `evFitM` + `evLines`) so a multi-line value reserves
+  its real height and cannot overlap a neighbour. Colours follow the background (`inkOn`, `accOn`,
+  `isDark`, `contrast`) so nothing is dark-on-dark; the Made-in-Canada artwork has dark lettering, so
+  `evMade` puts it on a white chip over dark grounds. `evPre` stops "UP TO" + "UP TO 50%" doubling.
+  Pass `maxW*1.04` into `text()` after `fitSize`: `fitSize` lands exactly on the width and float
+  error would otherwise make `text()` re-wrap the line (this garbled a headline once).
 - Keep v9 (`../../v9/src/`) and v10 in sync by hand where a fix applies to
   both — they're forked, not shared, so there's no single source of truth
   to edit once. Check both when fixing a bug in `engine.js`/`ui.js`/
