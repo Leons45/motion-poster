@@ -27,7 +27,7 @@ Run it from this directory (or anywhere — it locates itself and writes to
 - `leons.js` — shared Leon's-brand drawing helpers (`mastCircle`,
   `mastText`, `bottomArc`, `madeInCanada`, etc.) used across many templates
 - `events.js` — the "Event Posts" system: 6 campaign categories
-  (`EVENT_CATS`) × 5 shared structural layouts (`LAYOUTS`), each category a
+  (`EVENT_CATS`) × 8 shared structural layouts (`LAYOUTS`), each category a
   template in `T_EVENTS`
 - `engine.js` — core state (`state`), the per-text/per-object override
   system (`ovFor`/`styleFor`/`ovProxy`, see comments there for how
