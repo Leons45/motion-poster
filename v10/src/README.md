@@ -85,3 +85,11 @@ Run it from this directory (or anywhere — it locates itself and writes to
   to edit once. Check both when fixing a bug in `engine.js`/`ui.js`/
   `leons.js`, since those three files are nearly identical between the
   two versions.
+- **8 Event Post layouts** (`events.js`, `LAYOUT_NAMES` / `LAYOUTS`): circle, split, full-bleed, corner,
+  stacked, centred poster, photo + content card, title + offer badge. Add one by writing a
+  `layoutX(c,W,H,F,t,at)` function and registering it in both maps; the sweep renders every
+  event x layout x ratio.
+- **My default** (`ui.js`, `DEF_KEY='mps_defaults'`): "Save as my default" snapshots a post (copy, layout,
+  per-ratio moved/resized elements, typography, stickers, free-canvas layers; never photos/logo) per
+  template id. "Reset this post" and "Reset every template" (clears `mps_state`, boot snippet re-applies
+  defaults) return to it; "Clear my default" / "Forget my saved defaults" return to the factory design.

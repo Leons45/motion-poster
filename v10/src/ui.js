@@ -399,7 +399,7 @@ function buildInspector(){
   });
   if(free)buildFreePanel();
   buildQuick();
-  buildImages();buildSelPanel();refreshStatus();
+  buildImages();buildSelPanel();refreshStatus();refreshDefBtn();
 }
 function loadImageFile(file,cb){
   if(!file||!file.type.startsWith('image/'))return;
@@ -451,15 +451,57 @@ $('#resetBtn').addEventListener('click',()=>{try{localStorage.removeItem('mps_st
 /* playback */
 $('#playBtn').addEventListener('click',()=>{if(state.rec)return;state.playing=!state.playing;$('#playBtn').textContent=state.playing?'Pause':'Play'});
 $('#resetPostBtn').addEventListener('click',()=>{
-  if(state.rec)return;const tp=cur();
-  /* back to the template's own layout: default copy, no moved or resized elements.
-     Uploaded photos and the logo are kept, so nothing has to be re-uploaded. */
-  tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v);
-  delete state.ovr[ovKey(tp.id)];
-  if(tp.free){state.free.layers=[];state.free.bg='#FFE81A';state.free.bg2='';state.free.fx='none'}
+  if(state.rec)return;const tp=cur(),saved=defLoad()[tp.id];
+  if(saved)defApply(tp,saved);   /* the person's own saved default for this post wins */
+  else{
+    /* back to the template's own layout: default copy, no moved or resized elements.
+       Uploaded photos and the logo are kept, so nothing has to be re-uploaded. */
+    tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v);
+    delete state.ovr[ovKey(tp.id)];
+    if(tp.free){state.free.layers=[];state.free.bg='#FFE81A';state.free.bg2='';state.free.fx='none'}
+  }
   state.sel=null;state.t=0;
   buildInspector();persist();
 });
+/* ----- "my default" designs -----
+   Save the current design of a post (copy, layout choice, colours, moved/resized elements for every
+   ratio, typography, stickers) as YOUR default for that post. "Reset this post" and "Reset every
+   template" then go back to it instead of the factory design. Uploaded photos and the logo are never
+   part of it, so nothing has to be re-uploaded. */
+const DEF_KEY='mps_defaults';
+const jclone=o=>JSON.parse(JSON.stringify(o));
+function defLoad(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||{}}catch(e){return {}}}
+function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
+function defSnapshot(tp){
+  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
+  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k])});
+  if(tp.free)s.free={bg:state.free.bg,bg2:state.free.bg2,fx:state.free.fx,nextId:state.free.nextId,layers:state.free.layers.map(l=>{const o={...l};delete o._h;return o})};
+  return s;
+}
+function defApply(tp,s){
+  const id=tp.id;
+  /* fields added after the default was saved fall back to the template's own value */
+  tp.fields.forEach(f=>{state.vals[id][f.k]=(s.vals&&f.k in s.vals)?s.vals[f.k]:f.v});
+  state.style[id]=jclone(s.style||{});
+  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;
+    if(s.ovr&&s.ovr[r])state.ovr[k]=jclone(s.ovr[r]);else delete state.ovr[k];
+    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k]});
+  if(tp.free&&s.free){state.free.bg=s.free.bg;state.free.bg2=s.free.bg2;state.free.fx=s.free.fx;state.free.nextId=s.free.nextId||1;state.free.layers=jclone(s.free.layers||[]);state.layerImgs={}}
+}
+function refreshDefBtn(){
+  const D=defLoad(),has=!!D[state.tid],b=$('#saveDefBtn'),rb=$('#resetPostBtn'),cb=$('#clearDefBtn'),fb=$('#forgetDefBtn');
+  if(b){b.textContent=has?'Update my default':'Save as my default';
+    b.title=has?'Overwrite your saved default for this post with the current design':"Save this post's current design (copy, layout, positions, styling, stickers) as YOUR default; Reset comes back to it"}
+  if(rb)rb.title=has?'Back to YOUR saved default for this post':'Put this template back to its original layout';
+  if(cb)cb.hidden=!has;if(fb)fb.hidden=!Object.keys(D).length;
+}
+$('#saveDefBtn').addEventListener('click',()=>{
+  if(state.rec)return;const tp=cur(),D=defLoad();D[tp.id]=defSnapshot(tp);
+  const ok=defStore(D),b=$('#saveDefBtn');refreshDefBtn();
+  const keep=b.textContent;b.textContent=ok?'Saved \u2713':'Could not save (browser storage blocked)';setTimeout(()=>refreshDefBtn(),1600);
+});
+$('#clearDefBtn').addEventListener('click',()=>{const D=defLoad();delete D[state.tid];defStore(D);refreshDefBtn()});
+$('#forgetDefBtn').addEventListener('click',()=>{if(confirm('Forget every default you have saved? Reset will go back to the original designs.')){defStore({});refreshDefBtn()}});
 $('#undoBtn').addEventListener('click',()=>{if(!state.rec)undo()});
 $('#redoBtn').addEventListener('click',()=>{if(!state.rec)redo()});
 $('#restartBtn').addEventListener('click',()=>{if(state.rec)return;state.t=0;state.playing=true;$('#playBtn').textContent='Pause'});
@@ -589,6 +631,8 @@ function tick(ts){
 function fontNote(){const n=fontInstalled('Proxima Nova')||fontInstalled('proxima-nova'),s=fontInstalled('Proxima Soft')||fontInstalled('proxima-soft');
   $('#fontNote').textContent=(n?'Proxima Nova is loaded. ':'Proxima Nova not found, showing Montserrat instead. ')+(s?'Proxima Soft is loaded.':'Proxima Soft not found, showing Nunito instead.')}
 restore();
+/* no working state (first load, or just after "Reset every template"): bring back the designs the person saved as their defaults */
+(function(){try{if(localStorage.getItem('mps_state')!==null)return;const D=defLoad();T.forEach(tp=>{if(D[tp.id])defApply(tp,D[tp.id])})}catch(e){}})();
 $('#dur').value=state.D;$('#durOut').textContent=state.D+'s';
 $('#ratioSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===state.ratio));$('#ratioNote').textContent=RNOTE[state.ratio];
 if(typeof state.logo2.scale!=='number')state.logo2.scale=1;

@@ -1,4 +1,4 @@
-<div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 5 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
+<div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 8 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
 <div class="app">
   <aside class="panel" id="rail"><h2>Templates <span style="font-size:11px;opacity:.55;font-weight:600;letter-spacing:0;text-transform:none">v10 · One-stop Leon's posts</span></h2><div id="catChips" role="group" aria-label="Filter by campaign"></div><div id="tplList"></div></aside>
   <section style="min-width:0">
@@ -6,7 +6,7 @@
     <div class="bar">
       <button class="btn" id="playBtn" type="button">Pause</button>
       <button class="btn" id="restartBtn" type="button">Restart</button>
-      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button>
+      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
       <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
       <span class="time" id="time">0.0s / 6s</span>
     </div>
@@ -39,7 +39,7 @@
       <button class="btn" id="pngBtn" type="button">Save current frame (PNG)</button>
     </div>
     <p class="note">Video records in real time, so keep this tab open until it finishes. Chrome and Edge save MP4; other browsers may save WebM. Your text, positions and layers are remembered in this browser.</p>
-    <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px">Reset every template</button>
+    <button class="btn sm" id="resetBtn" type="button" style="margin-top:6px" title="Back to your saved defaults (the original design for any post you have not saved a default for)">Reset every template</button> <button class="btn sm" id="forgetDefBtn" type="button" style="margin-top:6px" hidden title="Delete every default you have saved">Forget my saved defaults</button>
   </aside>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
