@@ -97,3 +97,8 @@ Run it from this directory (or anywhere — it locates itself and writes to
   loads one in any browser. To make defaults the app-wide factory design, replace `v10/src/defaults.json`
   with the exported file and rebuild (`build.py` embeds it as `BAKED_DEFAULTS`); this browser's own saves
   still win per post, and "Clear my default" falls back to the baked one.
+- **Live save** (`ui.js`, `GH`/`ghSync`): "Connect live save" stores a fine-grained GitHub token (Contents
+  read & write on `irk15/Motion-Posts` only) in that browser. Saving or clearing a default then commits
+  `v10/src/defaults.json` through the GitHub API; on the website the app fetches `src/defaults.json` at
+  load (layers: baked < live file < this browser's saves). Pages redeploys in about a minute. Fails soft:
+  the default is still saved locally and the error is shown under the button.

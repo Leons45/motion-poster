@@ -469,10 +469,11 @@ $('#resetPostBtn').addEventListener('click',()=>{
    template" then go back to it instead of the factory design. Uploaded photos and the logo are never
    part of it, so nothing has to be re-uploaded. */
 const DEF_KEY='mps_defaults';
+var REMOTE_DEF={},FRESH_BOOT=false;
 const jclone=o=>JSON.parse(JSON.stringify(o));
 function defLocal(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||{}}catch(e){return {}}}
 /* defaults baked into the app (src/defaults.json) apply everywhere; this browser's own saved defaults win per post */
-function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},defLocal())}
+function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},REMOTE_DEF,defLocal())}
 function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function defSnapshot(tp){
   const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
@@ -499,11 +500,52 @@ function refreshDefBtn(){
 }
 $('#saveDefBtn').addEventListener('click',()=>{
   if(state.rec)return;const tp=cur(),D=defLocal();D[tp.id]=defSnapshot(tp);
-  const ok=defStore(D),b=$('#saveDefBtn');refreshDefBtn();
+  const ok=defStore(D),b=$('#saveDefBtn');refreshDefBtn();if(ghTok())ghSync(o=>{o[tp.id]=D[tp.id]},'Saved live');
   const keep=b.textContent;b.textContent=ok?'Saved \u2713':'Could not save (browser storage blocked)';setTimeout(()=>refreshDefBtn(),1600);
 });
-$('#clearDefBtn').addEventListener('click',()=>{const D=defLocal();delete D[state.tid];defStore(D);refreshDefBtn()});
+$('#clearDefBtn').addEventListener('click',()=>{const D=defLocal(),id=state.tid;delete D[id];defStore(D);refreshDefBtn();if(ghTok()&&REMOTE_DEF[id])ghSync(o=>{delete o[id]},'Cleared live')});
 $('#forgetDefBtn').addEventListener('click',()=>{if(confirm('Forget every default you have saved? Reset will go back to the original designs.')){defStore({});refreshDefBtn()}});
+
+/* ----- live save: defaults are committed to the GitHub repo (src/defaults.json) so every browser sees them -----
+   Needs a fine-grained token (Contents: read & write on this one repo), pasted once per browser. */
+const GH={repo:'irk15/Motion-Posts',path:'v10/src/defaults.json',branch:'main',key:'mps_gh_token'};
+const ghTok=()=>{try{return localStorage.getItem(GH.key)||''}catch(e){return ''}};
+function ghApi(method,body){
+  return fetch('https://api.github.com/repos/'+GH.repo+'/contents/'+GH.path+(method==='GET'?'?ref='+GH.branch+'&t='+Date.now():''),
+    {method,headers:{Authorization:'Bearer '+ghTok(),Accept:'application/vnd.github+json'},body:body?JSON.stringify(body):undefined});
+}
+function syncNote(msg,bad){const n=$('#syncNote');if(n){n.textContent=msg;n.style.color=bad?'#c0392b':''}}
+function refreshLiveBtn(){const b=$('#liveBtn');if(b)b.textContent=ghTok()?'Disconnect live save':'Connect live save';
+  if(!$('#syncNote').textContent||/^Live save (on|off)/.test($('#syncNote').textContent))syncNote(ghTok()?'Live save on: saving a default updates the website for everyone.':'Live save off: defaults stay in this browser.')}
+let syncBusy=Promise.resolve();
+function ghSync(mut,okMsg){
+  syncBusy=syncBusy.then(async()=>{
+    syncNote('Saving live\u2026');
+    for(let tryN=0;tryN<2;tryN++){
+      try{
+        const r=await ghApi('GET');let sha,cur={};
+        if(r.status===200){const j=await r.json();sha=j.sha;cur=JSON.parse(decodeURIComponent(escape(atob(String(j.content).replace(/\n/g,'')))))||{}}
+        else if(r.status!==404)throw new Error('GitHub said '+r.status+(r.status===401?' (token rejected)':''));
+        mut(cur);const txt=JSON.stringify(cur,null,1);if(txt.length>900000)throw new Error('defaults file too large');
+        const body={message:'Update saved defaults (Motion Poster Studio)',content:btoa(unescape(encodeURIComponent(txt))),branch:GH.branch};if(sha)body.sha=sha;
+        const p=await ghApi('PUT',body);
+        if(p.status===409||p.status===422){if(tryN===0)continue}
+        if(!p.ok)throw new Error('GitHub said '+p.status+(p.status===403||p.status===404?' (token needs Contents: read & write on '+GH.repo+')':''));
+        REMOTE_DEF=cur;refreshDefBtn();syncNote(okMsg+' \u2713 (the website updates in about a minute)');return;
+      }catch(e){syncNote('Live save failed: '+(e&&e.message||e)+'. Saved in this browser only.',true);return}
+    }
+  });
+}
+$('#liveBtn').addEventListener('click',async()=>{
+  if(ghTok()){try{localStorage.removeItem(GH.key)}catch(e){}syncNote('');refreshLiveBtn();return}
+  const t=(prompt('Paste a GitHub fine-grained token for '+GH.repo+' (Contents: read and write). It is kept in this browser only.')||'').trim();if(!t)return;
+  try{localStorage.setItem(GH.key,t)}catch(e){syncNote('Browser storage is blocked, cannot keep the token.',true);return}
+  syncNote('Checking token\u2026');
+  try{const r=await fetch('https://api.github.com/repos/'+GH.repo,{headers:{Authorization:'Bearer '+t}});const j=await r.json();
+    if(!r.ok||!(j.permissions&&j.permissions.push))throw new Error(r.ok?'token has no write access to '+GH.repo:'GitHub said '+r.status);
+    syncNote('');refreshLiveBtn();
+  }catch(e){try{localStorage.removeItem(GH.key)}catch(x){}syncNote('Token not accepted: '+(e.message||e),true);refreshLiveBtn()}
+});
 $('#expDefBtn').addEventListener('click',()=>{
   const blob=new Blob([JSON.stringify(defLoad(),null,1)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='motion-poster-defaults.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)});
@@ -648,7 +690,14 @@ function fontNote(){const n=fontInstalled('Proxima Nova')||fontInstalled('proxim
   $('#fontNote').textContent=(n?'Proxima Nova is loaded. ':'Proxima Nova not found, showing Montserrat instead. ')+(s?'Proxima Soft is loaded.':'Proxima Soft not found, showing Nunito instead.')}
 restore();
 /* no working state (first load, or just after "Reset every template"): bring back the designs the person saved as their defaults */
-(function(){try{if(localStorage.getItem('mps_state')!==null)return;const D=defLoad();T.forEach(tp=>{if(D[tp.id])defApply(tp,D[tp.id])})}catch(e){}})();
+(function(){try{if(localStorage.getItem('mps_state')!==null)return;FRESH_BOOT=true;const D=defLoad();T.forEach(tp=>{if(D[tp.id])defApply(tp,D[tp.id])})}catch(e){}})();
+refreshLiveBtn();
+/* pick up the live defaults file from the website (not possible when opened as a plain local file) */
+(function(){if(!/^https?:/.test(location.protocol))return;
+  fetch('src/defaults.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(o=>{
+    if(!o||typeof o!=='object'||Array.isArray(o))return;REMOTE_DEF=o;
+    if(FRESH_BOOT&&!HIST.past.length){const D=defLoad();T.forEach(tp=>{if(D[tp.id])defApply(tp,D[tp.id])});buildInspector();persist()}
+    refreshDefBtn()}).catch(()=>{})})();
 $('#dur').value=state.D;$('#durOut').textContent=state.D+'s';
 $('#ratioSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===state.ratio));$('#ratioNote').textContent=RNOTE[state.ratio];
 if(typeof state.logo2.scale!=='number')state.logo2.scale=1;
