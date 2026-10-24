@@ -68,6 +68,16 @@ function evPrice(c,cx,cy,pw,F,dark,t,at){
 /* "UP TO" + an offer that already starts with "UP TO" must not read "UP TO UP TO 50%" */
 const evPre=F=>(F.pre&&!String(F.off).toUpperCase().trim().startsWith(String(F.pre).toUpperCase().trim()))?F.pre:'';
 const evLogoW=W=>W*.16;
+/* TYPE HIERARCHY for every Event Post. Rank: hero (the offer) > title (headline) > support (sub line)
+   > label (eyebrow, small caps with tracking) > caption (tagline / fine print). TY gives each tier's
+   size as a fraction of the layout's `base` (its hero size); evCap then caps a tier relative to the
+   tier above AFTER fitting, so a long offer that had to shrink drags its headline down with it instead
+   of ever being outranked by it. Weight, tracking and colour reinforce the rank: 900 for hero and
+   title, 700 for support, tracked 800 caps in the accent colour for the label. */
+const TY={title:.66,support:.22,label:.17,caption:.15,num:1.15};
+const evCap=(parent,ratio,fb)=>(parent&&parent.size)?Math.min(fb,parent.size*ratio):fb;
+function evTracked(c,px,fn){const ok='letterSpacing' in c;if(ok)c.letterSpacing=px+'px';try{return fn()}finally{if(ok)c.letterSpacing='0px'}}
+const evTrk=(size)=>size*.12;
 
 /* ---------- layout 1: circle masthead + bottom arc (the house style) ---------- */
 function layoutCircle(c,W,H,t,D,F,I){
@@ -88,7 +98,7 @@ function layoutCircle(c,W,H,t,D,F,I){
     arcTop=bottomArc(c,W,bandBottom,H*.60,F.mcol||'#111111',t,.55);
     const band=bandBottom-arcTop,mc=F.mcol||'#111111',offC=accOn(mc,F.acc||LY),txC=inkOn(mc);
     const ob=evFitM(c,F.off,900,FN,sw*(pre?.74:1),Math.min(band*.42,W*.15));
-    const sb=evFitM(c,F.osub,800,FM,sw,Math.min(band*.16,W*.037));
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(ob,.3,Math.min(band*.16,W*.037))));
     const gap=sb.h?band*.06:0,total=ob.h+gap+sb.h,top=arcTop+(band-total)/2+band*.04;
     if(ob.lines.length===1&&pre){
       const ps=ob.size*.34;font(c,900,ob.size,FN);const ow=c.measureText(ob.lines[0]).width;font(c,900,ps,FM);const pw=c.measureText(pre).width,pg=ps*.55,x0=W/2-(pw+pg+ow)/2;
@@ -130,21 +140,22 @@ function layoutSplit(c,W,H,t,D,F,I){
     const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,H);c.restore();
     pop(c,cx,M+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
     /* measure the copy stack, then centre it in the space between logo and tagline */
-    const kb=evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,Math.min(22,W*.02));
-    const ns=F.num?Math.min(H*.15,fitSize(c,F.num,900,FN,cw,H*.15)):0;
-    const hb=evFit(c,F.head,900,FM,cw,Math.min(H*.056,panelW*.13));
-    const ob=evFitM(c,F.off,900,FN,cw,Math.min(H*.085,panelW*.2));
-    const sb=evFitM(c,F.osub,800,FM,cw,Math.min(H*.028,panelW*.062));
+    const hasN=!!F.num,ob=evFitM(c,F.off,900,FN,cw,Math.min(H*.085,panelW*.2)*(hasN?.85:1));
+    const hb=evFit(c,F.head,900,FM,cw,evCap(ob,.72,Math.min(H*.056,panelW*.13)));
+    const sb=evFitM(c,F.osub,700,FM,cw,Math.max(W*.024,evCap(hb,.42,Math.min(H*.028,panelW*.062))));
+    const kMax=Math.max(W*.02,evCap(sb,.95,Math.min(22,W*.02)));
+    const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,kMax));
+    const ns=hasN?Math.min(H*.15,fitSize(c,F.num,900,FN,cw,H*.15)):0;
     const gK=kb.h?kb.size*1.1:0,gN=ns?ns*.1:0,gH=hb.h?hb.size*.4:0,gO=sb.h?ob.size*.25:0;
     const total=kb.h+gK+ns+gN+hb.h+gH+ob.h+gO+sb.h;
     const tagH=F.tag?Math.min(18,panelW*.045)*1.2:0,areaTop=M+lh+H*.03,areaBot=H-M-tagH-H*.02;
     let y=areaTop+Math.max(0,(areaBot-areaTop-total))*.42;
-    if(kb.h){evLines(c,kb,cx,y,{wt:800,fill:pAcc,al:'center',t,at:.3,maxW:cw});y+=kb.h+gK}
+    if(kb.h){evTracked(c,evTrk(kb.size),()=>evLines(c,kb,cx,y,{wt:800,fill:pAcc,al:'center',t,at:.3,maxW:cw}));y+=kb.h+gK}
     if(ns){c.save();c.globalAlpha=clamp(prog(t,.5*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=pInk;c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.55*ST.stagger,.9*ST.durMul)),cx,y+ns*.5);c.restore();y+=ns+gN}
     if(hb.h){evLines(c,hb,cx,y,{wt:900,fill:pInk,al:'center',t,at:.75,maxW:cw});y+=hb.h+gH}
     c.save();c.globalAlpha=clamp(prog(t,1.1*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=pAcc;c.textAlign='center';c.textBaseline='middle';c.fillText(l,cx,y+i*ob.size*ob.lh+ob.size*ob.lh/2,cw)});c.restore();y+=ob.h+gO;
-    if(sb.h)evLines(c,sb,cx,y,{wt:800,fill:pInk,al:'center',t,at:1.3,maxW:cw});
+    if(sb.h)evLines(c,sb,cx,y,{wt:700,fill:pInk,al:'center',t,at:1.3,maxW:cw});
     if(F.tag){c.save();c.globalAlpha=clamp(prog(t,1.5*ST.stagger,.4*ST.durMul));font(c,700,Math.min(18,panelW*.045),FM);c.fillStyle=pInk==='#ffffff'?'rgba(255,255,255,.72)':'rgba(17,17,17,.72)';c.textAlign='center';c.textBaseline='middle';c.fillText(F.tag,cx,H-M-tagH/2,cw);c.restore()}
   });
   const pw=W-panelW,pcx=panelW+pw/2,rp=W*.04,chipH=evMadeBox(W*.019,rightDark).h;
@@ -187,11 +198,13 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
 
   const hasP=!!F.flab,pw2=W*.26,ph2=pw2*.355,pgap=W*.03,sw=W-2*M-(hasP?pw2+pgap:0),acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
-  const kb=evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,W*.024);
-  const hb=evFit(c,F.head,900,FM,sw,Math.min(W*.098,H*.075));
-  const ob=evFitM(c,F.off,900,FN,sw,Math.min(W*.14,H*.105),.98);
-  const sb=evFitM(c,F.osub,800,FM,sw,W*.026);
-  const ns=F.num?Math.min(H*.1,fitSize(c,F.num,900,FN,sw,H*.1)):0;
+  const base=Math.min(W*.15,H*.11),hasN=!!F.num;
+  const ob=evFitM(c,F.off,900,FN,sw,base*(hasN?.72:.95),.98);
+  const hb=evFit(c,F.head,900,FM,sw,evCap(ob,.74,base*TY.title));
+  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(hb,.36,base*TY.support)));
+  const kMax=Math.max(W*.022,evCap(sb,.9,base*TY.label));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax));
+  const ns=hasN?Math.min(base*TY.num,fitSize(c,F.num,900,FN,sw,base*TY.num)):0;
   let y=H-M;
   const subTop=y-sb.h;y=subTop-(sb.h?sb.size*.55:0);
   const offTop=y-ob.h;y=offTop-(hb.h?hb.size*.14:0);
@@ -199,11 +212,11 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   const kTop=y-kb.h;y=kTop-(ns?ns*.2:0);
   const numTop=y-ns;
   if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),M,numTop+ns*.5);c.restore()}
-  if(kb.h)evLines(c,kb,M,kTop,{wt:800,fill:acc,t,at:.3,maxW:sw});
+  if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,kTop,{wt:800,fill:acc,t,at:.3,maxW:sw}));
   if(hb.h)evLines(c,hb,M,headTop,{wt:900,fill:'#fff',t,at:.9,maxW:sw});
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='left';c.textBaseline='middle';c.fillText(l,M,offTop+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore()}
-  if(sb.h)evLines(c,sb,M,subTop,{wt:800,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:sw});
+  if(sb.h)evLines(c,sb,M,subTop,{wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:sw});
   if(hasP)evPrice(c,W-M-pw2/2,H-M-ph2/2,pw2,F,true,t,1.7);
 }
 
@@ -217,9 +230,11 @@ function layoutCorner(c,W,H,t,D,F,I){
     pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,1.8,dark,'right');
-  const sw=W-2*M,pw2=Math.min(W*.46,W-2*M),ph2=pw2*.355;
-  const kb=evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,W*.024);
-  const hb=evFit(c,F.head,900,FM,sw,Math.min(W*.085,H*.06));
+  const sw=W-2*M,pw2=W*.34,ph2=pw2*.355; /* price card stays below the headline in rank */
+  const bw=W*.5,ob=evFitM(c,F.off,900,FN,bw*.84,bw*.24),sb=evFitM(c,F.osub,700,FM,bw*.84,Math.max(bw*.055,evCap(ob,.24,bw*.07)));
+  const hb=evFit(c,F.head,900,FM,sw,evCap(ob,.7,Math.min(W*.085,H*.06)));
+  const kMax=Math.max(W*.022,evCap(hb,.34,W*.025));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax));
   let y=H-M;
   if(F.flab)y-=ph2+H*.025;
   const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.7:0);
@@ -228,7 +243,6 @@ function layoutCorner(c,W,H,t,D,F,I){
   floorShadow(c,W/2,photoTop+photoH-photoH*.04,W*.5,.24);
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.4,-photoH/2,W*.8,photoH,{label:'Product photo'}),{from:.8,dur:.9});
   /* offer badge: tilted sticker pinned to the photo frame's top-right corner, right edge on the margin */
-  const bw=W*.4,ob=evFitM(c,F.off,900,FN,bw*.84,bw*.2),sb=evFitM(c,F.osub,800,FM,bw*.84,bw*.052);
   const bh=Math.max(bw*.3,ob.h+sb.h+(sb.h?ob.size*.2:0)+bw*.12),bcx=W-M-bw/2-W*.008,bcy=photoTop+bh*.5;
   objDraw(c,'obj:Corner badge',bcx-bw/2,bcy-bh/2,bw,bh,()=>{
     const p=ST.popEase(prog(t,.4*ST.stagger,.6*ST.durMul));if(p<=0)return;
@@ -237,10 +251,10 @@ function layoutCorner(c,W,H,t,D,F,I){
     const bi=inkOn(acc),tot=ob.h+(sb.h?ob.size*.2+sb.h:0);let yy=-tot/2;
     font(c,900,ob.size,FN);c.fillStyle=bi;c.textAlign='center';c.textBaseline='middle';
     ob.lines.forEach((l,i)=>c.fillText(l,0,yy+i*ob.size*ob.lh+ob.size*ob.lh/2,bw*.86));yy+=ob.h+(sb.h?ob.size*.2:0);
-    sb.lines.forEach((l,i)=>{font(c,800,sb.size,FM);c.fillStyle=bi;c.fillText(l,0,yy+i*sb.size*sb.lh+sb.size*sb.lh/2,bw*.86)});
+    sb.lines.forEach((l,i)=>{font(c,700,sb.size,FM);c.fillStyle=bi;c.fillText(l,0,yy+i*sb.size*sb.lh+sb.size*sb.lh/2,bw*.86)});
     c.restore();
   });
-  if(kb.h)evLines(c,kb,W/2,kTop,{wt:800,fill:accOn(dark?'#000000':'#ffffff',acc),al:'center',t,at:.9,maxW:sw});
+  if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,kTop,{wt:800,fill:accOn(dark?'#000000':'#ffffff',acc),al:'center',t,at:.9,maxW:sw}));
   if(hb.h)evLines(c,hb,W/2,headTop,{wt:900,fill:ink,al:'center',t,at:1,maxW:sw});
   if(F.flab)evPrice(c,W/2,H-M-ph2/2,pw2,F,dark,t,1.6);
 }
@@ -254,8 +268,8 @@ function layoutStacked(c,W,H,t,D,F,I){
     const p=ST.textEase(prog(t,0,.5*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,W,barH);c.restore();
     pop(c,M+lw/2-lw*.046,barH/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
     /* eyebrow centred in the room left between logo and badge */
-    const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kb=evFitM(c,String(F.kicker||'').toUpperCase(),700,FM,kw,W*.022);
-    if(kb.h)evLines(c,kb,W/2,barH/2-kb.h/2,{wt:700,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw});
+    const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kMax=W*.024,kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,kw,kMax));
+    if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,barH/2-kb.h/2,{wt:800,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw}));
   });
   if(F.maple!=='no')evMade(c,W-M,barH/2,micS,t,.3,isDark(mc),'right');
   const hBandH=H*.22,hBandY=barH;
@@ -275,7 +289,7 @@ function layoutStacked(c,W,H,t,D,F,I){
     const p=ST.textEase(prog(t,1.3*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=acc;c.fillRect(0,oBandY,W,oBandH);c.restore();
     const pad=oBandH*.12,avail=oBandH-2*pad;
     const ob=evFitM(c,F.off,900,FN,sw,Math.min(avail*.55,W*.15),.98);
-    const sb=evFitM(c,F.osub,800,FM,sw,Math.min(avail*.2,W*.038));
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(ob,.28,Math.min(avail*.2,W*.038))));
     const gap=sb.h?ob.size*.18:0,top=oBandY+(oBandH-(ob.h+gap+sb.h))/2;
     c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();
