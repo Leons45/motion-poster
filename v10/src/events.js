@@ -89,36 +89,66 @@ function layoutSplit(c,W,H,t,D,F,I){
   if(F.maple!=='no')madeInCanada(c,W-W*.08,H*.06,Math.min(22,W*.02),t,1.6);
 }
 
-/* ---------- layout 3: full-bleed product photo with a bottom gradient scrim ---------- */
+/* ---------- layout 3: full-bleed product photo with a bottom gradient scrim ----------
+   Everything hangs off ONE safe margin (M = 7% of width) on all four sides:
+   - header row: logo flush-left, Made-in-Canada badge flush-right, both centred on the same line
+   - copy block: left-aligned at M, stacked bottom-up from the bottom margin
+     (sub line -> offer -> headline lines -> eyebrow -> optional big number) so the
+     blocks can never overlap whatever the aspect ratio or text length
+   - price card: flush-right at W-M, its bottom edge sharing the copy block's bottom edge */
 function layoutFullbleed(c,W,H,t,D,F,I){
   const ST=postStyle();
+  const M=Math.round(W*.07);
   c.fillStyle=F.bg1;c.fillRect(0,0,W,H);
   objDraw(c,'obj:Masthead',0,0,W,H,()=>{drawImg(c,I.p,0,0,W,H,{label:'Background photo',fit:'cover'})});
-  const g=c.createLinearGradient(0,H*.42,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.9)');
-  c.save();c.fillStyle=g;c.fillRect(0,H*.42,W,H*.58);c.restore();
-  objDraw(c,'obj:Logo bar',0,0,W,H*.1,()=>{
-    pop(c,W*.14,H*.055,t,.1,()=>logo(c,I,0,0,110,55),{from:.7,dur:.6});
-    if(F.kicker){const kw=W*.5,ks=Math.min(20,W*.02,fitSize(c,F.kicker.toUpperCase(),800,FM,kw,20));c.save();c.globalAlpha=clamp(prog(t,.3*ST.stagger,.4*ST.durMul));font(c,800,ks,FM);c.fillStyle=F.acc||LY;c.textAlign='right';c.textBaseline='middle';c.fillText(F.kicker.toUpperCase(),W*.92,H*.055,kw);c.restore()}
+  /* scrims: soft top fade keeps the header legible, bottom fade carries the copy */
+  const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.45)');gt.addColorStop(1,'rgba(0,0,0,0)');
+  c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
+  const g=c.createLinearGradient(0,H*.4,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.9)');
+  c.save();c.fillStyle=g;c.fillRect(0,H*.4,W,H*.6);c.restore();
+
+  /* header row */
+  const lw=W*.16,lh=lw/2,micS=W*.022,micW=micS*7,micH=micW*.391,rowH=Math.max(lh,micH),rowCy=M+rowH/2;
+  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{
+    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6}); /* -4.6%: the logo art has built-in side padding */
   });
-  let y=H*.58;
-  if(F.num){const ns=Math.min(H*.12,fitSize(c,F.num,900,FN,W*.5,H*.12));c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),W*.08,y);c.restore()}
-  const hs=Math.min(H*.05,W*.095);
-  F.head.split('\n').forEach((l,i)=>{y+=hs*1.05;text(c,{s:l,x:W*.08,y,size:Math.min(hs,fitSize(c,l,900,FM,W*.84,hs)),wt:900,fill:'#fff',al:'left',t,at:.9+i*.08,maxW:W*.84})});
-  y+=hs*.5;
-  const os=Math.min(H*.075,W*.14,fitSize(c,F.off,900,FN,W*.84,H*.075));
-  c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=F.acc||LY;c.textAlign='left';c.textBaseline='middle';c.fillText(F.off,W*.08,y+os*.6,W*.84);c.restore();
-  if(F.osub){c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.4*ST.durMul));font(c,800,Math.min(24,W*.026),FM);c.fillStyle='rgba(255,255,255,.86)';c.textAlign='left';c.textBaseline='middle';c.fillText(F.osub,W*.08,y+os*1.15);c.restore()}
-  if(F.flab){
-    pop(c,W*.86,H*.88,t,1.7,()=>{
-      const pw2=180,ph2=64;
+  if(F.maple!=='no')madeInCanada(c,W-M-micW/2+micW*.084,rowCy,micS,t,.3); /* +8.4%: badge art has built-in side padding */
+
+  /* price card geometry first, so the copy column knows how much width it has */
+  const hasP=!!F.flab,pk=W*.26/180,pw2=180*pk,ph2=64*pk,pgap=W*.03;
+  const sw=W-2*M-(hasP?pw2+pgap:0);
+
+  /* type scale: driven by width, capped by height, one shared headline size */
+  const lines=String(F.head).split('\n').filter(l=>l.trim()!=='');
+  const hs0=Math.min(W*.098,H*.075),os0=Math.min(W*.14,H*.105),ss=W*.026,ks=W*.024;
+  const hs=lines.length?Math.min(hs0,...lines.map(l=>fitSize(c,l,900,FM,sw,hs0))):hs0;
+  const os=fitSize(c,F.off,900,FN,sw,os0);
+  const ns=F.num?Math.min(H*.1,fitSize(c,F.num,900,FN,sw,H*.1)):0;
+
+  /* stack bottom-up from the bottom margin */
+  let y=H-M;
+  const subH=F.osub?ss*1.08:0,offH=os*.92,headH=lines.length*hs*1.08,kH=F.kicker?ks*1.08:0;
+  const subTop=y-subH;y=subTop-(F.osub?ss*.55:0);
+  const offTop=y-offH;y=offTop-hs*.14;
+  const headTop=y-headH;y=headTop-(F.kicker?ks*.7:0);
+  const kTop=y-kH;y=kTop-(F.num?ns*.2:0);
+  const numTop=y-ns;
+
+  if(F.num){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),M,numTop+ns*.5);c.restore()}
+  if(F.kicker){c.save();c.globalAlpha=clamp(prog(t,.3*ST.stagger,.4*ST.durMul));font(c,800,ks,FM);c.fillStyle=F.acc||LY;c.textAlign='left';c.textBaseline='middle';c.fillText(F.kicker.toUpperCase(),M,kTop+kH/2,sw);c.restore()}
+  lines.forEach((l,i)=>text(c,{s:l,x:M,y:headTop+i*hs*1.08,size:hs,wt:900,fill:'#fff',al:'left',t,at:.9+i*.08,maxW:sw}));
+  c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=F.acc||LY;c.textAlign='left';c.textBaseline='middle';c.fillText(F.off,M,offTop+offH/2,sw);c.restore();
+  if(F.osub){c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.4*ST.durMul));font(c,800,ss,FM);c.fillStyle='rgba(255,255,255,.86)';c.textAlign='left';c.textBaseline='middle';c.fillText(F.osub,M,subTop+subH/2,sw);c.restore()}
+
+  if(hasP){
+    pop(c,W-M-pw2/2,H-M-ph2/2,t,1.7,()=>{
       objDraw(c,'obj:Price card',-pw2/2,-ph2/2,pw2,ph2,()=>{
-        boxPath(c,F.boxStyle,-pw2/2,-ph2/2,pw2,ph2,10);c.fillStyle='#fff';c.fill();
-        font(c,700,16,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.flab,0,-14);
-        font(c,900,26,FN);c.fillText(F.fprice,0,14);
+        boxPath(c,F.boxStyle,-pw2/2,-ph2/2,pw2,ph2,10*pk);c.fillStyle='#fff';c.fill();
+        font(c,700,16*pk,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.flab,0,-14*pk);
+        font(c,900,26*pk,FN);c.fillText(F.fprice,0,14*pk);
       });
     },{from:.75,dur:.6});
   }
-  if(F.maple!=='no')madeInCanada(c,W*.9,H*.14,Math.min(22,W*.02),t,.3);
 }
 
 /* ---------- layout 4: diagonal corner badge with a centred product ---------- */
