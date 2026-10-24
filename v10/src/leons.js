@@ -9,7 +9,7 @@ function mastCircle(c,W,H,t,I,tag,fill,bf){
   pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65),{from:.7,dur:.6});
   let top=ly+H*.045;
   if(tag){c.save();c.globalAlpha=clamp(prog(t,.35*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
-  return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012)};
+  return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012),cy:cy,R:R};
 }
 function mastCard(c,W,H,t,I,tag,fill,boxStyle){
   const ST=postStyle();
@@ -21,23 +21,37 @@ function mastCard(c,W,H,t,I,tag,fill,boxStyle){
   return {bottom:ch,top:ch+H*.03,band:0};
 }
 /* lay a number + headline lines inside the masthead band so nothing clips */
-function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt){
-  const ST=postStyle();
-  const nShare=num?.52:0, nh=m.band*nShare, hh=m.band-nh, n=Math.max(1,headLines.length);
+function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt,o){
+  const ST=postStyle(),O=o||{};
+  const nShare=num?(O.nShare||.52):0, nh=m.band*nShare, hh=m.band-nh, n=Math.max(1,headLines.length);
   let y=m.top;
   if(num){
     const ns=Math.min(nh*.98,fitSize(c,num,900,FN,W*.52,nh*.98));
     c.save();c.globalAlpha=clamp(prog(t,numAt*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=numFill;c.textAlign='center';c.textBaseline='middle';
     c.fillText(countText(num,prog(t,(numAt+.05)*ST.stagger,.9*ST.durMul)),W/2,y+nh/2);c.restore();y+=nh;
   }
-  const hs=Math.min(hh/n*.92,W*.062);
+  const hs0=Math.min(hh/n*.92,O.cap||W*.062),hw=O.width||W*.64;let used=0,hs=hs0;
+  /* O.chord = {cy,R} of the masthead circle: its lower edge curves UP toward the sides, so the width a
+     line may use shrinks toward the bottom. Size the shared headline so every line fits the chord at its
+     own height (a few passes, since the block's height depends on the size). */
+  if(O.chord){
+    const availAt=yb=>{const dy=yb-O.chord.cy,R=O.chord.R;return Math.abs(dy)>=R?0:Math.min(hw,2*Math.sqrt(R*R-dy*dy)*.88)};
+    for(let it=0;it<3;it++){
+      const lg=hs*1.08,by=y+Math.max(0,(hh-lg*n)/2);let s2=hs0;
+      headLines.forEach((ln,i)=>{s2=Math.min(s2,fitSize(c,ln,900,FM,Math.max(40,availAt(by+i*lg+lg*.92)),hs0))});
+      hs=s2;
+    }
+  }
   /* Centre a TIGHT block of lines within the available band, rather than spreading them
      evenly across the whole band height. The band can be much taller than the text
      actually needs (e.g. no "num" above it leaves the full band to the headline), and
      spacing by band-share instead of by font size turned one extra line (one Enter in
      the Headline field) into a visually oversized gap between lines. */
-  const lineGap=hs*1.08, blockH=lineGap*n, blockY=y+Math.max(0,(hh-blockH)/2)+lineGap/2;
-  headLines.forEach((l,i)=>text(c,{s:l,x:W/2,y:blockY+i*lineGap,size:Math.min(hs,fitSize(c,l,900,FM,W*.64,hs)),wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:W*.64}));
+  /* text() adds half a line again on top of blockY, so legacy callers sit ~.54 line low; chord mode (event
+     circle layout) lifts by that amount so the block really is centred and clears the arc */
+  const lineGap=hs*1.08, blockH=lineGap*n, blockY=y+Math.max(0,(hh-blockH)/2)+lineGap/2-(O.chord?lineGap*(num?.3:.54):0);
+  headLines.forEach((l,i)=>{const sz=Math.min(hs,fitSize(c,l,900,FM,hw,hs));used=Math.max(used,sz);text(c,{s:l,x:W/2,y:blockY+i*lineGap,size:sz,wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:hw*1.04})});
+  return used;
 }
 function bottomArc(c,W,H,topY,fill,t,at){
   const ST=postStyle();

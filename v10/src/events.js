@@ -23,18 +23,33 @@ const isDark=(a,b)=>(lum(a)+lum(b||a))/2<.3;
 /* accent colour if it reads on this background, otherwise plain ink */
 const accOn=(bg,acc)=>contrast(acc||'#C8102E',bg)>=3?(acc||'#C8102E'):inkOn(bg);
 /* fit a (possibly multi-line) value: one shared size so every line fits maxW, plus its real height */
-function evFit(c,str,wt,fam,maxW,maxSize,lh){
+function evFit(c,str,wt,fam,maxW,maxSize,lh,minSize){
   lh=lh||1.08;
-  const lines=String(str==null?'':str).split('\n').map(x=>x.replace(/\s+$/,'')).filter(x=>x.trim()!=='');
+  let lines=String(str==null?'':str).split('\n').map(x=>x.replace(/\s+$/,'')).filter(x=>x.trim()!=='');
   if(!lines.length||maxSize<=0)return {lines:[],size:0,h:0,lh};
   let size=maxSize;lines.forEach(l=>{size=Math.min(size,fitSize(c,l,wt,fam,maxW,maxSize))});
+  /* minSize: rather than let a long value shrink until it is unreadable, re-wrap it by words (up to 3
+     lines) at the minimum size - the header stays prominent instead of collapsing into small print */
+  if(minSize&&size<minSize){
+    font(c,wt,minSize,fam);const w=[];lines.forEach(l=>wrap(c,l,maxW).forEach(x=>w.push(x)));
+    if(w.length<=3&&w.length>=lines.length){lines=w;size=minSize;lines.forEach(l=>{size=Math.min(size,fitSize(c,l,wt,fam,maxW,minSize))})}
+  }
   return {lines,size,h:lines.length*size*lh,lh};
 }
 /* offer / sub line / eyebrow blocks: a second line shrinks the type a little (same MLK rule as the
    canvas proxy) so a 2-line value still sits where one line did instead of dominating the post */
-function evFitM(c,str,wt,fam,maxW,maxSize,lh){
+function evFitM(c,str,wt,fam,maxW,maxSize,lh,minSize){
   const n=String(str==null?'':str).split('\n').filter(x=>x.trim()!=='').length;
-  return evFit(c,str,wt,fam,maxW,maxSize*(n>1?MLK(n):1),lh);
+  return evFit(c,str,wt,fam,maxW,maxSize*(n>1?MLK(n):1),lh,minSize);
+}
+/* HEADLINE (the event name) leads; the offer sits just beneath it. The offer is capped to 85% of the
+   headline but never below 60% of its own natural fit, so a very long headline cannot collapse the offer. */
+function evDisplay(c,F,wT,wO,base,dem,minT,minO){
+  const k=dem?.8:1,tb=evFit(c,F.head,900,FM,wT,base*k,1.08,minT);
+  const nat=evFitM(c,F.off,900,FN,wO,base*.9*k,.98,minO);
+  if(!tb.size||!nat.size)return {tb,ob:nat};
+  const target=Math.max(Math.min(nat.size,tb.size*.85),nat.size*.6);
+  return {tb,ob:target<nat.size-.01?evFit(c,F.off,900,FN,wO,target,.98,minO&&Math.min(minO,target)):nat};
 }
 /* draw a fitted block with its top edge at yTop; lines stay individually selectable */
 function evLines(c,b,x,yTop,o){
@@ -68,13 +83,13 @@ function evPrice(c,cx,cy,pw,F,dark,t,at){
 /* "UP TO" + an offer that already starts with "UP TO" must not read "UP TO UP TO 50%" */
 const evPre=F=>(F.pre&&!String(F.off).toUpperCase().trim().startsWith(String(F.pre).toUpperCase().trim()))?F.pre:'';
 const evLogoW=W=>W*.16;
-/* TYPE HIERARCHY for every Event Post. Rank: hero (the offer) > title (headline) > support (sub line)
+/* TYPE HIERARCHY for every Event Post. Rank: title (the event name, headline) > offer > support (sub line)
    > label (eyebrow, small caps with tracking) > caption (tagline / fine print). TY gives each tier's
    size as a fraction of the layout's `base` (its hero size); evCap then caps a tier relative to the
    tier above AFTER fitting, so a long offer that had to shrink drags its headline down with it instead
    of ever being outranked by it. Weight, tracking and colour reinforce the rank: 900 for hero and
    title, 700 for support, tracked 800 caps in the accent colour for the label. */
-const TY={title:.66,support:.22,label:.17,caption:.15,num:1.15};
+const TY={title:1,offer:.85,support:.26,label:.2,caption:.15,num:1.15};
 const evCap=(parent,ratio,fb)=>(parent&&parent.size)?Math.min(fb,parent.size*ratio):fb;
 function evTracked(c,px,fn){const ok='letterSpacing' in c;if(ok)c.letterSpacing=px+'px';try{return fn()}finally{if(ok)c.letterSpacing='0px'}}
 const evTrk=(size)=>size*.12;
@@ -83,22 +98,22 @@ const evTrk=(size)=>size*.12;
 function layoutCircle(c,W,H,t,D,F,I){
   const ST=postStyle(),M=evM(W);
   yellowField(c,W,H,F.bg1,F.bg2);
-  let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
-    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.355);
+  let m,titleSz=0;
+  objDraw(c,'obj:Masthead',0,0,W,H*.46,()=>{
+    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',F.num?.42:.385);
     /* the masthead circle's lower edge curves UP toward the sides (~100px at the edge of a wide headline), so
        hand the headline a slightly shorter band: the block lifts and tightens instead of grazing the arc */
-    mastText(c,W,Object.assign({},m,{band:m.band-W*.05}),t,F.num,String(F.head).split('\n').filter(l=>l.trim()!==''),'#fff',accOn(F.mcol||'#111111',F.acc||LY),.4,.75);
+    titleSz=mastText(c,W,Object.assign({},m,{band:m.band-W*.05}),t,F.num,String(F.head).split('\n').filter(l=>l.trim()!==''),'#fff',accOn(F.mcol||'#111111',F.acc||LY),.4,.75,{cap:W*.1,nShare:.4,width:W*.8,chord:{cy:m.cy,R:m.R}});
   });
   /* badge top-right on the masthead, centred on the logo's line, flush to the margin */
   if(F.maple!=='no')evMade(c,W-M,H*.055,W*.019,t,1.3,isDark(F.mcol||'#111111'),'right');
   const fh=F.flab?H*.085:0,bandBottom=H-fh,pre=evPre(F),sw=W-2*M;
   let arcTop;
   objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
-    arcTop=bottomArc(c,W,bandBottom,H*.60,F.mcol||'#111111',t,.55);
+    arcTop=bottomArc(c,W,bandBottom,H*.625,F.mcol||'#111111',t,.55);
     const band=bandBottom-arcTop,mc=F.mcol||'#111111',offC=accOn(mc,F.acc||LY),txC=inkOn(mc);
-    const ob=evFitM(c,F.off,900,FN,sw*(pre?.74:1),Math.min(band*.42,W*.15));
-    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(ob,.3,Math.min(band*.16,W*.037))));
+    const ob=evFitM(c,F.off,900,FN,sw*(pre?.74:1),Math.min(band*.42,W*.15,titleSz?titleSz*1.3:1e9));
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.032,evCap(ob,.3,Math.min(band*.16,W*.04))));
     const gap=sb.h?band*.06:0,total=ob.h+gap+sb.h,top=arcTop+(band-total)/2+band*.04;
     if(ob.lines.length===1&&pre){
       const ps=ob.size*.34;font(c,900,ob.size,FN);const ow=c.measureText(ob.lines[0]).width;font(c,900,ps,FM);const pw=c.measureText(pre).width,pg=ps*.55,x0=W/2-(pw+pg+ow)/2;
@@ -140,11 +155,11 @@ function layoutSplit(c,W,H,t,D,F,I){
     const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,H);c.restore();
     pop(c,cx,M+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
     /* measure the copy stack, then centre it in the space between logo and tagline */
-    const hasN=!!F.num,ob=evFitM(c,F.off,900,FN,cw,Math.min(H*.085,panelW*.2)*(hasN?.85:1));
-    const hb=evFit(c,F.head,900,FM,cw,evCap(ob,.72,Math.min(H*.056,panelW*.13)));
-    const sb=evFitM(c,F.osub,700,FM,cw,Math.max(W*.024,evCap(hb,.42,Math.min(H*.028,panelW*.062))));
-    const kMax=Math.max(W*.02,evCap(sb,.95,Math.min(22,W*.02)));
-    const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,kMax));
+    const hasN=!!F.num,sbase=Math.min(H*.078,panelW*.2);
+    const {tb:hb,ob}=evDisplay(c,F,cw,cw,sbase,hasN,sbase*.78,sbase*.62);
+    const sb=evFitM(c,F.osub,700,FM,cw,Math.max(W*.028,evCap(ob,.42,Math.min(H*.03,panelW*.07))),1.12,W*.028);
+    const kMax=Math.max(W*.026,evCap(sb,.95,W*.026));
+    const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,kMax,1.08,W*.024));
     const ns=hasN?Math.min(H*.15,fitSize(c,F.num,900,FN,cw,H*.15)):0;
     const gK=kb.h?kb.size*1.1:0,gN=ns?ns*.1:0,gH=hb.h?hb.size*.4:0,gO=sb.h?ob.size*.25:0;
     const total=kb.h+gK+ns+gN+hb.h+gH+ob.h+gO+sb.h;
@@ -197,18 +212,18 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
 
-  const hasP=!!F.flab,pw2=W*.26,ph2=pw2*.355,pgap=W*.03,sw=W-2*M-(hasP?pw2+pgap:0),acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
-  const base=Math.min(W*.15,H*.11),hasN=!!F.num;
-  const ob=evFitM(c,F.off,900,FN,sw,base*(hasN?.72:.95),.98);
-  const hb=evFit(c,F.head,900,FM,sw,evCap(ob,.74,base*TY.title));
-  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(hb,.36,base*TY.support)));
-  const kMax=Math.max(W*.022,evCap(sb,.9,base*TY.label));
-  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax));
-  const ns=hasN?Math.min(base*TY.num,fitSize(c,F.num,900,FN,sw,base*TY.num)):0;
+  const hasP=!!F.flab,pw2=W*.3,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105);
+  const acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
+  const {tb:hb,ob}=evDisplay(c,F,sw,sw,base,hasN,base*.7);
+  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.034,evCap(ob,.32,base*.3)));
+  const kMax=Math.max(W*.03,evCap(sb,.95,base*.26));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.028));
+  const ns=hasN?Math.min(base*1.1,fitSize(c,F.num,900,FN,sw,base*1.1)):0;
   let y=H-M;
-  const subTop=y-sb.h;y=subTop-(sb.h?sb.size*.55:0);
-  const offTop=y-ob.h;y=offTop-(hb.h?hb.size*.14:0);
-  const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.7:0);
+  if(hasP)y-=ph2+H*.03;
+  const subTop=y-sb.h;y=subTop-(sb.h?sb.size*.5:0);
+  const offTop=y-ob.h;y=offTop-(hb.h?hb.size*.1:0);
+  const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.6:0);
   const kTop=y-kb.h;y=kTop-(ns?ns*.2:0);
   const numTop=y-ns;
   if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),M,numTop+ns*.5);c.restore()}
@@ -217,7 +232,7 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='left';c.textBaseline='middle';c.fillText(l,M,offTop+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore()}
   if(sb.h)evLines(c,sb,M,subTop,{wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:sw});
-  if(hasP)evPrice(c,W-M-pw2/2,H-M-ph2/2,pw2,F,true,t,1.7);
+  if(hasP)evPrice(c,M+pw2/2,H-M-ph2/2,pw2,F,true,t,1.7);
 }
 
 /* ---------- layout 4: header, centred product, eyebrow + headline, price card; offer badge
@@ -231,10 +246,11 @@ function layoutCorner(c,W,H,t,D,F,I){
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,1.8,dark,'right');
   const sw=W-2*M,pw2=W*.34,ph2=pw2*.355; /* price card stays below the headline in rank */
-  const bw=W*.5,ob=evFitM(c,F.off,900,FN,bw*.84,bw*.24),sb=evFitM(c,F.osub,700,FM,bw*.84,Math.max(bw*.055,evCap(ob,.24,bw*.07)));
-  const hb=evFit(c,F.head,900,FM,sw,evCap(ob,.7,Math.min(W*.085,H*.06)));
-  const kMax=Math.max(W*.022,evCap(hb,.34,W*.025));
-  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax));
+  const bw=W*.5,cbase=Math.min(W*.115,H*.085);
+  const {tb:hb,ob}=evDisplay(c,F,sw,bw*.84,cbase,false,cbase*.7,cbase*.5);
+  const sb=evFitM(c,F.osub,700,FM,bw*.84,Math.max(bw*.062,evCap(ob,.26,bw*.075)),1.12,bw*.055);
+  const kMax=Math.max(W*.026,Math.min(evCap(hb,.3,W*.034),sb.size?sb.size*1.0:1e9));
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.026));
   let y=H-M;
   if(F.flab)y-=ph2+H*.025;
   const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.7:0);
@@ -268,18 +284,18 @@ function layoutStacked(c,W,H,t,D,F,I){
     const p=ST.textEase(prog(t,0,.5*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,W,barH);c.restore();
     pop(c,M+lw/2-lw*.046,barH/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
     /* eyebrow centred in the room left between logo and badge */
-    const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kMax=W*.024,kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,kw,kMax));
+    const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kMax=W*.03,kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,kw,kMax,1.08,W*.022));
     if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,barH/2-kb.h/2,{wt:800,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw}));
   });
   if(F.maple!=='no')evMade(c,W-M,barH/2,micS,t,.3,isDark(mc),'right');
-  const hBandH=H*.22,hBandY=barH;
+  let titleSz=0;const hBandH=H*.24,hBandY=barH;
   objDraw(c,'obj:Headline band',0,hBandY,W,hBandH,()=>{
     c.fillStyle=F.bg1;c.fillRect(0,hBandY,W,hBandH);
     const n=Math.max(1,String(F.head).split('\n').filter(l=>l.trim()!=='').length);
-    const hb=evFit(c,F.head,900,FM,W-2*M,Math.min(hBandH*.74/(n*1.08),W*.085));
+    const hb=evFit(c,F.head,900,FM,W-2*M,Math.min(hBandH*.78/(n*1.08),W*.12),1.08,W*.07);titleSz=hb.size;
     if(hb.h)evLines(c,hb,W/2,hBandY+(hBandH-hb.h)/2,{wt:900,fill:inkOn(F.bg1),al:'center',t,at:.4,maxW:W-2*M});
   });
-  const pBandY=hBandY+hBandH,pBandH=H*.38;
+  const pBandY=hBandY+hBandH,pBandH=H*.36;
   objDraw(c,'obj:Footer',0,pBandY,W,pBandH,()=>{
     floorShadow(c,W/2,pBandY+pBandH*.86,W*.46,.22);
     pop(c,W/2,pBandY+pBandH/2,t,.6,()=>drawImg(c,I.p,-W*.4,-pBandH*.42,W*.8,pBandH*.84,{label:'Product photo'}),{from:.8,dur:.9});
@@ -288,8 +304,8 @@ function layoutStacked(c,W,H,t,D,F,I){
   objDraw(c,'obj:Price card',0,oBandY,W,oBandH,()=>{
     const p=ST.textEase(prog(t,1.3*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=acc;c.fillRect(0,oBandY,W,oBandH);c.restore();
     const pad=oBandH*.12,avail=oBandH-2*pad;
-    const ob=evFitM(c,F.off,900,FN,sw,Math.min(avail*.55,W*.15),.98);
-    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.026,evCap(ob,.28,Math.min(avail*.2,W*.038))));
+    const ob=evFitM(c,F.off,900,FN,sw,Math.min(avail*.55,W*.15,titleSz?titleSz*.95:1e9),.98);
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.032,evCap(ob,.3,Math.min(avail*.2,W*.04))));
     const gap=sb.h?ob.size*.18:0,top=oBandY+(oBandH-(ob.h+gap+sb.h))/2;
     c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();

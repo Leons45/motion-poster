@@ -71,11 +71,15 @@ Run it from this directory (or anywhere — it locates itself and writes to
   `evMade` puts it on a white chip over dark grounds. `evPre` stops "UP TO" + "UP TO 50%" doubling.
   Pass `maxW*1.04` into `text()` after `fitSize`: `fitSize` lands exactly on the width and float
   error would otherwise make `text()` re-wrap the line (this garbled a headline once).
-- **Type hierarchy** (`events.js`, `TY` / `evCap`): rank is hero (the offer) > title (headline) > support
-  (sub line) > label (eyebrow: tracked 800 caps, accent colour) > caption. Each layout sizes its hero
-  from its own `base`, then every lower tier is capped relative to the tier above AFTER fitting, so a
-  long offer that had to shrink pulls its headline down with it. Price cards stay below the headline.
-  Quick check: `hier.py`-style test intercepting `fillText` and asserting offer > headline > sub >= eyebrow.
+- **Type hierarchy** (`events.js`, `evDisplay` / `evCap` / `TY`): rank is title (the event name = Headline
+  field) > offer > support (sub line) > label (eyebrow: tracked 800 caps, accent colour) > caption.
+  The offer is capped to 85% of the headline but never below 60% of its own natural fit, so a very long
+  headline can't collapse it. Minimum sizes keep small tiers readable on a phone (sub >= ~3.4% of width,
+  eyebrow >= ~2.6%); instead of shrinking below those, `evFit(..., minSize)` re-wraps the text by words
+  (up to 3 lines). Circle layout: the offer may lead the headline by at most 1.3x, and `mastText` gets
+  `{chord:{cy,R}}` so each headline line is sized to the masthead circle's chord width at its own height
+  (the circle's lower edge curves up toward the sides). Price cards always rank below the headline.
+  Checking it: intercept `CanvasRenderingContext2D.fillText` and compare drawn font sizes per field.
 - Keep v9 (`../../v9/src/`) and v10 in sync by hand where a fix applies to
   both — they're forked, not shared, so there's no single source of truth
   to edit once. Check both when fixing a bug in `engine.js`/`ui.js`/
