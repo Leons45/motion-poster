@@ -2276,13 +2276,15 @@ function layoutSunray(c,W,H,t,D,F,I){
   if(kb.h)evKick(c,kb,W/2,yK,accOn(g,acc),'center',t,sw);
   if(hb.h)evLines(c,hb,W/2,yH,{wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});
   c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
-  evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
+  if(F.pmask==='circle')evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
+  else{/* free product: the disc is only a backdrop, the product stands in front of it and may overflow it */
+    const bs=d*1.06;pop(c,cx,cy+d*.01,t,.35,()=>drawImg(c,I.p,-bs/2,-bs/2,bs,bs,{label:'Product photo',shadow:W*.018}),{from:.8,dur:.8})}
   const by=cy+d*.36;
   evRise(c,t,1.1,H,()=>{c.save();c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=W*.02;c.shadowOffsetY=W*.006;c.fillStyle=acc;c.fillRect(0,by,W,rb);c.restore()});
   const tx0=inRibbon?M:W/2,al0=inRibbon?'left':'center',txH=ob.h+(sb.h?gS+sb.h:0),ty0=by+(rb-txH)/2;
   if(ob.h)evOffer(c,ob,tx0,ty0,ai,al0,t,wR);
   if(sb.h)evLines(c,sb,tx0,ty0+ob.h+gS,{wt:700,fill:ai==='#ffffff'?'rgba(255,255,255,.9)':'rgba(17,17,17,.85)',al:al0,t,at:1.6,maxW:wR});
-  if(hasP)evPrice(c,inRibbon?W-M-pw/2:Math.min(W-M-pw/2,cx+d/2-pw*.2),inRibbon?by+rb/2:Math.min(cy+d*.2,by-H*.012-ph/2),pw,F,true,t,1.7);
+  if(hasP)evPrice(c,inRibbon?W-M-pw/2:Math.min(W-M-pw/2,cx+d/2-pw*.2),inRibbon?by+rb/2:Math.min(cy+d*.2,by-H*.012-ph/2),pw,F,inRibbon||dark,t,1.7);
   evSince(c,W,M,t,F,H-ds.bot-sinceH/2,dark?'rgba(255,255,255,.65)':'rgba(17,17,17,.6)','center');
 }
 
@@ -2331,47 +2333,56 @@ function evFields(def){
     {k:'osub',l:'Offer sub line',t:'text',v:v.osub},
     {k:'flab',l:'Price label (blank hides)',t:'text',v:v.flab},
     {k:'fprice',l:'Price',t:'text',v:v.fprice},
+    {k:'pmask',l:'Product photo in Sunray',t:'select',v:v.pmask||'free',o:[['free','Free - not masked (best for cut-outs)'],['circle','Masked inside the circle']]},
     {k:'since',l:'Heritage line (Signature layouts, blank hides)',t:'text',v:v.since},
     {k:'seal',l:'Best Seller badge (blank hides, circle/split only)',t:'select',v:v.seal,o:[['','Hidden'],['yes','Shown']]},
     {k:'maple',l:'Made in Canada badge',t:'select',v:v.maple,o:['yes','no']},
     {k:'bg1',l:'Background 1',t:'color',v:v.bg1},{k:'bg2',l:'Background 2',t:'color',v:v.bg2}];
 }
-function evDraw(c,W,H,t,D,F,I){(LAYOUTS[F.layout]||layoutCircle)(c,W,H,t,D,F,I)}
+/* extra images: up to three more pictures per post, drawn ABOVE the layout as free objects (drag, resize, rotate,
+   delete like anything else). Nothing is drawn until an image is added, so existing posts are unchanged. */
+const EV_EXTRA=[{k:'x1',l:'Extra image 1'},{k:'x2',l:'Extra image 2'},{k:'x3',l:'Extra image 3'}];
+function evExtras(c,W,H,t,I){
+  const s=W*.3,spots=[[W*.2,H*.62],[W*.8,H*.62],[W*.5,H*.4]];
+  EV_EXTRA.forEach((e,i)=>{if(!I[e.k])return;const [x,y]=spots[i];
+    pop(c,x,y,t,1.9+i*.15,()=>drawImg(c,I[e.k],-s/2,-s/2,s,s,{label:e.l,shadow:W*.018}),{from:.7,dur:.7})});
+}
+function evDraw(c,W,H,t,D,F,I){(LAYOUTS[F.layout]||layoutCircle)(c,W,H,t,D,F,I);evExtras(c,W,H,t,I)}
 
 const T_EVENTS=[
  {id:'ev_megasale',name:'Mega Sale',sub:'Big number, bold percent-off — the flagship Leon\'s sale post',cat:'megasale',
   fields:evFields({layout:'sunray',num:'100',head:'MEGA SOFA\nSALE!',kicker:'FIRST EVER',off:'50% OFF',osub:'SELECT FABRIC SOFAS',flab:'STARTING FROM',fprice:'$499',seal:'yes',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_financing',name:'Financing Event',sub:'Pay-nothing / no-interest offers — white layout, oversized accent type',cat:'financing',
   fields:evFields({layout:'gallery',num:'',head:'PAY NOTHING\n\'TIL 2028*',kicker:'DON\'T PAY A CENT EVENT',off:'0% INTEREST',osub:'O.A.C. ON YOUR FLEXITICARD',flab:'AS LOW AS',fprice:'$0 DOWN',bg1:'#FFFFFF',bg2:'#F2F2F2',mcol:'#111111',acc:'#E5376F'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
   fields:evFields({layout:'ticket',head:'CUSTOMER\nAPPRECIATION',kicker:'IT\'S OUR BIGGEST SALE OF THE YEAR',off:'12% BACK',osub:'IN REWARDS ON YOUR PURCHASE',flab:'INSTANT CREDIT',fprice:'$50',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_supersale',name:'Canada-Wide Super Sale',sub:'National super-sale push — red wordmark energy, maple leaf',cat:'supersale',
   fields:evFields({layout:'diagonal',pre:'',head:'CANADA-WIDE\nSUPER SALE',kicker:'ONE WEEK ONLY',off:'UP TO 50%',osub:'OFF SELECT SOFAS',flab:'SAVE UP TO',fprice:'$1000',bg1:'#FFFFFF',bg2:'#FFE81A',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
   fields:evFields({layout:'gallery',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
   fields:evFields({layout:'arch',num:'',pre:'',head:'BLACK\nFRIDAY',kicker:'DOORBUSTERS',off:'UP TO 60%',osub:'OFF STOREWIDE',flab:'STARTING FROM',fprice:'$299',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_buymore',name:'Buy More, Save More',sub:'Tiered savings — the more they spend the more they save',cat:'buymore',
   fields:evFields({layout:'card',pre:'',head:'BUY MORE,\nSAVE MORE',kicker:'SPEND MORE · SAVE MORE',off:'SAVE UP TO $1,000',osub:'ON SELECT FURNITURE · ASK IN STORE',flab:'ON ORDERS OVER',fprice:'$3,000',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_clearance',name:'Clearance Event',sub:'Last-chance clearance — red, loud, urgent',cat:'clearance',
   fields:evFields({layout:'stacked',head:'CLEARANCE\nEVENT',kicker:'LAST CHANCE',off:'UP TO 70% OFF',osub:'WHILE QUANTITIES LAST',flab:'FROM',fprice:'$199',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_newarrivals',name:'New Arrivals',sub:'Lifestyle photo first — fresh collections and launches',cat:'newarrivals',
   fields:evFields({layout:'fullbleed',pre:'',head:'NEW\nARRIVALS',kicker:'JUST LANDED',off:'SHOP THE COLLECTION',osub:'IN STORE & ONLINE AT LEONS.CA',flab:'FROM',fprice:'$799',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
-  images:[{k:'p',l:'Lifestyle photo'}],draw:evDraw},
+  images:[{k:'p',l:'Lifestyle photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_delivery',name:'Free Delivery',sub:'Service message — delivery, assembly, easy returns',cat:'delivery',
   fields:evFields({layout:'corner',pre:'',head:'FREE LOCAL\nDELIVERY',kicker:'ORDER TODAY',off:'FREE',osub:'ON ORDERS OVER $499*',flab:'',fprice:'',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_canadian',name:'Proudly Canadian',sub:'Brand message — heritage and Canadian-made',cat:'canadian',
   fields:evFields({layout:'sunray',pre:'',head:'PROUDLY\nCANADIAN',kicker:'SINCE 1909',off:'MADE IN CANADA',osub:'SHOP CANADIAN-MADE FURNITURE',flab:'',fprice:'',bg1:'#C8102E',bg2:'#8F0B20',mcol:'#111111',acc:'#FFE81A',maple:'yes'}),
-  images:[{k:'p',l:'Lifestyle photo'}],draw:evDraw}
+  images:[{k:'p',l:'Lifestyle photo'}].concat(EV_EXTRA),draw:evDraw}
 ];
 
 /* ---------- Design check (linter) ----------
@@ -3442,7 +3453,7 @@ function previewInto(canvas,tp,F,I){
   oc.restore();state.logo2=_l;state.film=_f;
   const g=canvas.getContext('2d');g.clearRect(0,0,canvas.width,canvas.height);g.drawImage(off,0,0,canvas.width,canvas.height);
 }
-const sampleI=tp=>{const I={};if(tp.grp==="Leon's events"&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth)tp.images.forEach(s=>{if(s.k!=='logo')I[s.k]=SAMPLE_IMG});return I};
+const sampleI=tp=>{const I={};if(tp.grp==="Leon's events"&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth)tp.images.forEach(s=>{if(s.k==='p')I[s.k]=SAMPLE_IMG});return I};
 function paintThumb(b){
   const tp=T.find(x=>x.id===b.dataset.id);if(!tp)return;
   const F={};tp.fields.forEach(f=>F[f.k]=(state.vals[tp.id]&&f.k in state.vals[tp.id])?state.vals[tp.id][f.k]:f.v);

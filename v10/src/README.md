@@ -138,3 +138,6 @@ Run it from this directory (or anywhere — it locates itself and writes to
   `lintsweep.py` renders every layout x category x ratio x stress text and must report no `error` entries.
 - **Post types**: besides the 6 sale categories there are Buy More Save More (card), Clearance (stacked),
   New Arrivals (full-bleed), Free Delivery (corner) and Proudly Canadian (sunray on red).
+- **Extra images**: every Event template has `x1..x3` ("Extra image 1-3", `EV_EXTRA`) drawn by `evExtras` above the
+  layout as free objects (drag/resize/rotate/delete); nothing is drawn until one is uploaded. Sunray's product is
+  no longer masked by default (`pmask`: free | circle; the disc is only a backdrop). Preview thumbnails only use the `p` image.

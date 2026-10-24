@@ -432,7 +432,7 @@ function previewInto(canvas,tp,F,I){
   oc.restore();state.logo2=_l;state.film=_f;
   const g=canvas.getContext('2d');g.clearRect(0,0,canvas.width,canvas.height);g.drawImage(off,0,0,canvas.width,canvas.height);
 }
-const sampleI=tp=>{const I={};if(tp.grp==="Leon's events"&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth)tp.images.forEach(s=>{if(s.k!=='logo')I[s.k]=SAMPLE_IMG});return I};
+const sampleI=tp=>{const I={};if(tp.grp==="Leon's events"&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth)tp.images.forEach(s=>{if(s.k==='p')I[s.k]=SAMPLE_IMG});return I};
 function paintThumb(b){
   const tp=T.find(x=>x.id===b.dataset.id);if(!tp)return;
   const F={};tp.fields.forEach(f=>F[f.k]=(state.vals[tp.id]&&f.k in state.vals[tp.id])?state.vals[tp.id][f.k]:f.v);
