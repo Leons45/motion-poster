@@ -534,7 +534,7 @@ function layoutSunray(c,W,H,t,D,F,I){
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,padR=W*.022,rb=Math.max(ob.h+(sb.h?gS+sb.h:0)+2*padR,inRibbon?ph+2*padR*.8:0);
   const lw=evLogoW(W),lh=lw/2,MB=evMadeBox(W*.019,dark),topB=M+Math.max(lh,MB.h);
   const yK=topB+H*.026,yH=yK+kb.h+gK,cT=yH+hb.h+(hb.h?gH:0)+H*.02;
-  const cB=H-M-sinceH-H*.014-(hasP&&!inRibbon?ph*.3:0),d=Math.max(Math.min(W*.7,cB-cT),H*.2),cx=W/2,cy=cT+d/2;
+  const cB=H-M-sinceH-H*.014-(hasP&&!inRibbon?ph*.7:0),d=Math.max(Math.min(W*.7,cB-cT),H*.2),cx=W/2,cy=cT+d/2;
   /* rays first, so no copy is ever painted over; a tint of the ground, never a second hard colour */
   c.save();c.fillStyle=dark?'rgba(255,255,255,.055)':'rgba(0,0,0,.065)';const n=24,R=Math.hypot(W,H),rot=t*.035;
   for(let i=0;i<n;i+=2){const a0=rot+i*TAU/n,a1=rot+(i+1)*TAU/n;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a0)*R,cy+Math.sin(a0)*R);c.lineTo(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R);c.closePath();c.fill()}
