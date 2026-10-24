@@ -184,6 +184,32 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 .btn.danger{border-color:#D92D20;color:#D92D20;background:var(--surface)}
 .btn.danger:hover{background:#D92D20;color:#fff;border-color:#D92D20}
 
+/* Design check chip + popover, safe-zone toggle, Guide tab */
+.btn.chk{display:inline-flex;align-items:center;gap:7px}
+#checkDot{width:9px;height:9px;border-radius:50%;background:#9aa0a6;display:inline-block}
+#checkDot.ok{background:#16a34a}#checkDot.warn{background:#f59e0b}#checkDot.err{background:#dc2626}
+.btn[aria-pressed=true]{background:var(--acc);color:var(--acc-ink)}
+.chkpop{position:fixed;z-index:60;width:min(380px,92vw);max-height:60vh;overflow:auto;background:var(--panel,#fff);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:12px}
+.chkpop h4{margin:0 0 8px;font:800 13px var(--f-ui)}
+.chkpop .is{display:flex;gap:9px;align-items:flex-start;padding:8px 6px;border-top:1px solid var(--line);font:600 12.5px/1.35 var(--f-ui)}
+.chkpop .is i{flex:none;margin-top:4px;width:9px;height:9px;border-radius:50%;background:#f59e0b}
+.chkpop .is.error i{background:#dc2626}
+.chkpop .is span{flex:1}.chkpop .ok{font:600 13px/1.4 var(--f-ui);color:var(--mute)}
+.chkpop .is button{flex:none}
+.guide h4{margin:14px 0 6px;font:800 12px var(--f-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.guide p,.guide li{font:500 12.5px/1.45 var(--f-ui);margin:4px 0}
+.guide ul{padding-left:18px;margin:4px 0}
+.guide .ty{display:flex;flex-direction:column;gap:5px;margin:6px 0}
+.guide .ty div{display:flex;align-items:baseline;gap:8px}
+.guide .ty b{flex:none;width:74px;font:700 10.5px var(--f-ui);color:var(--mute);text-transform:uppercase}
+.guide .ty span{font-family:Montserrat,Arial,sans-serif;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guide .pal{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.guide .pal div{width:calc(50% - 4px);display:flex;gap:8px;align-items:center;font:600 11.5px/1.3 var(--f-ui)}
+.guide .pal i{flex:none;width:30px;height:30px;border-radius:8px;border:1px solid var(--line)}
+.guide .map{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+.guide .map button{text-align:left;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:700 12px var(--f-ui);cursor:pointer}
+.guide .map button small{display:block;font:500 11px/1.3 var(--f-ui);color:var(--mute);margin-top:2px}
+
 </style>
 
 <div class="top"><img class="topmark" id="topLogo" alt="Leon's"><div class="toptext"><h1>Leon's Social &amp; Motion Studio</h1><p>One stop for any Leon's social post: event-themed templates, 13 swappable layouts, a free layer canvas, draggable text, and video export.</p></div></div>
@@ -194,17 +220,18 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
     <div class="bar">
       <button class="btn" id="playBtn" type="button">Pause</button>
       <button class="btn" id="restartBtn" type="button">Restart</button>
-      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
+      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn" id="safeBtn" type="button" aria-pressed="false" title="Show the margin and (for 9:16) the app-UI safe zones">Safe zones</button><button class="btn chk" id="checkBtn" type="button" title="Measure type size, hierarchy, spacing and overlaps on this post"><i id="checkDot"></i><span id="checkTxt">Design check</span></button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
       <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
       <span class="time" id="time">0.0s / 6s</span>
     </div>
+    <div class="chkpop" id="checkPop" hidden role="dialog" aria-label="Design check"></div>
     <p id="status"></p>
   </section>
 <aside class="panel insp" id="insp">
   <div class="fmtbar"><span>Format</span><div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div></div>
   <div class="bgbar" id="bgBar" role="group" aria-label="Post background"></div>
   <div class="tabs" id="tabs" role="tablist" aria-label="Panel sections">
-    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button>
+    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button><button type="button" role="tab" data-tab="guide" aria-selected="false">Guide</button>
   </div>
   <div class="tabbody" id="tabBody">
   <div class="pane" data-pane="content">
@@ -228,6 +255,7 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
     <p class="note" id="fontNote" style="margin-top:0"></p>
     <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
   </div>
+  <div class="pane" data-pane="guide" hidden><div id="guideBox"></div></div>
   <div class="pane" data-pane="export" hidden>
     <p class="note" id="ratioNote" style="margin-top:0"></p>
     <label class="fld" style="margin-top:12px"><span>Loop length</span><div class="range"><input type="range" id="dur" min="3" max="12" step="1" value="6"><output id="durOut">6s</output></div></label>
@@ -1450,7 +1478,8 @@ const T_COMM=[
 
 /* ---------- current Leon's house layouts (from the brand's own posts) ---------- */
 const LY='#FFE81A';
-function yellowField(c,W,H,c1,c2){const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
+function yellowField(c,W,H,c1,c2){/* two very different colours (e.g. yellow to black) blend into mud: use a gentle shade of the first instead */if(typeof lum==='function'&&Math.abs(lum(c1)-lum(c2))>.3){const m=/^#?([0-9a-f]{6})$/i.exec(c1||'');if(m){const n=parseInt(m[1],16),f=sh=>Math.round(((n>>sh)&255)*(lum(c1)>.5?.9:1.18));c2='#'+[16,8,0].map(sh=>Math.min(255,f(sh)).toString(16).padStart(2,'0')).join('')}}
+  const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
 function mastCircle(c,W,H,t,I,tag,fill,bf){
   const ST=postStyle();
   const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=ST.textEase(prog(t,0,.7*ST.durMul));
@@ -1684,7 +1713,8 @@ const T_LEONS=[
    across 5 shared structural layouts so any category can use any composition. ---------- */
 const EVENT_CATS=[
   ['megasale','Mega Sale'],['financing','Financing'],['appreciation','Appreciation'],
-  ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday']
+  ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday'],
+  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery'],['canadian','Proudly Canadian']
 ];
 const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',stacked:'Stacked bars',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
@@ -1698,12 +1728,20 @@ const layoutField=v=>({k:'layout',l:'Layout',t:'select',v:v||'circle',o:Object.k
    are placed (so a value with line breaks reserves its real height instead of overlapping its
    neighbour), and colour choices that follow the background so nothing is ever dark-on-dark. */
 const evM=W=>Math.round(W*.07);
+/* DESIGN TOKENS. One function owns every size that depends on the canvas shape, so layouts never invent
+   their own numbers. k scales type and the price card up on taller canvases (more room = bigger,
+   easier-to-read type); story (9:16) also gets safe insets so nothing sits under the app's own UI. */
+function DS(W,H){
+  const r=H/W,story=r>1.6,k=story?1.2:r>1.2?1.07:1,M=evM(W);
+  return {W,H,r,story,k,M,top:story?Math.round(H*.125):M,bot:story?Math.round(H*.105):M,sw:W-2*M,
+    logoW:W*.17,micS:W*.02,pw:W*.32*(story?1.08:1),sub:W*.04,kick:W*.031,cap:W*.026};
+}
 function lum(h){const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return .5;const n=parseInt(m[1],16),f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(n>>16)+.7152*f((n>>8)&255)+.0722*f(n&255)}
 const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
 const inkOn=bg=>lum(bg)>.35?'#111111':'#ffffff';
 const isDark=(a,b)=>(lum(a)+lum(b||a))/2<.3;
 /* accent colour if it reads on this background, otherwise plain ink */
-const accOn=(bg,acc)=>contrast(acc||'#C8102E',bg)>=3?(acc||'#C8102E'):inkOn(bg);
+const accOn=(bg,acc)=>{acc=acc||'#C8102E';if(contrast(acc,bg)>=4.5)return acc;/* brand yellow is the house answer on dark grounds */if(contrast('#FFE81A',bg)>=7&&contrast(acc,bg)<4.5)return '#FFE81A';return contrast(acc,bg)>=3?acc:inkOn(bg)};
 /* fit a (possibly multi-line) value: one shared size so every line fits maxW, plus its real height */
 function evFit(c,str,wt,fam,maxW,maxSize,lh,minSize){
   lh=lh||1.08;
@@ -1778,11 +1816,11 @@ const evTrk=(size)=>size*.12;
 
 /* ---------- layout 1: circle masthead + bottom arc (the house style) ---------- */
 function layoutCircle(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W);
+  const ST=postStyle(),M=evM(W),ds=DS(W,H);
   yellowField(c,W,H,F.bg1,F.bg2);
   let m,titleSz=0;
   objDraw(c,'obj:Masthead',0,0,W,H*.46,()=>{
-    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',F.num?.42:.385);
+    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',F.num?.37:.34);
     /* the masthead circle's lower edge curves UP toward the sides (~100px at the edge of a wide headline), so
        hand the headline a slightly shorter band: the block lifts and tightens instead of grazing the arc */
     titleSz=mastText(c,W,Object.assign({},m,{band:m.band-W*.05}),t,F.num,String(F.head).split('\n').filter(l=>l.trim()!==''),'#fff',accOn(F.mcol||'#111111',F.acc||LY),.4,.75,{cap:W*.1,nShare:.4,width:W*.8,chord:{cy:m.cy,R:m.R}});
@@ -1792,10 +1830,10 @@ function layoutCircle(c,W,H,t,D,F,I){
   const fh=F.flab?H*.085:0,bandBottom=H-fh,pre=evPre(F),sw=W-2*M;
   let arcTop;
   objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
-    arcTop=bottomArc(c,W,bandBottom,H*.625,F.mcol||'#111111',t,.55);
+    arcTop=bottomArc(c,W,bandBottom,H*.715,F.mcol||'#111111',t,.55);
     const band=bandBottom-arcTop,mc=F.mcol||'#111111',offC=accOn(mc,F.acc||LY),txC=inkOn(mc);
-    const ob=evFitM(c,F.off,900,FN,sw*(pre?.74:1),Math.min(band*.42,W*.15,titleSz?titleSz*1.3:1e9));
-    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.032,evCap(ob,.3,Math.min(band*.16,W*.04))));
+    const ob=evFitM(c,F.off,900,FN,sw*(pre?.74:1),Math.min(band*.42,W*.15,titleSz?titleSz*.95:1e9));
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.3,Math.min(band*.16,W*.04))));
     const gap=sb.h?band*.06:0,total=ob.h+gap+sb.h,top=arcTop+(band-total)/2+band*.04;
     if(ob.lines.length===1&&pre){
       const ps=ob.size*.34;font(c,900,ob.size,FN);const ow=c.measureText(ob.lines[0]).width;font(c,900,ps,FM);const pw=c.measureText(pre).width,pg=ps*.55,x0=W/2-(pw+pg+ow)/2;
@@ -1818,7 +1856,7 @@ function layoutCircle(c,W,H,t,D,F,I){
       font(c,900,ps,FN);c.fillStyle='#fff';c.fillText(F.fprice,x0+lw+gp+fh*.35,H-fh/2);c.restore();
     }
   });
-  const ph=(arcTop-m.bottom)*.92, pcy=(m.bottom+arcTop)/2;
+  const ph=(arcTop-m.bottom)*1.12, pcy=(m.bottom+arcTop)/2;
   floorShadow(c,W/2,pcy+ph/2-6,W*.5,.26);
   pop(c,W/2,pcy,t,.5,()=>drawImg(c,I.p,-W*.42,-ph/2,W*.84,ph,{label:'Product photo'}),{from:.78,dur:.9});
   if(F.seal)pop(c,M+Math.min(130,W*.13)/2,m.bottom+H*.03+Math.min(130,W*.13)*.64,t,.9,()=>{
@@ -1827,50 +1865,58 @@ function layoutCircle(c,W,H,t,D,F,I){
   },{from:.3,dur:.7,rot:.5});
 }
 
-/* ---------- layout 2: vertical split — colour panel of copy beside the product ---------- */
+/* ---------- layout 2: split — colour panel of copy beside the product (portrait / square),
+   or ABOVE it on a 9:16 story, where a narrow side panel would starve both the copy and the photo ---------- */
 function layoutSplit(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W);
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),V=ds.story;
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
-  const panelW=W*.42,pad=W*.04,cx=panelW/2,cw=panelW-2*pad,mc=F.mcol||'#111111',pInk=inkOn(mc),pAcc=accOn(mc,F.acc||LY);
-  const lw=W*.13,lh=lw/2,fh=F.flab?H*.075:0,rightDark=isDark(F.bg1,F.bg2);
-  objDraw(c,'obj:Masthead',0,0,panelW,H,()=>{
-    const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,H);c.restore();
-    pop(c,cx,M+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
+  const longW=Math.max(0,...String(F.head).split(/\s+/).map(w=>w.length)),panelW=V?W:W*(longW>9?.5:.44),panelH=V?H*.54:H,pad=V?M:W*.04,cx=panelW/2,cw=panelW-2*pad,mc=F.mcol||'#111111',pInk=inkOn(mc),pAcc=accOn(mc,F.acc||LY);
+  const lw=V?evLogoW(W):W*.13,lh=lw/2,fh=F.flab?(V?H*.058:H*.075):0,rightDark=V?isDark(mc):isDark(F.bg1,F.bg2);
+  objDraw(c,'obj:Masthead',0,0,panelW,panelH,()=>{
+    const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,panelH);c.restore();
+    pop(c,V?M+lw/2-lw*.046:cx,ds.top+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
     /* measure the copy stack, then centre it in the space between logo and tagline */
-    const hasN=!!F.num,sbase=Math.min(H*.078,panelW*.2);
-    const {tb:hb,ob}=evDisplay(c,F,cw,cw,sbase,hasN,sbase*.78,sbase*.62);
-    const sb=evFitM(c,F.osub,700,FM,cw,Math.max(W*.028,evCap(ob,.42,Math.min(H*.03,panelW*.07))),1.12,W*.028);
-    const kMax=Math.max(W*.026,evCap(sb,.95,W*.026));
-    const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,kMax,1.08,W*.024));
-    const ns=hasN?Math.min(H*.15,fitSize(c,F.num,900,FN,cw,H*.15)):0;
-    const gK=kb.h?kb.size*1.1:0,gN=ns?ns*.1:0,gH=hb.h?hb.size*.4:0,gO=sb.h?ob.size*.25:0;
-    const total=kb.h+gK+ns+gN+hb.h+gH+ob.h+gO+sb.h;
-    const tagH=F.tag?Math.min(18,panelW*.045)*1.2:0,areaTop=M+lh+H*.03,areaBot=H-M-tagH-H*.02;
-    let y=areaTop+Math.max(0,(areaBot-areaTop-total))*.42;
+    const hasN=!!F.num,showTag=F.tag&&!V,tagH=showTag?Math.min(18,panelW*.045)*1.2:0,areaTop=ds.top+lh+H*.03,areaBot=V?panelH-H*.03:H-ds.bot-tagH-H*.02;
+    let sbase=V?Math.min(H*.06,W*.12):Math.min(H*.1,panelW*.3),hb,ob,sb,kb,ns,gK,gN,gH,gO,total;
+    /* shrink the whole stack together until it fits the panel (a story's top half is the tightest case) */
+    for(let it=0;it<10;it++){
+      ({tb:hb,ob}=evDisplay(c,F,cw,cw,sbase,hasN,sbase*.78,sbase*.62));
+      sb=evFitM(c,F.osub,700,FM,cw,Math.max(W*.034,evCap(ob,.42,V?W*.045:Math.min(H*.03,panelW*.09))),1.12,W*.03);
+      let kMax=Math.max(ds.kick*.9,evCap(sb,.95,W*.03));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
+      kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,cw,kMax,1.08,Math.min(W*.024,kMax)));
+      ns=hasN?Math.min(V?H*.1:H*.15,fitSize(c,F.num,900,FN,cw,V?H*.1:H*.15))*(sbase<(V?Math.min(H*.06,W*.12):1e9)?sbase/(V?Math.min(H*.06,W*.12):sbase):1):0;
+      gK=kb.h?kb.size*1.1:0;gN=ns?ns*.1:0;gH=hb.h?hb.size*.4:0;gO=sb.h?ob.size*.25:0;
+      total=kb.h+gK+ns+gN+hb.h+gH+ob.h+gO+sb.h;
+      if(total<=areaBot-areaTop)break;sbase*=.9;
+    }
+    let y=areaTop+Math.max(0,(areaBot-areaTop-total))*(V?.5:.42);
     if(kb.h){evTracked(c,evTrk(kb.size),()=>evLines(c,kb,cx,y,{wt:800,fill:pAcc,al:'center',t,at:.3,maxW:cw}));y+=kb.h+gK}
     if(ns){c.save();c.globalAlpha=clamp(prog(t,.5*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=pInk;c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.55*ST.stagger,.9*ST.durMul)),cx,y+ns*.5);c.restore();y+=ns+gN}
     if(hb.h){evLines(c,hb,cx,y,{wt:900,fill:pInk,al:'center',t,at:.75,maxW:cw});y+=hb.h+gH}
     c.save();c.globalAlpha=clamp(prog(t,1.1*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=pAcc;c.textAlign='center';c.textBaseline='middle';c.fillText(l,cx,y+i*ob.size*ob.lh+ob.size*ob.lh/2,cw)});c.restore();y+=ob.h+gO;
     if(sb.h)evLines(c,sb,cx,y,{wt:700,fill:pInk,al:'center',t,at:1.3,maxW:cw});
-    if(F.tag){c.save();c.globalAlpha=clamp(prog(t,1.5*ST.stagger,.4*ST.durMul));font(c,700,Math.min(18,panelW*.045),FM);c.fillStyle=pInk==='#ffffff'?'rgba(255,255,255,.72)':'rgba(17,17,17,.72)';c.textAlign='center';c.textBaseline='middle';c.fillText(F.tag,cx,H-M-tagH/2,cw);c.restore()}
+    if(showTag){c.save();c.globalAlpha=clamp(prog(t,1.5*ST.stagger,.4*ST.durMul));font(c,700,Math.min(18,panelW*.045),FM);c.fillStyle=pInk==='#ffffff'?'rgba(255,255,255,.72)':'rgba(17,17,17,.72)';c.textAlign='center';c.textBaseline='middle';c.fillText(F.tag,cx,H-ds.bot-tagH/2,cw);c.restore()}
   });
-  const pw=W-panelW,pcx=panelW+pw/2,rp=W*.04,chipH=evMadeBox(W*.019,rightDark).h;
-  const rTop=M+Math.max(chipH,0)+H*.025,rBot=H-fh-M*.7,rh=rBot-rTop,ph=rh*.9,pcy=rTop+rh/2;
+  /* photo region: beside the panel, or beneath it on a story */
+  const rx=V?0:panelW,ry=V?panelH:0,pw=V?W:W-panelW,pcx=rx+pw/2,rp=W*.04,chipH=evMadeBox(W*.019,rightDark).h;
+  const barH=V?fh:fh,barY=V?H-ds.bot-fh:H-fh;
+  const rTop=V?ry+H*.02:ds.top+Math.max(chipH,0)+H*.025,rBot=V?barY-H*.02:H-fh-M*.7,rh=rBot-rTop,ph=rh*.9,pcy=rTop+rh/2;
   floorShadow(c,pcx,pcy+ph/2-6,pw*.72,.22);
-  objDraw(c,'obj:Footer',panelW,0,pw,H,()=>{
-    pop(c,pcx,pcy,t,.6,()=>drawImg(c,I.p,-pw*.42,-ph/2,pw*.84,ph,{label:'Product photo'}),{from:.8,dur:.9});
+  objDraw(c,'obj:Footer',rx,ry,pw,V?H-ry:H,()=>{
+    pop(c,pcx,pcy,t,.6,()=>drawImg(c,I.p,-pw*(V?.46:.42),-ph/2,pw*(V?.92:.84),ph,{label:'Product photo'}),{from:.8,dur:.9});
   });
   if(F.seal){const sw=Math.min(130,pw*.26),img=BRAND.best,r=(img&&img.naturalWidth)?img.naturalHeight/img.naturalWidth:1.276;
-    pop(c,panelW+rp+sw/2,rTop+sw*r/2,t,.95,()=>{objDraw(c,'obj:Seal',-sw/2,-sw*r/2,sw,sw*r,()=>brandBadge(c,img,0,0,sw))},{from:.3,dur:.7,rot:.5})}
-  if(F.maple!=='no')evMade(c,W-rp,M+chipH/2,W*.019,t,1.6,rightDark,'right');
+    pop(c,rx+rp+sw/2,rTop+sw*r/2,t,.95,()=>{objDraw(c,'obj:Seal',-sw/2,-sw*r/2,sw,sw*r,()=>brandBadge(c,img,0,0,sw))},{from:.3,dur:.7,rot:.5})}
+  if(F.maple!=='no')evMade(c,V?W-M:W-rp,ds.top+(V?lh/2:chipH/2),W*.019,t,1.6,rightDark,'right');
   if(F.flab){
-    objDraw(c,'obj:Price card',panelW,H-fh,pw,fh,()=>{
+    const bx=V?M:panelW,bw=V?W-2*M:pw;
+    objDraw(c,'obj:Price card',bx,barY,bw,barH,()=>{
       const p=ST.textEase(prog(t,1.5*ST.stagger,.6*ST.durMul)),acc=F.acc||'#C8102E',ink=inkOn(acc);c.save();c.globalAlpha=p;
-      c.fillStyle=acc;c.fillRect(panelW,H-fh,pw,fh);
-      const ls=fh*.3,ps=fh*.42;font(c,800,ls,FM);const a=c.measureText(F.flab).width;font(c,900,ps,FN);const b=c.measureText(F.fprice).width,gp=ls*.7,x0=pcx-(a+gp+b)/2;
-      c.textBaseline='middle';c.textAlign='left';font(c,800,ls,FM);c.fillStyle=ink;c.fillText(F.flab,x0,H-fh/2);
-      font(c,900,ps,FN);c.fillText(F.fprice,x0+a+gp,H-fh/2);c.restore();
+      c.fillStyle=acc;if(V){rr(c,bx,barY,bw,barH,barH*.25);c.fill()}else c.fillRect(bx,barY,bw,barH);
+      let ls=barH*.3,ps=barH*.42;font(c,800,ls,FM);let a=c.measureText(F.flab).width;font(c,900,ps,FN);let b=c.measureText(F.fprice).width,gp=ls*.7;const fk=Math.min(1,(bw*.9)/(a+gp+b));if(fk<1){ls*=fk;ps*=fk;a*=fk;b*=fk;gp*=fk}const x0=bx+bw/2-(a+gp+b)/2;
+      c.textBaseline='middle';c.textAlign='left';font(c,800,ls,FM);c.fillStyle=ink;c.fillText(F.flab,x0,barY+barH/2);
+      font(c,900,ps,FN);c.fillText(F.fprice,x0+a+gp,barY+barH/2);c.restore();
     });
   }
 }
@@ -1880,33 +1926,33 @@ function layoutSplit(c,W,H,t,D,F,I){
    and stacked bottom-up from the bottom margin; price card flush-right sharing the copy block's
    bottom edge. Nothing can overlap, whatever the ratio or text length. */
 function layoutFullbleed(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W);
+  const ST=postStyle(),M=evM(W),ds=DS(W,H);
   c.fillStyle=F.bg1;c.fillRect(0,0,W,H);
   objDraw(c,'obj:Masthead',0,0,W,H,()=>{drawImg(c,I.p,0,0,W,H,{label:'Background photo',fit:'cover'})});
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.45)');gt.addColorStop(1,'rgba(0,0,0,0)');
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
-  const g=c.createLinearGradient(0,H*.4,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.9)');
-  c.save();c.fillStyle=g;c.fillRect(0,H*.4,W,H*.6);c.restore();
+  const g=c.createLinearGradient(0,H*.22,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.45,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,.92)');
+  c.save();c.fillStyle=g;c.fillRect(0,H*.22,W,H*.78);c.restore();
 
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=M+rowH/2;
-  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{
+  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{
     pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
 
-  const hasP=!!F.flab,pw2=W*.3,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105);
+  const hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105)*ds.k;
   const acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
   const {tb:hb,ob}=evDisplay(c,F,sw,sw,base,hasN,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.034,evCap(ob,.32,base*.3)));
-  const kMax=Math.max(W*.03,evCap(sb,.95,base*.26));
+  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.32,base*.3)));
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.26));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.028));
   const ns=hasN?Math.min(base*1.1,fitSize(c,F.num,900,FN,sw,base*1.1)):0;
-  let y=H-M;
+  let y=H-ds.bot;
   if(hasP)y-=ph2+H*.03;
   const subTop=y-sb.h;y=subTop-(sb.h?sb.size*.5:0);
   const offTop=y-ob.h;y=offTop-(hb.h?hb.size*.1:0);
   const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.6:0);
-  const kTop=y-kb.h;y=kTop-(ns?ns*.2:0);
+  const kTop=y-kb.h;y=kTop-(ns?ns*.3+kb.size*.4:0);
   const numTop=y-ns;
   if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),M,numTop+ns*.5);c.restore()}
   if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,kTop,{wt:800,fill:acc,t,at:.3,maxW:sw}));
@@ -1914,30 +1960,30 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='left';c.textBaseline='middle';c.fillText(l,M,offTop+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore()}
   if(sb.h)evLines(c,sb,M,subTop,{wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:sw});
-  if(hasP)evPrice(c,M+pw2/2,H-M-ph2/2,pw2,F,true,t,1.7);
+  if(hasP)evPrice(c,M+pw2/2,H-ds.bot-ph2/2,pw2,F,true,t,1.7);
 }
 
 /* ---------- layout 4: header, centred product, eyebrow + headline, price card; offer badge
    overlaps the product frame's top-right corner (never the header) ---------- */
 function layoutCorner(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),dark=isDark(F.bg1,F.bg2),ink=inkOn(dark?'#000000':'#ffffff'),acc=F.acc||'#C8102E';
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),dark=isDark(F.bg1,F.bg2),ink=inkOn(dark?'#000000':'#ffffff'),acc=F.acc||'#C8102E';
   yellowField(c,W,H,F.bg1,F.bg2);
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,dark),rowH=Math.max(lh,MB.h),rowCy=M+rowH/2;
-  objDraw(c,'obj:Masthead',M,M,W-2*M,rowH,()=>{
+  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,dark),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Masthead',M,ds.top,W-2*M,rowH,()=>{
     pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,1.8,dark,'right');
-  const sw=W-2*M,pw2=W*.34,ph2=pw2*.355; /* price card stays below the headline in rank */
-  const bw=W*.5,cbase=Math.min(W*.115,H*.085);
+  const sw=W-2*M,pw2=ds.pw*1.08,ph2=pw2*.355; /* price card stays below the headline in rank */
+  const bw=W*.5,cbase=Math.min(W*.115,H*.085)*ds.k*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,bw*.84,cbase,false,cbase*.7,cbase*.5);
   const sb=evFitM(c,F.osub,700,FM,bw*.84,Math.max(bw*.062,evCap(ob,.26,bw*.075)),1.12,bw*.055);
-  const kMax=Math.max(W*.026,Math.min(evCap(hb,.3,W*.034),sb.size?sb.size*1.0:1e9));
+  const kMax=Math.min(Math.max(ds.kick,Math.min(evCap(hb,.3,W*.034),sb.size?sb.size:1e9)),sb.size?sb.size*.97:1e9);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.026));
-  let y=H-M;
+  let y=H-ds.bot;
   if(F.flab)y-=ph2+H*.025;
   const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.7:0);
   const kTop=y-kb.h;y=kTop-H*.025;
-  const photoTop=M+rowH+H*.025,photoH=Math.max(H*.2,y-photoTop),pcy=photoTop+photoH/2;
+  const photoTop=ds.top+rowH+H*.025,photoH=Math.max(H*.2,y-photoTop),pcy=photoTop+photoH/2;
   floorShadow(c,W/2,photoTop+photoH-photoH*.04,W*.5,.24);
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.4,-photoH/2,W*.8,photoH,{label:'Product photo'}),{from:.8,dur:.9});
   /* offer badge: tilted sticker pinned to the photo frame's top-right corner, right edge on the margin */
@@ -1954,12 +2000,12 @@ function layoutCorner(c,W,H,t,D,F,I){
   });
   if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,kTop,{wt:800,fill:accOn(dark?'#000000':'#ffffff',acc),al:'center',t,at:.9,maxW:sw}));
   if(hb.h)evLines(c,hb,W/2,headTop,{wt:900,fill:ink,al:'center',t,at:1,maxW:sw});
-  if(F.flab)evPrice(c,W/2,H-M-ph2/2,pw2,F,dark,t,1.6);
+  if(F.flab)evPrice(c,W/2,H-ds.bot-ph2/2,pw2,F,dark,t,1.6);
 }
 
 /* ---------- layout 5: horizontal stacked colour bands ---------- */
 function layoutStacked(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),mc=F.mcol||'#111111',acc=F.acc||'#C8102E';
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),mc=F.mcol||'#111111',acc=F.acc||'#C8102E';
   c.fillStyle=F.bg2||'#111';c.fillRect(0,0,W,H);
   const barH=H*.12,lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,isDark(mc));
   objDraw(c,'obj:Masthead',0,0,W,barH,()=>{
@@ -1970,24 +2016,24 @@ function layoutStacked(c,W,H,t,D,F,I){
     if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,barH/2-kb.h/2,{wt:800,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw}));
   });
   if(F.maple!=='no')evMade(c,W-M,barH/2,micS,t,.3,isDark(mc),'right');
-  let titleSz=0;const hBandH=H*.24,hBandY=barH;
+  let titleSz=0;const hBandH=H*.22,hBandY=barH;
   objDraw(c,'obj:Headline band',0,hBandY,W,hBandH,()=>{
     c.fillStyle=F.bg1;c.fillRect(0,hBandY,W,hBandH);
     const n=Math.max(1,String(F.head).split('\n').filter(l=>l.trim()!=='').length);
-    const hb=evFit(c,F.head,900,FM,W-2*M,Math.min(hBandH*.78/(n*1.08),W*.12),1.08,W*.07);titleSz=hb.size;
+    const hb=evFit(c,F.head,900,FM,W-2*M,Math.min(hBandH*.8/(n*1.08),W*.135),1.08,W*.07);titleSz=hb.size;
     if(hb.h)evLines(c,hb,W/2,hBandY+(hBandH-hb.h)/2,{wt:900,fill:inkOn(F.bg1),al:'center',t,at:.4,maxW:W-2*M});
   });
-  const pBandY=hBandY+hBandH,pBandH=H*.36;
+  const pBandY=hBandY+hBandH,pBandH=H*.44;
   objDraw(c,'obj:Footer',0,pBandY,W,pBandH,()=>{
     floorShadow(c,W/2,pBandY+pBandH*.86,W*.46,.22);
-    pop(c,W/2,pBandY+pBandH/2,t,.6,()=>drawImg(c,I.p,-W*.4,-pBandH*.42,W*.8,pBandH*.84,{label:'Product photo'}),{from:.8,dur:.9});
+    pop(c,W/2,pBandY+pBandH/2,t,.6,()=>drawImg(c,I.p,-W*.44,-pBandH*.45,W*.88,pBandH*.9,{label:'Product photo'}),{from:.8,dur:.9});
   });
   const oBandY=pBandY+pBandH,oBandH=H-oBandY,ink=inkOn(acc),sw=W-2*M;
   objDraw(c,'obj:Price card',0,oBandY,W,oBandH,()=>{
     const p=ST.textEase(prog(t,1.3*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=acc;c.fillRect(0,oBandY,W,oBandH);c.restore();
     const pad=oBandH*.12,avail=oBandH-2*pad;
     const ob=evFitM(c,F.off,900,FN,sw,Math.min(avail*.55,W*.15,titleSz?titleSz*.95:1e9),.98);
-    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.032,evCap(ob,.3,Math.min(avail*.2,W*.04))));
+    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.3,Math.min(avail*.2,W*.04))));
     const gap=sb.h?ob.size*.18:0,top=oBandY+(oBandH-(ob.h+gap+sb.h))/2;
     c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();
@@ -1997,24 +2043,24 @@ function layoutStacked(c,W,H,t,D,F,I){
 
 /* ---------- layout 6: centred poster — everything centred over a darkened photo ---------- */
 function layoutPoster(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),acc=contrast(F.acc||LY,'#0a0a0a')>=4.5?(F.acc||LY):LY;
   c.fillStyle=F.bg1;c.fillRect(0,0,W,H);
   objDraw(c,'obj:Masthead',0,0,W,H,()=>{drawImg(c,I.p,0,0,W,H,{label:'Background photo',fit:'cover'})});
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(.5,'rgba(0,0,0,.42)');g.addColorStop(1,'rgba(0,0,0,.82)');
   c.save();c.fillStyle=g;c.fillRect(0,0,W,H);c.restore();
   const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),hasM=F.maple!=='no';
-  objDraw(c,'obj:Logo bar',M,M,W-2*M,lh,()=>{pop(c,W/2,M+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
-  if(hasM)evMade(c,W/2,M+lh+H*.02+MB.h/2,micS,t,.3,true,'center');
-  const headerBottom=M+lh+(hasM?H*.02+MB.h:0);
-  const hasP=!!F.flab,pw2=W*.3,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105);
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,lh,()=>{pop(c,W/2,ds.top+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  if(hasM)evMade(c,W/2,ds.top+lh+H*.02+MB.h/2,micS,t,.3,true,'center');
+  const headerBottom=ds.top+lh+(hasM?H*.02+MB.h:0);
+  const hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105)*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,sw,base,hasN,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(W*.034,evCap(ob,.32,base*.3)),1.12,W*.028);
-  const kMax=Math.max(W*.03,evCap(sb,.95,base*.26));
+  const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.32,base*.3)),1.12,W*.028);
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.26));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.028));
   const ns=hasN?Math.min(base*1.1,fitSize(c,F.num,900,FN,sw,base*1.1)):0;
   const gK=kb.h?kb.size*.6:0,gN=ns?ns*.2:0,gH=hb.h?hb.size*.1:0,gS=sb.h?sb.size*.5:0,gP=hasP?H*.035:0;
   const total=ns+gN+kb.h+gK+hb.h+gH+ob.h+gS+sb.h+gP+(hasP?ph2:0);
-  let y=Math.max(headerBottom+H*.03,Math.min(H*.53-total/2,H-M-total));
+  let y=Math.max(headerBottom+H*.03,Math.min(H*.53-total/2,H-ds.bot-total));
   if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),W/2,y+ns*.5);c.restore();y+=ns+gN}
   if(kb.h){const ky=y;evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,ky,{wt:800,fill:acc,al:'center',t,at:.3,maxW:sw}));y+=kb.h+gK}
   if(hb.h){evLines(c,hb,W/2,y,{wt:900,fill:'#fff',al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
@@ -2026,21 +2072,21 @@ function layoutPoster(c,W,H,t,D,F,I){
 
 /* ---------- layout 7: photo on top, rounded content card overlapping its lower edge ---------- */
 function layoutCard(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),mc=F.mcol||'#111111',ink=inkOn(mc),acc=accOn(mc,F.acc||LY);
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),mc=F.mcol||'#111111',ink=inkOn(mc),acc=accOn(mc,F.acc||LY);
   c.fillStyle=F.bg1;c.fillRect(0,0,W,H);
-  const hasP=!!F.flab,pw2=W*.28,ph2=pw2*.355,sw=W-2*M,gap=W*.03,wO=hasP?sw-pw2-gap:sw,base=Math.min(W*.125,H*.092);
+  const hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,gap=W*.03,wO=hasP?sw-pw2-gap:sw,base=Math.min(W*.125,H*.092)*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,wO,base,false,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,wO,Math.max(W*.032,evCap(ob,.32,base*.3)),1.12,W*.028);
-  const kMax=Math.max(W*.028,evCap(sb,.95,base*.26));
+  const sb=evFitM(c,F.osub,700,FM,wO,Math.max(ds.sub,evCap(ob,.32,base*.3)),1.12,W*.028);
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.26));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.026));
   const gK=kb.h?kb.size*.6:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.5:0;
   const rowH2=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph2:0),padT=H*.04;
-  const cardTop=H-M-(kb.h+gK+hb.h+gH+rowH2)-padT,overlap=H*.05;
+  const cardTop=H-ds.bot-(kb.h+gK+hb.h+gH+rowH2)-padT,overlap=H*.05;
   objDraw(c,'obj:Masthead',0,0,W,cardTop+overlap,()=>{drawImg(c,I.p,0,0,W,cardTop+overlap,{label:'Background photo',fit:'cover'})});
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=M+rowH/2;
-  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
   objDraw(c,'obj:Footer',0,cardTop,W,H-cardTop,()=>{
     const p=ST.textEase(prog(t,.15,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.05);
@@ -2057,26 +2103,26 @@ function layoutCard(c,W,H,t,D,F,I){
 
 /* ---------- layout 8: title-led over the photo, offer in a round badge, price + sub bottom-left ---------- */
 function layoutBadge(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),acc=F.acc||LY,bi=inkOn(acc);
+  const ST=postStyle(),M=evM(W),ds=DS(W,H),acc=F.acc||LY,bi=inkOn(acc);
   c.fillStyle=F.bg1;c.fillRect(0,0,W,H);
   objDraw(c,'obj:Masthead',0,0,W,H,()=>{drawImg(c,I.p,0,0,W,H,{label:'Background photo',fit:'cover'})});
   const gt=c.createLinearGradient(0,0,0,H*.62);gt.addColorStop(0,'rgba(0,0,0,.68)');gt.addColorStop(1,'rgba(0,0,0,0)');
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.62);c.restore();
   const gb=c.createLinearGradient(0,H*.6,0,H);gb.addColorStop(0,'rgba(0,0,0,0)');gb.addColorStop(1,'rgba(0,0,0,.6)');
   c.save();c.fillStyle=gb;c.fillRect(0,H*.6,W,H*.4);c.restore();
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=M+rowH/2;
-  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
-  const r=W*.215,hasP=!!F.flab,pw2=W*.3,ph2=pw2*.355,sw=W-2*M,base=Math.min(W*.14,H*.105),gap=W*.03;
+  const r=W*.215,hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,base=Math.min(W*.14,H*.105)*ds.k,gap=W*.03;
   const hb=evFit(c,F.head,900,FM,sw,base,1.08,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,sw-2*r-gap,Math.max(W*.034,evCap(hb,.3,base*.3)),1.12,W*.028);
-  const kMax=Math.max(W*.03,evCap(sb,.95,base*.26));
+  const sb=evFitM(c,F.osub,700,FM,sw-2*r-gap,Math.max(ds.sub,evCap(hb,.3,base*.3)),1.12,W*.028);
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.26));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.028));
-  let y=M+rowH+H*.04;
+  let y=ds.top+rowH+H*.04;
   if(kb.h){const ky=y;evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,ky,{wt:800,fill:contrast(acc,'#0a0a0a')>=4.5?acc:LY,t,at:.3,maxW:sw}));y+=kb.h+kb.size*.6}
   if(hb.h)evLines(c,hb,M,y,{wt:900,fill:'#fff',t,at:.9,maxW:sw});
   /* offer badge, bottom-right on the margin */
-  const bcx=W-M-r,bcy=H-M-r,ob=evFit(c,F.off,900,FN,r*1.38,r*.62,.98,r*.3);
+  const bcx=W-M-r,bcy=H-ds.bot-r,ob=evFit(c,F.off,900,FN,r*1.38,Math.min(r*.62,hb.size?hb.size*.95:1e9),.98,r*.3);
   pop(c,bcx,bcy,t,1.3,()=>{
     objDraw(c,'obj:Corner badge',-r,-r,2*r,2*r,()=>{
       c.fillStyle=acc;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
@@ -2086,7 +2132,7 @@ function layoutBadge(c,W,H,t,D,F,I){
     });
   },{from:.6,dur:.7,rot:.3});
   /* bottom-left stack: sub line above the price card */
-  let yb=H-M;
+  let yb=H-ds.bot;
   if(hasP){evPrice(c,M+pw2/2,yb-ph2/2,pw2,F,true,t,1.7);yb-=ph2+H*.025}
   if(sb.h)evLines(c,sb,M,yb-sb.h,{wt:700,fill:'rgba(255,255,255,.9)',t,at:1.6,maxW:sw-2*r-gap});
 }
@@ -2095,28 +2141,30 @@ function layoutBadge(c,W,H,t,D,F,I){
    (brand yellow, black, a red accent, all-caps headlines, "proudly Canadian since 1909" heritage line).
    They use the same grid, measured text and type hierarchy as the layouts above. ---------- */
 const evSinceDefault='PROUDLY CANADIAN · SINCE 1909';
-function evTopRow(c,W,M,t,I,F,o){
-  o=o||{};const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=M+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
-  objDraw(c,'obj:Logo bar',M,M,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
+function evTopRow(c,W,yT,t,I,F,o){
+  o=o||{};const M=evM(W),lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
+  objDraw(c,'obj:Logo bar',M,yT,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
     if(o.ring){c.save();c.strokeStyle='#111';c.lineWidth=Math.max(2,W*.0025);c.beginPath();c.ellipse(lw*.02,0,lw*.5,lh*.5,0,0,TAU);c.stroke();c.restore()}
     logo(c,I,0,0,lw,lh)},{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,cy,micS,t,.3,!!o.chip,'right');
-  return M+rowH;
+  return yT+rowH;
 }
-const evSinceH=(W,F)=>String(F.since==null?evSinceDefault:F.since).trim()?W*.021*1.5:0;
+const evSinceH=(W,F)=>String(F.since==null?evSinceDefault:F.since).trim()?W*.025*1.55:0;
 function evSince(c,W,M,t,F,cy,fill,al){
   const s=String(F.since==null?evSinceDefault:F.since);if(!s.trim())return;
-  const sz=W*.021,x=al==='left'?M:al==='right'?W-M:W/2;
+  const sz=W*.025,x=al==='left'?M:al==='right'?W-M:W/2;
   evTracked(c,sz*.18,()=>text(c,{s:s.toUpperCase(),x,y:cy-sz*.55,size:sz,wt:700,fam:FM,fill,al:al||'center',t,at:2,maxW:W-2*M}));
 }
 /* measured kicker / headline / offer / sub blocks, headline first in rank */
 function evBlocks(c,W,H,F,o){
-  const base=Math.min(W*(o.bw||.12),H*(o.bh||.088)),wO=o.wO||o.sw;
-  const {tb:hb,ob}=evDisplay(c,F,o.sw,wO,base,false,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,wO,Math.max(W*.032,evCap(ob,.32,base*.3)),1.12,W*.028);
-  const kMax=Math.max(W*.028,evCap(sb,.95,base*.26));
-  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,o.sw,kMax,1.08,W*.026));
-  return {hb,ob,sb,kb};
+  const ds=DS(W,H),base=Math.min(W*(o.bw||.12),H*(o.bh||.088))*ds.k,wO=o.wO||o.sw;
+  const {tb:hb,ob}=evDisplay(c,F,o.sw,wO,base,!!o.dem,base*.72,o.minO);
+  /* the offer never outranks the headline, whatever the text length */
+  if(hb.size&&ob.size>hb.size*.95){const nb=evFit(c,F.off,900,FN,wO,hb.size*.95,.98);ob.lines=nb.lines;ob.size=nb.size;ob.h=nb.h}
+  const sb=evFitM(c,F.osub,700,FM,wO,Math.max(ds.sub,evCap(ob,.34,base*.34)),1.12,W*.03);
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.28));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
+  const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,o.sw,kMax,1.08,Math.min(W*.027,kMax)));
+  return {hb,ob,sb,kb,ds};
 }
 function evOffer(c,ob,x,y,fill,al,t,maxW){
   const ST=postStyle();c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
@@ -2134,43 +2182,43 @@ const evRise=(c,t,at,H,fn)=>{const ST=postStyle(),p=ST.textEase(prog(t,at*ST.sta
 
 /* S1 Gallery: editorial, keylined frame, headline above a wide framed photo, offer + price on a clean base */
 function layoutGallery(c,W,H,t,D,F,I){
-  const M=evM(W),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=accOn(g,F.acc||LY),sw=W-2*M;
+  const M=evM(W),ds=DS(W,H),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=accOn(g,F.acc||LY),sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
   const fi=W*.024;c.save();c.strokeStyle=dark?'rgba(255,255,255,.42)':'rgba(17,17,17,.9)';c.lineWidth=Math.max(2,W*.0028);c.strokeRect(fi,fi,W-2*fi,H-2*fi);c.restore();
-  const hasP=!!F.flab,pw=W*.29,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
+  const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.115,bh:.082});
-  const top=evTopRow(c,W,M,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  const top=evTopRow(c,W,ds.top,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.45:0;
   const botH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0);
   let y=top+H*.03;
   if(kb.h){evKick(c,kb,M,y,acc,'left',t,sw);y+=kb.h+gK}
   if(hb.h){evLines(c,hb,M,y,{wt:900,fill:ink,t,at:.9,maxW:sw});y+=hb.h+gH}
-  const pTop=y+H*.012,pBot=H-M-sinceH-H*.02-botH-H*.028,pH=Math.max(pBot-pTop,H*.16);
+  const pTop=y+H*.012,pBot=H-ds.bot-sinceH-H*.02-botH-H*.028,pH=Math.max(pBot-pTop,H*.16);
   evPhoto(c,I,M,pTop,sw,pH,W*.014,t,.35);
   let by=pTop+pH+H*.028;
   if(ob.h)evOffer(c,ob,M,by,acc,'left',t,wO);
   if(sb.h)evLines(c,sb,M,by+ob.h+gS,{wt:700,fill:dark?'rgba(255,255,255,.85)':'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
   if(hasP)evPrice(c,W-M-pw/2,by+botH/2,pw,F,dark,t,1.7);
-  evSince(c,W,M,t,F,H-M-sinceH/2,dark?'rgba(255,255,255,.7)':'rgba(17,17,17,.62)','center');
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,dark?'rgba(255,255,255,.7)':'rgba(17,17,17,.62)','center');
 }
 
 /* S2 Arch: black luxe, centred; photo in an arched window with a brand-yellow keyline, offer set into its foot */
 function layoutArch(c,W,H,t,D,F,I){
-  const M=evM(W),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  const M=evM(W),ds=DS(W,H),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
   const gl=c.createRadialGradient(W/2,H*.55,W*.05,W/2,H*.55,W*.8);gl.addColorStop(0,'rgba(255,255,255,.12)');gl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gl;c.fillRect(0,0,W,H);
-  const top=evTopRow(c,W,M,t,I,F,{centre:true,chip:true});
-  const hasP=!!F.flab,pw=W*.27,ph=pw*.355,wI=sw*.66;
-  const base=Math.min(W*.11,H*.08);
+  const top=evTopRow(c,W,ds.top,t,I,F,{centre:true,chip:true});
+  const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,wI=sw*.66;
+  const base=Math.min(W*.11,H*.08)*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,wI,base,false,base*.7);
-  const sb=evFitM(c,F.osub,700,FM,wI,Math.max(W*.03,evCap(ob,.32,base*.3)),1.12,W*.018);
-  const kMax=Math.max(W*.028,evCap(sb,.95,base*.26));
+  const sb=evFitM(c,F.osub,700,FM,wI,Math.max(ds.sub,evCap(ob,.32,base*.3)),1.12,W*.028);
+  let kMax=Math.max(ds.kick,evCap(sb,.95,base*.26));if(sb.size)kMax=Math.min(kMax,sb.size*.97);
   const kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,sw,kMax,1.08,W*.026));
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,lowH=ob.h+(sb.h?gS+sb.h:0);
   let y=top+H*.026;
   if(kb.h){evKick(c,kb,W/2,y,hl,'center',t,sw);y+=kb.h+gK}
   if(hb.h){evLines(c,hb,W/2,y,{wt:900,fill:'#fff',al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
-  const aTop=y+H*.034,aBot=H-M-sinceH-H*.022,ah=Math.max(aBot-aTop,H*.22),aw=Math.min(sw*.8,ah*1.02),ax=(W-aw)/2;
+  const aTop=y+H*.034,aBot=H-ds.bot-sinceH-H*.022,ah=Math.max(aBot-aTop,H*.22),aw=Math.min(sw*.8,ah*1.02),ax=(W-aw)/2;
   const path=(o)=>{const x=ax-o,w=aw+2*o,rr2=w/2,yt=aTop-o;c.moveTo(x,aBot);c.lineTo(x,yt+rr2);c.arc(W/2,yt+rr2,rr2,Math.PI,0);c.lineTo(x+w,aBot);c.closePath()};
   const ko=W*.017;evRise(c,t,.25,H,()=>{c.strokeStyle=hl;c.lineWidth=Math.max(2.5,W*.003);c.beginPath();path(ko);c.stroke()});
   evPhoto(c,I,ax,aTop,aw,aBot-aTop,0,t,.35,()=>path(0));
@@ -2179,69 +2227,72 @@ function layoutArch(c,W,H,t,D,F,I){
   evRise(c,t,1,H,()=>{c.save();c.beginPath();path(0);c.clip();const fg=c.createLinearGradient(0,fy,0,aBot);fg.addColorStop(0,'rgba(0,0,0,0)');fg.addColorStop(.55,'rgba(0,0,0,.78)');fg.addColorStop(1,'rgba(0,0,0,.9)');c.fillStyle=fg;c.fillRect(ax-2,fy,aw+4,fh+2);c.restore()});
   const ly=aBot-H*.026-lowH;
   if(ob.h)evOffer(c,ob,W/2,ly,hl,'center',t,aw*.88);
-  if(sb.h)evLines(c,sb,W/2,ly+ob.h+gS,{wt:700,fill:'rgba(255,255,255,.9)',al:'center',t,at:1.6,maxW:aw*.88});
+  if(sb.h)evLines(c,sb,W/2,ly+ob.h+gS,{wt:700,fill:'rgba(255,255,255,.9)',al:'center',t,at:1.6,maxW:Math.max(aw*.88,wI)});
   if(hasP)evPrice(c,ax+aw-pw*.12,aTop+(aBot-aTop)*.5,pw,F,true,t,1.7);
-  evSince(c,W,M,t,F,H-M-sinceH/2,'rgba(255,255,255,.62)','center');
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,'rgba(255,255,255,.62)','center');
 }
 
 /* S3 Diagonal: photo cut on a slant, brand-yellow stripe along the cut, black field with copy */
 function layoutDiagonal(c,W,H,t,D,F,I){
-  const M=evM(W),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  const M=evM(W),ds=DS(W,H),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  const hasP=!!F.flab,pw=W*.3,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw,slant=W*.1,st=W*.03;
+  const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw,slant=W*.1,st=W*.03;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.12,bh:.087});
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.1:0,gS=sb.h?sb.size*.45:0;
   const rowH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0),T=kb.h+gK+hb.h+gH+rowH+H*.02+sinceH;
-  const yL=Math.max(H*.3,H-M-T-st*1.4-W*.03),yR=yL-slant;
+  const yL=Math.max(H*.3,H-ds.bot-T-st*1.4-W*.03),yR=yL-slant;
   evPhoto(c,I,0,0,W,yL,0,t,.2,()=>{c.moveTo(0,0);c.lineTo(W,0);c.lineTo(W,yR);c.lineTo(0,yL);c.closePath()});
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
   evRise(c,t,.3,H,()=>{c.fillStyle=LY;c.beginPath();c.moveTo(0,yL);c.lineTo(W,yR);c.lineTo(W,yR+st);c.lineTo(0,yL+st);c.closePath();c.fill();
     if((F.acc||'').toLowerCase()!==LY.toLowerCase()&&contrast(F.acc||LY,g)>=2.2){c.fillStyle=F.acc;c.beginPath();c.moveTo(0,yL+st);c.lineTo(W,yR+st);c.lineTo(W,yR+st*1.35);c.lineTo(0,yL+st*1.35);c.closePath();c.fill()}});
-  evTopRow(c,W,M,t,I,F,{chip:true});
+  evTopRow(c,W,ds.top,t,I,F,{chip:true});
   let y=yL+st*1.4+W*.03;
   if(kb.h){evKick(c,kb,M,y,hl,'left',t,sw);y+=kb.h+gK}
   if(hb.h){evLines(c,hb,M,y,{wt:900,fill:'#fff',t,at:.9,maxW:sw});y+=hb.h+gH}
   if(ob.h)evOffer(c,ob,M,y,hl,'left',t,wO);
   if(sb.h)evLines(c,sb,M,y+ob.h+gS,{wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:wO});
   if(hasP)evPrice(c,W-M-pw/2,y+rowH-ph/2,pw,F,true,t,1.7);
-  evSince(c,W,M,t,F,H-M-sinceH/2,'rgba(255,255,255,.6)','left');
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,'rgba(255,255,255,.6)','left');
 }
 
 /* S4 Sunray: tonal rays behind a round photo, offer on a full-width banner, price tag on the ring */
 function layoutSunray(c,W,H,t,D,F,I){
-  const M=evM(W),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=F.acc||'#C8102E',ai=inkOn(acc),sw=W-2*M;
+  const M=evM(W),ds=DS(W,H),g=F.bg1,ink=inkOn(g),dark=isDark(g),acc=F.acc||'#C8102E',ai=inkOn(acc),sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  const hasP=!!F.flab,pw=W*.27,ph=pw*.355,compact=H<W*1.25,inRibbon=compact&&hasP,wR=inRibbon?sw-pw-W*.03:sw*.9;
+  const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,compact=H<W*1.25,inRibbon=compact&&hasP,wR=inRibbon?sw-pw-W*.03:sw*.9;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw:sw*.96,wO:wR,bw:.115,bh:.082});
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,padR=W*.022,rb=Math.max(ob.h+(sb.h?gS+sb.h:0)+2*padR,inRibbon?ph+2*padR*.8:0);
-  const lw=evLogoW(W),lh=lw/2,MB=evMadeBox(W*.019,dark),topB=M+Math.max(lh,MB.h);
+  const lw=evLogoW(W),lh=lw/2,MB=evMadeBox(W*.019,dark),topB=ds.top+Math.max(lh,MB.h);
   const yK=topB+H*.026,yH=yK+kb.h+gK,cT=yH+hb.h+(hb.h?gH:0)+H*.02;
-  const cB=H-M-sinceH-H*.014-(hasP&&!inRibbon?ph*.7:0),d=Math.max(Math.min(W*.7,cB-cT),H*.2),cx=W/2,cy=cT+d/2;
+  const cB=H-ds.bot-sinceH-H*.014,pBelow=false;const dMax=W*(ds.story?.86:.7);let d=Math.min(dMax,cB-cT);
+  /* the ribbon hangs off the lower part of the circle and the price tag sits under the ribbon: reserve both, so nothing is ever painted over the sub line */
+  for(let it=0;it<3;it++){const extra=Math.max(0,d*.36+rb-d/2)+(pBelow?ph+H*.02:0);d=Math.max(Math.min(dMax,cB-cT-extra),H*.16)}
+  const cx=W/2,cy=cT+d/2;
   /* rays first, so no copy is ever painted over; a tint of the ground, never a second hard colour */
   c.save();c.fillStyle=dark?'rgba(255,255,255,.055)':'rgba(0,0,0,.065)';const n=24,R=Math.hypot(W,H),rot=t*.035;
   for(let i=0;i<n;i+=2){const a0=rot+i*TAU/n,a1=rot+(i+1)*TAU/n;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a0)*R,cy+Math.sin(a0)*R);c.lineTo(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R);c.closePath();c.fill()}
   c.restore();
-  evTopRow(c,W,M,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  evTopRow(c,W,ds.top,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
   if(kb.h)evKick(c,kb,W/2,yK,accOn(g,acc),'center',t,sw);
   if(hb.h)evLines(c,hb,W/2,yH,{wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});
   c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
   evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
-  const by=cy+d*.27-rb/2;
+  const by=cy+d*.36;
   evRise(c,t,1.1,H,()=>{c.save();c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=W*.02;c.shadowOffsetY=W*.006;c.fillStyle=acc;c.fillRect(0,by,W,rb);c.restore()});
   const tx0=inRibbon?M:W/2,al0=inRibbon?'left':'center',txH=ob.h+(sb.h?gS+sb.h:0),ty0=by+(rb-txH)/2;
   if(ob.h)evOffer(c,ob,tx0,ty0,ai,al0,t,wR);
   if(sb.h)evLines(c,sb,tx0,ty0+ob.h+gS,{wt:700,fill:ai==='#ffffff'?'rgba(255,255,255,.9)':'rgba(17,17,17,.85)',al:al0,t,at:1.6,maxW:wR});
-  if(hasP)evPrice(c,inRibbon?W-M-pw/2:cx+d*.36,inRibbon?by+rb/2:cy+d*.5+ph*.1,pw,F,true,t,1.7);
-  evSince(c,W,M,t,F,H-M-sinceH/2,dark?'rgba(255,255,255,.65)':'rgba(17,17,17,.6)','center');
+  if(hasP)evPrice(c,inRibbon?W-M-pw/2:Math.min(W-M-pw/2,cx+d/2-pw*.2),inRibbon?by+rb/2:Math.min(cy+d*.2,by-H*.012-ph/2),pw,F,true,t,1.7);
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,dark?'rgba(255,255,255,.65)':'rgba(17,17,17,.6)','center');
 }
 
 /* S5 Ticket: a white coupon ticket on the brand ground, perforated stub carrying offer + price */
 function layoutTicket(c,W,H,t,D,F,I){
-  const M=evM(W),g=lum(F.bg1)>.9?(F.bg2||'#F2F2F2'):F.bg1,gd=isDark(g),acc=accOn('#ffffff',F.acc||'#C8102E');
+  const M=evM(W),ds=DS(W,H),g=lum(F.bg1)>.9?(F.bg2||'#F2F2F2'):F.bg1,gd=isDark(g),acc=accOn('#ffffff',F.acc||'#C8102E');
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  const sinceH=evSinceH(W,F),tx=M*.5,ty=M*.5,tw=W-2*tx,th=H-ty-M*.5-sinceH-H*.006,P=W*.05,x0=tx+P,sw=tw-2*P,nr=W*.026;
+  const sinceH=evSinceH(W,F),tx=M*.5,ty=ds.story?ds.top*.7:M*.5,tb=ds.story?ds.bot*.7:M*.5,tw=W-2*tx,th=H-ty-tb-sinceH-H*.006,P=W*.05,x0=tx+P,sw=tw-2*P,nr=W*.026;
   c.save();c.shadowColor='rgba(0,0,0,.22)';c.shadowBlur=W*.035;c.shadowOffsetY=W*.012;c.fillStyle='#fff';c.beginPath();c.roundRect(tx,ty,tw,th,W*.03);c.fill();c.restore();
-  const hasP=!!F.flab,pw=W*.28,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
+  const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.108,bh:.078});
   const top=evTopRow(c,W,ty+P,t,I,F,{chip:false});
   const gK=kb.h?kb.size*.5:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,botH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0),perfGap=H*.028;
@@ -2257,7 +2308,7 @@ function layoutTicket(c,W,H,t,D,F,I){
   if(ob.h)evOffer(c,ob,x0,by,acc,'left',t,wO);
   if(sb.h)evLines(c,sb,x0,by+ob.h+gS,{wt:700,fill:'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
   if(hasP)evPrice(c,tx+tw-P-pw/2,by+botH/2,pw,F,false,t,1.7);
-  evSince(c,W,M,t,F,H-M*.5-sinceH/2-H*.002,gd?'rgba(255,255,255,.75)':'rgba(17,17,17,.62)','center');
+  evSince(c,W,M,t,F,H-tb-sinceH/2-H*.002,gd?'rgba(255,255,255,.75)':'rgba(17,17,17,.62)','center');
 }
 
 const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sunray:layoutSunray,ticket:layoutTicket,circle:layoutCircle,split:layoutSplit,fullbleed:layoutFullbleed,corner:layoutCorner,stacked:layoutStacked,poster:layoutPoster,card:layoutCard,badge:layoutBadge};
@@ -2305,8 +2356,100 @@ const T_EVENTS=[
   images:[{k:'p',l:'Product photo'}],draw:evDraw},
  {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
   fields:evFields({layout:'arch',num:'',pre:'',head:'BLACK\nFRIDAY',kicker:'DOORBUSTERS',off:'UP TO 60%',osub:'OFF STOREWIDE',flab:'STARTING FROM',fprice:'$299',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
-  images:[{k:'p',l:'Product photo'}],draw:evDraw}
+  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+ {id:'ev_buymore',name:'Buy More, Save More',sub:'Tiered savings — the more they spend the more they save',cat:'buymore',
+  fields:evFields({layout:'card',pre:'',head:'BUY MORE,\nSAVE MORE',kicker:'SPEND MORE · SAVE MORE',off:'SAVE UP TO $1,000',osub:'ON SELECT FURNITURE · ASK IN STORE',flab:'ON ORDERS OVER',fprice:'$3,000',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'}),
+  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+ {id:'ev_clearance',name:'Clearance Event',sub:'Last-chance clearance — red, loud, urgent',cat:'clearance',
+  fields:evFields({layout:'stacked',head:'CLEARANCE\nEVENT',kicker:'LAST CHANCE',off:'UP TO 70% OFF',osub:'WHILE QUANTITIES LAST',flab:'FROM',fprice:'$199',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
+  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+ {id:'ev_newarrivals',name:'New Arrivals',sub:'Lifestyle photo first — fresh collections and launches',cat:'newarrivals',
+  fields:evFields({layout:'fullbleed',pre:'',head:'NEW\nARRIVALS',kicker:'JUST LANDED',off:'SHOP THE COLLECTION',osub:'IN STORE & ONLINE AT LEONS.CA',flab:'FROM',fprice:'$799',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
+  images:[{k:'p',l:'Lifestyle photo'}],draw:evDraw},
+ {id:'ev_delivery',name:'Free Delivery',sub:'Service message — delivery, assembly, easy returns',cat:'delivery',
+  fields:evFields({layout:'corner',pre:'',head:'FREE LOCAL\nDELIVERY',kicker:'ORDER TODAY',off:'FREE',osub:'ON ORDERS OVER $499*',flab:'',fprice:'',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
+  images:[{k:'p',l:'Product photo'}],draw:evDraw},
+ {id:'ev_canadian',name:'Proudly Canadian',sub:'Brand message — heritage and Canadian-made',cat:'canadian',
+  fields:evFields({layout:'sunray',pre:'',head:'PROUDLY\nCANADIAN',kicker:'SINCE 1909',off:'MADE IN CANADA',osub:'SHOP CANADIAN-MADE FURNITURE',flab:'',fprice:'',bg1:'#C8102E',bg2:'#8F0B20',mcol:'#111111',acc:'#FFE81A',maple:'yes'}),
+  images:[{k:'p',l:'Lifestyle photo'}],draw:evDraw}
 ];
+
+/* ---------- Design check (linter) ----------
+   Renders the current post once with the canvas calls recorded, then measures what was ACTUALLY drawn:
+   text size vs. the canvas, margins, overlaps, type hierarchy and product-photo size. The same checks
+   run in the app (Design check chip) and in the regression sweep, so a layout that ships is a layout
+   that passes. All thresholds are fractions of the canvas width W, so they hold at 4:5, 1:1 and 9:16. */
+const LINT={minText:.024,minHead:.072,minPhotoArea:.13,minPhotoW:.46,marginTol:.55,overlap:.12};
+function lintCapture(){
+  const rec={texts:[],imgs:[],objs:[]},ft=ctx.fillText,di=ctx.drawImage,od=objDraw,SOLID=/Price card|Corner badge|Canada|Seal/;
+  objDraw=function(c,key,x,y,w,h,fn){try{if(SOLID.test(key)){const tr=ctx.getTransform();rec.objs.push({key,x0:tr.a*x+tr.e,y0:tr.d*y+tr.f,x1:tr.a*(x+w)+tr.e,y1:tr.d*(y+h)+tr.f})}}catch(e){}return od.apply(this,arguments)};
+  ctx.fillText=function(s,x,y,mw){
+    try{
+      const m=/(\d+(?:\.\d+)?)px/.exec(this.font),tr=this.getTransform(),sc=Math.hypot(tr.a,tr.b),size=(m?+m[1]:16)*sc;
+      if(this.globalAlpha>.35&&String(s).trim()){
+        let w=this.measureText(String(s)).width;if(mw&&w>mw)w=mw;w*=sc;
+        const al=this.textAlign,bl=this.textBaseline,px=tr.a*x+tr.c*y+tr.e,py=tr.b*x+tr.d*y+tr.f;
+        const x0=al==='center'?px-w/2:(al==='right'||al==='end')?px-w:px;
+        const cap=size*.72,y0=bl==='middle'?py-cap/2:bl==='top'?py:bl==='bottom'?py-cap:py-cap;
+        rec.texts.push({s:String(s),size,x0,x1:x0+w,y0,y1:y0+cap,fill:this.fillStyle});
+      }
+    }catch(e){}
+    return ft.apply(this,arguments);
+  };
+  ctx.drawImage=function(im){
+    try{
+      const a=arguments,tr=this.getTransform();let dx,dy,dw,dh;
+      if(a.length===3){dx=a[1];dy=a[2];dw=im.width;dh=im.height}else if(a.length===5){dx=a[1];dy=a[2];dw=a[3];dh=a[4]}else{dx=a[5];dy=a[6];dw=a[7];dh=a[8]}
+      const sc=Math.hypot(tr.a,tr.b);rec.imgs.push({im,x:tr.a*dx+tr.e,y:tr.d*dy+tr.f,w:dw*sc,h:dh*Math.hypot(tr.c,tr.d),small:(a.length===3?im.width:a.length===5?dw:a[7])<=0});
+    }catch(e){}
+    return di.apply(this,arguments);
+  };
+  return {rec,done(){ctx.fillText=ft;ctx.drawImage=di;objDraw=od}};
+}
+function lintCurrent(){
+  const tp=cur();if(tp.free||!state.vals[tp.id])return {issues:[],stats:{}};
+  const H=Hnow(),F=state.vals[tp.id],cap=lintCapture();
+  try{render()}finally{cap.done()}
+  const T=cap.rec.texts,issues=[],M=evM(W),add=(sev,code,msg,fix)=>issues.push({sev,code,msg,fix:fix||null});
+  const lines=v=>String(v==null?'':v).split('\n').map(x=>x.trim().toUpperCase()).filter(Boolean);
+  const role=s=>{const u=s.trim().toUpperCase();
+    if(lines(F.head).includes(u))return 'head';if(lines(F.off).includes(u)||u===lines(F.pre)[0]&&false)return 'off';
+    if(lines(F.osub).includes(u))return 'sub';if(lines(F.kicker).includes(u))return 'kicker';
+    if(F.num&&u===String(F.num).toUpperCase())return 'num';if(u===String(F.fprice||'').toUpperCase())return 'price';return 'other'};
+  T.forEach(t=>t.role=role(t.s));
+  const by=r=>T.filter(t=>t.role===r),mx=a=>a.length?Math.max(...a.map(t=>t.size)):0,mn=a=>a.length?Math.min(...a.map(t=>t.size)):0;
+  const hs=mn(by('head')),os=mn(by('off')),ss=mn(by('sub')),ks=mn(by('kicker'));
+  /* size */
+  T.forEach(t=>{if(t.size<W*LINT.minText&&t.role!=='other')add('error','tiny','"'+t.s+'" is only '+Math.round(t.size)+'px - too small to read on a phone',{k:t.role})});
+  if(by('head').length&&by('head').length<=2&&hs<W*LINT.minHead)add('warn','head-small','Headline is small ('+Math.round(hs)+'px) - the event name should lead',{k:'head'});
+  /* hierarchy */
+  if(hs&&os&&os>hs*1.02)add('error','rank-offer','Offer is bigger than the headline - the headline should lead',{k:'off'});
+  if(os&&ss&&ss>os*.9)add('warn','rank-sub','Offer sub line is nearly as big as the offer',{k:'sub'});
+  if(ss&&ks&&ks>ss*1.02)add('warn','rank-kicker','Eyebrow is bigger than the sub line',{k:'kicker'});
+  if(F.num&&by('num').length&&hs&&mx(by('num'))<hs*.9&&0)add('warn','rank-num','Big number is smaller than the headline');
+  /* margins */
+  T.forEach(t=>{if(t.role==='other')return;if(t.x0<M*LINT.marginTol||t.x1>W-M*LINT.marginTol||t.y0<M*LINT.marginTol*.7||t.y1>H-M*LINT.marginTol*.7)add('error','margin','"'+t.s+'" is too close to the edge',{k:t.role})});
+  /* overlaps between different text items */
+  for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++){
+    const a=T[i],b=T[j];if(a.s===b.s)continue;
+    const ix=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0),iy=Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0);
+    if(ix>2&&iy>2){const ar=ix*iy/Math.min((a.x1-a.x0)*(a.y1-a.y0),(b.x1-b.x0)*(b.y1-b.y0));if(ar>LINT.overlap)add('error','overlap','"'+a.s+'" overlaps "'+b.s+'"',{k:a.role})}
+  }
+  /* text colliding with a badge / price card it does not belong to (text fully inside the object is fine) */
+  T.forEach(t=>cap.rec.objs.forEach(o=>{
+    const ix=Math.min(t.x1,o.x1)-Math.max(t.x0,o.x0),iy=Math.min(t.y1,o.y1)-Math.max(t.y0,o.y0);
+    if(ix>2&&iy>2){const ta=(t.x1-t.x0)*(t.y1-t.y0),inter=ix*iy,inside=inter>=ta*.97;if(!inside&&inter>ta*.1)add('error','overlap','"'+t.s+'" runs into the '+o.key.replace('obj:','').toLowerCase(),{k:t.role})}
+  }));
+  /* story (9:16): keep copy out of the app's own top/bottom UI */
+  if(H>W*1.6)T.forEach(t=>{if(t.role==='other')return;if(t.y0<H*.1||t.y1>H*.92)add('warn','story-zone','"'+t.s+'" sits where Instagram/TikTok overlay their own buttons',{k:t.role})});
+  /* product photo size */
+  const ph=cap.rec.imgs.filter(i=>i.im&&i.im!==BRAND.logo&&i.w>W*.2&&i.h>W*.2).sort((a,b)=>b.w*b.h-a.w*a.h)[0];
+  if(ph){const area=ph.w*ph.h/(W*H);
+    if(area<LINT.minPhotoArea&&ph.w<W*LINT.minPhotoW)add('warn','photo-small','Product photo is small ('+Math.round(area*100)+'% of the post) - give the product more room',{k:'photo'})}
+  const ink=T.filter(t=>t.role!=='other'&&t.y1>0&&t.y0<H);
+  const used=ink.length?{top:Math.min(...ink.map(t=>t.y0)),bot:Math.max(...ink.map(t=>t.y1))}:{top:0,bot:H};
+  return {issues,stats:{hs,os,ss,ks,photo:ph?ph.w*ph.h/(W*H):null,texts:T.length,used}};
+}
 
 const T_CLASSIC=[
 {id:'meme',name:'Seasonal Meme',sub:'Character cutout with falling leaves, snow or confetti',
@@ -2899,6 +3042,7 @@ function drawDel(p){
 }
 function drawOverlay(){
   const H=Hnow();octx.clearRect(0,0,W,H);if(state.rec)return;
+  if(SAFE)drawSafe(H);
   const tp=cur();
   if(tp.free){
     const L=selLayer(),hv=hover&&hover.type==='layer'?state.free.layers.find(l=>l.id===hover.id):null;
@@ -2961,7 +3105,7 @@ function histBtns(){const u=$('#undoBtn'),r=$('#redoBtn');if(u)u.disabled=!HIST.
 
 /* ----- persistence ----- */
 let saveTimer=null;
-function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(typeof paintActiveThumb==='function')paintActiveThumb()}
+function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(typeof scheduleCheck==='function')scheduleCheck();if(typeof paintActiveThumb==='function')paintActiveThumb()}
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
@@ -3385,7 +3529,7 @@ function buildFields(){
   });
   const rest=fl.filter(f=>!used.has(f.k));
   if(rest.length){const g=card(box,'Other',true,'fld:Other');rest.forEach(f=>{const o={wrapKey:f.k};if(f.t==='select')o.o=f.o;ctl(g,f.l,f.t,v,f.k,o)})}
-  buildBgBar();
+  buildBgBar();if(typeof scheduleCheck==='function')scheduleCheck();
 }
 /* ----- pinned background bar: the post's background colour is always one click away ----- */
 const BG_PRESETS=[['#FFE81A','Leon\u2019s yellow'],['#C8102E','Leon\u2019s red'],['#111111','Black'],['#FFFFFF','White'],['#F4F1EA','Cream'],['#6B6B6B','Grey'],['#00BA99','Little Leon\u2019s teal']];
@@ -3759,7 +3903,71 @@ loadBrand(()=>{if(!state.logo)applyLogo(BRAND.logo);paintThumbs();});
   const tl=document.getElementById('topLogo');if(tl)tl.src=ASSETS.logo;
   const lk=document.createElement('link');lk.rel='icon';lk.href=ASSETS.logo;document.head.appendChild(lk);
 }catch(e){}})();
-fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();if(!cur().free)buildFields()});fitStage();requestAnimationFrame(tick);
+
+/* ---------- safe zones: margin guide + (9:16) the strips the apps cover with their own buttons ---------- */
+let SAFE=false;
+function drawSafe(H){
+  const ds=DS(W,H),M=ds.M;octx.save();
+  if(ds.story){octx.fillStyle='rgba(220,38,38,.16)';octx.fillRect(0,0,W,H*.1);octx.fillRect(0,H*.92,W,H*.08);
+    octx.fillStyle='rgba(220,38,38,.9)';octx.font='700 22px Montserrat,Arial';octx.textAlign='center';octx.fillText('APP UI - keep copy out',W/2,H*.05+8);octx.fillText('APP UI - keep copy out',W/2,H*.96+8)}
+  octx.strokeStyle='rgba(0,150,255,.9)';octx.lineWidth=3;octx.setLineDash([14,10]);octx.strokeRect(M,ds.top,W-2*M,H-ds.top-ds.bot);
+  octx.setLineDash([]);octx.fillStyle='rgba(0,150,255,.95)';octx.font='700 20px Montserrat,Arial';octx.textAlign='left';octx.textAlign='right';octx.fillText('Safe margin',W-M-8,H-ds.bot-10);
+  octx.restore();
+}
+$('#safeBtn').addEventListener('click',()=>{SAFE=!SAFE;$('#safeBtn').setAttribute('aria-pressed',SAFE);render()});
+
+/* ---------- Design check: measured, not guessed. Runs on a settled frame, never while the post is animating ---------- */
+const CHK_KEY={head:'head',off:'off',sub:'osub',kicker:'kicker',num:'num',price:'fprice'};
+const CHK_HINT={tiny:'Shorten it, or add a line break, so it can be set larger.',overlap:'Shorten one of the two, or pick a layout with more room.',margin:'Shorten the text or reduce line length.','rank-offer':'Shorten the offer, or make the headline shorter so it can be set bigger.','rank-sub':'Shorten the sub line.','rank-kicker':'Shorten the eyebrow.','head-small':'Break the headline over 2 lines or use fewer words.','photo-small':'Try a Gallery, Full-bleed or Diagonal layout for more product.','story-zone':'Keep copy inside the blue dashed safe margin.'};
+let chkT=null,CHK_RES=null;
+function scheduleCheck(){clearTimeout(chkT);chkT=setTimeout(runCheck,450)}
+function runCheck(){
+  const b=$('#checkBtn');if(!b)return;const tp=cur();
+  if(state.rec||tp.free||!tp.id.startsWith('ev_')||!state.vals[tp.id]){b.hidden=true;return}
+  b.hidden=false;const t0=state.t;state.t=state.D*.92;let res;
+  try{res=lintCurrent()}catch(e){res={issues:[]}}finally{state.t=t0;render()}
+  const seen=new Set(),iss=res.issues.filter(i=>{const k=i.code+i.msg;if(seen.has(k))return false;seen.add(k);return true});
+  CHK_RES=iss;const errs=iss.filter(i=>i.sev==='error').length,n=iss.length;
+  $('#checkDot').className=n?(errs?'err':'warn'):'ok';
+  $('#checkTxt').textContent=n?(errs?errs+' to fix'+(n>errs?' · '+(n-errs)+' tips':''):n+' tip'+(n>1?'s':'')):'Design check passed';
+  if(!$('#checkPop').hidden)fillCheckPop();
+}
+function fillCheckPop(){
+  const p=$('#checkPop');p.innerHTML='';p.append(el('h4','','Design check'));
+  if(!CHK_RES||!CHK_RES.length){p.append(el('div','ok','Type sizes, hierarchy, margins and overlaps all pass for this layout and size. Switch the format above and it re-checks.'));return}
+  CHK_RES.forEach(i=>{
+    const r=el('div','is '+i.sev);r.append(el('i'));const sp=el('span');sp.append(el('b','',i.msg));const h=CHK_HINT[i.code];if(h){sp.append(el('br'));sp.append(document.createTextNode(h))}r.append(sp);
+    const key=i.fix&&CHK_KEY[i.fix.k];
+    if(key){const bt=el('button','btn sm','Edit');bt.type='button';bt.addEventListener('click',()=>{setTab('content');$('#checkPop').hidden=true;
+      const f=document.querySelector('#fields [data-key="'+key+'"]');if(f){const inp=f.querySelector('textarea,input,select');f.scrollIntoView({block:'center'});if(inp)inp.focus()}});r.append(bt)}
+    p.append(r)});
+}
+$('#checkBtn').addEventListener('click',e=>{
+  const p=$('#checkPop');if(!p.hidden){p.hidden=true;return}
+  runCheck();fillCheckPop();p.hidden=false;const r=e.currentTarget.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(r.left,innerWidth-p.offsetWidth-8))+'px';p.style.bottom=(innerHeight-r.top+8)+'px';p.style.top='auto';
+});
+document.addEventListener('mousedown',e=>{const p=$('#checkPop');if(!p.hidden&&!p.contains(e.target)&&!$('#checkBtn').contains(e.target))p.hidden=true});
+
+/* ---------- Guide: the Leon's design pattern, written down so any post follows it ---------- */
+function buildGuide(){
+  const g=$('#guideBox');if(!g)return;g.innerHTML='';g.className='guide';
+  const H=(t)=>g.append(el('h4','',t)),P=(t)=>g.append(el('p','',t));
+  H('How every Leon’s post is built');P('Every layout follows the same system, so a post made on Monday and one made in December still feel like one brand. The Design check chip under the canvas tests your post against these rules.');
+  H('1 · Type ranks (big → small)');
+  const ty=el('div','ty');[['Headline','EVENT NAME',20],['Offer','UP TO 50% OFF',17],['Sub line','Select sofas while stock lasts',12.5],['Eyebrow','FOR A LIMITED TIME',10.5],['Fine print','Proudly Canadian · since 1909',9.5]].forEach(([a,b,sz])=>{const d=el('div');d.append(el('b','',a));const s=el('span','',b);s.style.fontSize=sz+'px';s.style.fontWeight=a==='Headline'||a==='Offer'?900:a==='Eyebrow'?800:700;if(a==='Eyebrow')s.style.letterSpacing='.12em';d.append(s);ty.append(d)});g.append(ty);
+  P('The event name leads. The offer is never bigger than the headline. Price cards sit below both. Type scales up automatically on taller posts.');
+  H('2 · Colour has a job');
+  const pal=el('div','pal');[['#FFE81A','Yellow','ground & energy'],['#111111','Black','authority & contrast'],['#C8102E','Red','price & urgency'],['#FFFFFF','White','calm, clean framing']].forEach(([h,n,d])=>{const x=el('div');const i=el('i');i.style.background=h;x.append(i);const t=el('span');t.innerHTML='<b>'+n+'</b><br>'+d;x.append(t);pal.append(x)});g.append(pal);
+  P('Text colour follows the background automatically, so you can’t end up with dark-on-dark.');
+  H('3 · Space');
+  const ul=el('ul');['One 7% margin on every side. Nothing sits inside it (turn on Safe zones to see it).','9:16 also keeps copy out of the top and bottom strips the apps cover.','Photos get the room left after the copy is measured, never the other way round.'].forEach(t=>ul.append(el('li','',t)));g.append(ul);
+  H('4 · Which layout for which job');
+  const mp=el('div','map');[['gallery','Gallery','Financing, seasonal: calm, editorial, price-led'],['sunray','Sunray','Mega sales: one product, big energy'],['diagonal','Diagonal','Super sales: motion and a big offer'],['arch','Arch','Black Friday, premium: dark and luxe'],['ticket','Ticket','Appreciation, rewards, coupons'],['fullbleed','Full-bleed','Lifestyle photography as the hero']].forEach(([k,n,d])=>{const b=el('button');b.type='button';b.innerHTML=n+'<small>'+d+'</small>';b.addEventListener('click',()=>{const tp=cur();if(tp.free||!state.vals[tp.id]||!('layout' in state.vals[tp.id]))return;state.vals[tp.id].layout=k;dirty();buildFields();render();toast('Layout: '+LAYOUT_NAMES[k])});mp.append(b)});g.append(mp);
+  H('5 · Before you post');
+  const u2=el('ul');['Design check says “passed”.','One idea only: one event name, one offer, one price.','Headline readable at thumbnail size (squint test).','Legal line (O.A.C., dates) is in the sub line, not hidden.'].forEach(t=>u2.append(el('li','',t)));g.append(u2);
+}
+buildGuide();fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();if(!cur().free)buildFields()});fitStage();requestAnimationFrame(tick);
 document.fonts.addEventListener('loadingdone',()=>{paintThumbs();fontNote()});
 Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px "proxima-nova"'),document.fonts.load('800 40px "proxima-soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});
 </script>

@@ -32,6 +32,7 @@ function drawDel(p){
 }
 function drawOverlay(){
   const H=Hnow();octx.clearRect(0,0,W,H);if(state.rec)return;
+  if(SAFE)drawSafe(H);
   const tp=cur();
   if(tp.free){
     const L=selLayer(),hv=hover&&hover.type==='layer'?state.free.layers.find(l=>l.id===hover.id):null;
@@ -94,7 +95,7 @@ function histBtns(){const u=$('#undoBtn'),r=$('#redoBtn');if(u)u.disabled=!HIST.
 
 /* ----- persistence ----- */
 let saveTimer=null;
-function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(typeof paintActiveThumb==='function')paintActiveThumb()}
+function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(typeof scheduleCheck==='function')scheduleCheck();if(typeof paintActiveThumb==='function')paintActiveThumb()}
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
@@ -518,7 +519,7 @@ function buildFields(){
   });
   const rest=fl.filter(f=>!used.has(f.k));
   if(rest.length){const g=card(box,'Other',true,'fld:Other');rest.forEach(f=>{const o={wrapKey:f.k};if(f.t==='select')o.o=f.o;ctl(g,f.l,f.t,v,f.k,o)})}
-  buildBgBar();
+  buildBgBar();if(typeof scheduleCheck==='function')scheduleCheck();
 }
 /* ----- pinned background bar: the post's background colour is always one click away ----- */
 const BG_PRESETS=[['#FFE81A','Leon\u2019s yellow'],['#C8102E','Leon\u2019s red'],['#111111','Black'],['#FFFFFF','White'],['#F4F1EA','Cream'],['#6B6B6B','Grey'],['#00BA99','Little Leon\u2019s teal']];
@@ -892,6 +893,70 @@ loadBrand(()=>{if(!state.logo)applyLogo(BRAND.logo);paintThumbs();});
   const tl=document.getElementById('topLogo');if(tl)tl.src=ASSETS.logo;
   const lk=document.createElement('link');lk.rel='icon';lk.href=ASSETS.logo;document.head.appendChild(lk);
 }catch(e){}})();
-fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();if(!cur().free)buildFields()});fitStage();requestAnimationFrame(tick);
+
+/* ---------- safe zones: margin guide + (9:16) the strips the apps cover with their own buttons ---------- */
+let SAFE=false;
+function drawSafe(H){
+  const ds=DS(W,H),M=ds.M;octx.save();
+  if(ds.story){octx.fillStyle='rgba(220,38,38,.16)';octx.fillRect(0,0,W,H*.1);octx.fillRect(0,H*.92,W,H*.08);
+    octx.fillStyle='rgba(220,38,38,.9)';octx.font='700 22px Montserrat,Arial';octx.textAlign='center';octx.fillText('APP UI - keep copy out',W/2,H*.05+8);octx.fillText('APP UI - keep copy out',W/2,H*.96+8)}
+  octx.strokeStyle='rgba(0,150,255,.9)';octx.lineWidth=3;octx.setLineDash([14,10]);octx.strokeRect(M,ds.top,W-2*M,H-ds.top-ds.bot);
+  octx.setLineDash([]);octx.fillStyle='rgba(0,150,255,.95)';octx.font='700 20px Montserrat,Arial';octx.textAlign='left';octx.textAlign='right';octx.fillText('Safe margin',W-M-8,H-ds.bot-10);
+  octx.restore();
+}
+$('#safeBtn').addEventListener('click',()=>{SAFE=!SAFE;$('#safeBtn').setAttribute('aria-pressed',SAFE);render()});
+
+/* ---------- Design check: measured, not guessed. Runs on a settled frame, never while the post is animating ---------- */
+const CHK_KEY={head:'head',off:'off',sub:'osub',kicker:'kicker',num:'num',price:'fprice'};
+const CHK_HINT={tiny:'Shorten it, or add a line break, so it can be set larger.',overlap:'Shorten one of the two, or pick a layout with more room.',margin:'Shorten the text or reduce line length.','rank-offer':'Shorten the offer, or make the headline shorter so it can be set bigger.','rank-sub':'Shorten the sub line.','rank-kicker':'Shorten the eyebrow.','head-small':'Break the headline over 2 lines or use fewer words.','photo-small':'Try a Gallery, Full-bleed or Diagonal layout for more product.','story-zone':'Keep copy inside the blue dashed safe margin.'};
+let chkT=null,CHK_RES=null;
+function scheduleCheck(){clearTimeout(chkT);chkT=setTimeout(runCheck,450)}
+function runCheck(){
+  const b=$('#checkBtn');if(!b)return;const tp=cur();
+  if(state.rec||tp.free||!tp.id.startsWith('ev_')||!state.vals[tp.id]){b.hidden=true;return}
+  b.hidden=false;const t0=state.t;state.t=state.D*.92;let res;
+  try{res=lintCurrent()}catch(e){res={issues:[]}}finally{state.t=t0;render()}
+  const seen=new Set(),iss=res.issues.filter(i=>{const k=i.code+i.msg;if(seen.has(k))return false;seen.add(k);return true});
+  CHK_RES=iss;const errs=iss.filter(i=>i.sev==='error').length,n=iss.length;
+  $('#checkDot').className=n?(errs?'err':'warn'):'ok';
+  $('#checkTxt').textContent=n?(errs?errs+' to fix'+(n>errs?' · '+(n-errs)+' tips':''):n+' tip'+(n>1?'s':'')):'Design check passed';
+  if(!$('#checkPop').hidden)fillCheckPop();
+}
+function fillCheckPop(){
+  const p=$('#checkPop');p.innerHTML='';p.append(el('h4','','Design check'));
+  if(!CHK_RES||!CHK_RES.length){p.append(el('div','ok','Type sizes, hierarchy, margins and overlaps all pass for this layout and size. Switch the format above and it re-checks.'));return}
+  CHK_RES.forEach(i=>{
+    const r=el('div','is '+i.sev);r.append(el('i'));const sp=el('span');sp.append(el('b','',i.msg));const h=CHK_HINT[i.code];if(h){sp.append(el('br'));sp.append(document.createTextNode(h))}r.append(sp);
+    const key=i.fix&&CHK_KEY[i.fix.k];
+    if(key){const bt=el('button','btn sm','Edit');bt.type='button';bt.addEventListener('click',()=>{setTab('content');$('#checkPop').hidden=true;
+      const f=document.querySelector('#fields [data-key="'+key+'"]');if(f){const inp=f.querySelector('textarea,input,select');f.scrollIntoView({block:'center'});if(inp)inp.focus()}});r.append(bt)}
+    p.append(r)});
+}
+$('#checkBtn').addEventListener('click',e=>{
+  const p=$('#checkPop');if(!p.hidden){p.hidden=true;return}
+  runCheck();fillCheckPop();p.hidden=false;const r=e.currentTarget.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(r.left,innerWidth-p.offsetWidth-8))+'px';p.style.bottom=(innerHeight-r.top+8)+'px';p.style.top='auto';
+});
+document.addEventListener('mousedown',e=>{const p=$('#checkPop');if(!p.hidden&&!p.contains(e.target)&&!$('#checkBtn').contains(e.target))p.hidden=true});
+
+/* ---------- Guide: the Leon's design pattern, written down so any post follows it ---------- */
+function buildGuide(){
+  const g=$('#guideBox');if(!g)return;g.innerHTML='';g.className='guide';
+  const H=(t)=>g.append(el('h4','',t)),P=(t)=>g.append(el('p','',t));
+  H('How every Leon’s post is built');P('Every layout follows the same system, so a post made on Monday and one made in December still feel like one brand. The Design check chip under the canvas tests your post against these rules.');
+  H('1 · Type ranks (big → small)');
+  const ty=el('div','ty');[['Headline','EVENT NAME',20],['Offer','UP TO 50% OFF',17],['Sub line','Select sofas while stock lasts',12.5],['Eyebrow','FOR A LIMITED TIME',10.5],['Fine print','Proudly Canadian · since 1909',9.5]].forEach(([a,b,sz])=>{const d=el('div');d.append(el('b','',a));const s=el('span','',b);s.style.fontSize=sz+'px';s.style.fontWeight=a==='Headline'||a==='Offer'?900:a==='Eyebrow'?800:700;if(a==='Eyebrow')s.style.letterSpacing='.12em';d.append(s);ty.append(d)});g.append(ty);
+  P('The event name leads. The offer is never bigger than the headline. Price cards sit below both. Type scales up automatically on taller posts.');
+  H('2 · Colour has a job');
+  const pal=el('div','pal');[['#FFE81A','Yellow','ground & energy'],['#111111','Black','authority & contrast'],['#C8102E','Red','price & urgency'],['#FFFFFF','White','calm, clean framing']].forEach(([h,n,d])=>{const x=el('div');const i=el('i');i.style.background=h;x.append(i);const t=el('span');t.innerHTML='<b>'+n+'</b><br>'+d;x.append(t);pal.append(x)});g.append(pal);
+  P('Text colour follows the background automatically, so you can’t end up with dark-on-dark.');
+  H('3 · Space');
+  const ul=el('ul');['One 7% margin on every side. Nothing sits inside it (turn on Safe zones to see it).','9:16 also keeps copy out of the top and bottom strips the apps cover.','Photos get the room left after the copy is measured, never the other way round.'].forEach(t=>ul.append(el('li','',t)));g.append(ul);
+  H('4 · Which layout for which job');
+  const mp=el('div','map');[['gallery','Gallery','Financing, seasonal: calm, editorial, price-led'],['sunray','Sunray','Mega sales: one product, big energy'],['diagonal','Diagonal','Super sales: motion and a big offer'],['arch','Arch','Black Friday, premium: dark and luxe'],['ticket','Ticket','Appreciation, rewards, coupons'],['fullbleed','Full-bleed','Lifestyle photography as the hero']].forEach(([k,n,d])=>{const b=el('button');b.type='button';b.innerHTML=n+'<small>'+d+'</small>';b.addEventListener('click',()=>{const tp=cur();if(tp.free||!state.vals[tp.id]||!('layout' in state.vals[tp.id]))return;state.vals[tp.id].layout=k;dirty();buildFields();render();toast('Layout: '+LAYOUT_NAMES[k])});mp.append(b)});g.append(mp);
+  H('5 · Before you post');
+  const u2=el('ul');['Design check says “passed”.','One idea only: one event name, one offer, one price.','Headline readable at thumbnail size (squint test).','Legal line (O.A.C., dates) is in the sub line, not hidden.'].forEach(t=>u2.append(el('li','',t)));g.append(u2);
+}
+buildGuide();fontNote();buildTemplates();buildInspector();SAMPLE_IMG.complete||SAMPLE_IMG.addEventListener('load',()=>{paintThumbs();if(!cur().free)buildFields()});fitStage();requestAnimationFrame(tick);
 document.fonts.addEventListener('loadingdone',()=>{paintThumbs();fontNote()});
 Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px "proxima-nova"'),document.fonts.load('800 40px "proxima-soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});

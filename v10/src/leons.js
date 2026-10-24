@@ -1,6 +1,7 @@
 /* ---------- current Leon's house layouts (from the brand's own posts) ---------- */
 const LY='#FFE81A';
-function yellowField(c,W,H,c1,c2){const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
+function yellowField(c,W,H,c1,c2){/* two very different colours (e.g. yellow to black) blend into mud: use a gentle shade of the first instead */if(typeof lum==='function'&&Math.abs(lum(c1)-lum(c2))>.3){const m=/^#?([0-9a-f]{6})$/i.exec(c1||'');if(m){const n=parseInt(m[1],16),f=sh=>Math.round(((n>>sh)&255)*(lum(c1)>.5?.9:1.18));c2='#'+[16,8,0].map(sh=>Math.min(255,f(sh)).toString(16).padStart(2,'0')).join('')}}
+  const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
 function mastCircle(c,W,H,t,I,tag,fill,bf){
   const ST=postStyle();
   const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=ST.textEase(prog(t,0,.7*ST.durMul));

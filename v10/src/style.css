@@ -172,3 +172,29 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 .tpl-item canvas{width:72px;height:90px}
 .btn.danger{border-color:#D92D20;color:#D92D20;background:var(--surface)}
 .btn.danger:hover{background:#D92D20;color:#fff;border-color:#D92D20}
+
+/* Design check chip + popover, safe-zone toggle, Guide tab */
+.btn.chk{display:inline-flex;align-items:center;gap:7px}
+#checkDot{width:9px;height:9px;border-radius:50%;background:#9aa0a6;display:inline-block}
+#checkDot.ok{background:#16a34a}#checkDot.warn{background:#f59e0b}#checkDot.err{background:#dc2626}
+.btn[aria-pressed=true]{background:var(--acc);color:var(--acc-ink)}
+.chkpop{position:fixed;z-index:60;width:min(380px,92vw);max-height:60vh;overflow:auto;background:var(--panel,#fff);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:12px}
+.chkpop h4{margin:0 0 8px;font:800 13px var(--f-ui)}
+.chkpop .is{display:flex;gap:9px;align-items:flex-start;padding:8px 6px;border-top:1px solid var(--line);font:600 12.5px/1.35 var(--f-ui)}
+.chkpop .is i{flex:none;margin-top:4px;width:9px;height:9px;border-radius:50%;background:#f59e0b}
+.chkpop .is.error i{background:#dc2626}
+.chkpop .is span{flex:1}.chkpop .ok{font:600 13px/1.4 var(--f-ui);color:var(--mute)}
+.chkpop .is button{flex:none}
+.guide h4{margin:14px 0 6px;font:800 12px var(--f-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.guide p,.guide li{font:500 12.5px/1.45 var(--f-ui);margin:4px 0}
+.guide ul{padding-left:18px;margin:4px 0}
+.guide .ty{display:flex;flex-direction:column;gap:5px;margin:6px 0}
+.guide .ty div{display:flex;align-items:baseline;gap:8px}
+.guide .ty b{flex:none;width:74px;font:700 10.5px var(--f-ui);color:var(--mute);text-transform:uppercase}
+.guide .ty span{font-family:Montserrat,Arial,sans-serif;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guide .pal{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.guide .pal div{width:calc(50% - 4px);display:flex;gap:8px;align-items:center;font:600 11.5px/1.3 var(--f-ui)}
+.guide .pal i{flex:none;width:30px;height:30px;border-radius:8px;border:1px solid var(--line)}
+.guide .map{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+.guide .map button{text-align:left;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:700 12px var(--f-ui);cursor:pointer}
+.guide .map button small{display:block;font:500 11px/1.3 var(--f-ui);color:var(--mute);margin-top:2px}

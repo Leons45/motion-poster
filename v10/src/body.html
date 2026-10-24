@@ -6,17 +6,18 @@
     <div class="bar">
       <button class="btn" id="playBtn" type="button">Pause</button>
       <button class="btn" id="restartBtn" type="button">Restart</button>
-      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
+      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn" id="safeBtn" type="button" aria-pressed="false" title="Show the margin and (for 9:16) the app-UI safe zones">Safe zones</button><button class="btn chk" id="checkBtn" type="button" title="Measure type size, hierarchy, spacing and overlaps on this post"><i id="checkDot"></i><span id="checkTxt">Design check</span></button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
       <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
       <span class="time" id="time">0.0s / 6s</span>
     </div>
+    <div class="chkpop" id="checkPop" hidden role="dialog" aria-label="Design check"></div>
     <p id="status"></p>
   </section>
 <aside class="panel insp" id="insp">
   <div class="fmtbar"><span>Format</span><div class="seg" id="ratioSeg" role="group" aria-label="Aspect ratio"></div></div>
   <div class="bgbar" id="bgBar" role="group" aria-label="Post background"></div>
   <div class="tabs" id="tabs" role="tablist" aria-label="Panel sections">
-    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button>
+    <button type="button" role="tab" data-tab="content" class="on" aria-selected="true">Content</button><button type="button" role="tab" data-tab="object" aria-selected="false">Object<i class="tdot" id="objDot" hidden></i></button><button type="button" role="tab" data-tab="add" aria-selected="false">Add</button><button type="button" role="tab" data-tab="style" aria-selected="false">Style</button><button type="button" role="tab" data-tab="export" aria-selected="false">Export</button><button type="button" role="tab" data-tab="guide" aria-selected="false">Guide</button>
   </div>
   <div class="tabbody" id="tabBody">
   <div class="pane" data-pane="content">
@@ -40,6 +41,7 @@
     <p class="note" id="fontNote" style="margin-top:0"></p>
     <p class="note">Click any text on the canvas to set its own typeface, weight, size, colour and position.</p>
   </div>
+  <div class="pane" data-pane="guide" hidden><div id="guideBox"></div></div>
   <div class="pane" data-pane="export" hidden>
     <p class="note" id="ratioNote" style="margin-top:0"></p>
     <label class="fld" style="margin-top:12px"><span>Loop length</span><div class="range"><input type="range" id="dur" min="3" max="12" step="1" value="6"><output id="durOut">6s</output></div></label>

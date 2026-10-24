@@ -26,9 +26,12 @@ Run it from this directory (or anywhere — it locates itself and writes to
   — template definitions, grouped by when/where they were added
 - `leons.js` — shared Leon's-brand drawing helpers (`mastCircle`,
   `mastText`, `bottomArc`, `madeInCanada`, etc.) used across many templates
-- `events.js` — the "Event Posts" system: 6 campaign categories
-  (`EVENT_CATS`) × 8 shared structural layouts (`LAYOUTS`), each category a
-  template in `T_EVENTS`
+- `events.js` — the "Event Posts" system: 11 campaign categories
+  (`EVENT_CATS`) × 13 shared structural layouts (`LAYOUTS`), each category a
+  template in `T_EVENTS`; the design tokens (`DS`) live at the top
+- `lint.js` — the Design check: records what a render actually drew (text size/position, images, badge
+  boxes) and reports tiny type, hierarchy breaks, margin/overlap problems, small product photo and 9:16
+  app-UI zone intrusions (`lintCurrent`, thresholds in `LINT`, all fractions of W)
 - `engine.js` — core state (`state`), the per-text/per-object override
   system (`ovFor`/`styleFor`/`ovProxy`, see comments there for how
   position vs. typography overrides are scoped differently), the Quick
@@ -122,3 +125,16 @@ Run it from this directory (or anywhere — it locates itself and writes to
   quick elements and free layers are really removed; all undoable). `flushPending()` commits the pending
   history entry before Undo/Redo. Hit-testing rules: `OBJ_NOHIT` wrappers (Logo bar) are not clickable and text
   inside `obj:Quick*` never matches template fields (`FR.noMatch`).
+- **Design system** (`events.js` `DS(W,H)`): one function owns every size that depends on the canvas shape. `k`
+  (1 square, 1.07 portrait, 1.2 story) scales hero type; `top`/`bot` are the story safe insets (12.5% / 10.5%);
+  `sub`/`kick` are the type floors (4.0% / 3.1% of W); `pw` is the price card width. `evBlocks` is the shared
+  measured headline/offer/sub/eyebrow stack with the rank rules enforced (offer <= 95% of headline, eyebrow <=
+  sub). Layouts must use these tokens instead of private numbers. The split layout turns into a top/bottom split
+  on 9:16; the sunray ribbon hangs under the photo circle and the price sticker sits on the circle's rim.
+- **Design check** (`lint.js`, `ui.js` `runCheck`/`fillCheckPop`): the chip under the canvas re-measures a
+  settled frame (t = 92% of the loop) after every edit; click it for the list, each item has an Edit button that
+  jumps to the field. `Safe zones` draws the 7% margin and the 9:16 UI strips (`drawSafe`). The Guide tab
+  (`buildGuide`) documents the Leon's pattern (type ranks, colour jobs, space, layout-per-job). Regression:
+  `lintsweep.py` renders every layout x category x ratio x stress text and must report no `error` entries.
+- **Post types**: besides the 6 sale categories there are Buy More Save More (card), Clearance (stacked),
+  New Arrivals (full-bleed), Free Delivery (corner) and Proudly Canadian (sunray on red).
