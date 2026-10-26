@@ -3504,10 +3504,18 @@ function buildLogoLib(){
     grid.append(b);
   });
   box.append(el('p','note','Click a logo to use it on every post.'));
-  ctl(box,'Logo layout','select',state,'logoAlign',{o:[['center','Centred'],['left','Left-aligned']],on:()=>persistLogoAlign()});
-  box.append(el('p','note','Applies to the classic Leon’s masthead (Circle/Card) templates and the Event Posts “Circle masthead” layout; other Event Posts layouts already set their own logo position per design.'));
+  ctl(box,'Logo layout','select',state,'logoAlign',{o:[['center','Centred'],['left','Left-aligned']],on:()=>{resetLogoOverrides();persistLogoAlign();render()}});
+  box.append(el('p','note','Applies to the classic Leon’s masthead templates and every Event Posts layout except Stacked bars (its eyebrow text sits in the gap next to the logo). Switching this snaps the logo back to that exact spot, even if you’ve dragged it by hand.'));
 }
 function persistLogoAlign(){try{localStorage.setItem('mps_logo_align',state.logoAlign||'center')}catch(e){}}
+/* The align toggle is a global "use the computed default position" switch. A manual
+   drag on the logo stores a (dx,dy) offset per template+ratio that would otherwise
+   keep being added on top of the newly computed anchor, landing the logo somewhere
+   between the old drag and the new position instead of exactly where the toggle says.
+   Clearing every stored logo offset here is what makes the toggle authoritative. */
+function resetLogoOverrides(){
+  Object.keys(state.ovr).forEach(k=>{const o=state.ovr[k];if(o&&o['obj:Logo'])delete o['obj:Logo']});
+}
 try{
   const saved=localStorage.getItem('mps_logo_id');
   state.logoId=(saved&&BUILTIN_LOGOS.some(l=>l.id===saved))?saved:BUILTIN_LOGOS[0].id;
