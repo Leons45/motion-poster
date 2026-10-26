@@ -125,7 +125,15 @@ function objDraw(c,key,x,y,w,h,fn){
   const own=key.startsWith('obj:Quick');if(own)FR.noMatch=(FR.noMatch||0)+1;
   try{fn()}finally{if(own)FR.noMatch--;c.restore()}
 }
-function drawImg(c,img,x,y,w,h,o={}){const lab=o.label||'Image';objDraw(c,'obj:'+lab,x,y,w,h,()=>drawImgRaw(c,img,x,y,w,h,o))}
+function drawImg(c,img,x,y,w,h,o={}){
+  const lab=o.label||'Image';
+  /* Tag this hit key as a real photo placeholder (as opposed to any other clickable
+     object, like a badge or a card that happens to contain one) so the double-click
+     handler knows it's safe to try mapping it back to an upload slot and open the file
+     picker, instead of guessing for every object on the canvas. */
+  if(typeof FR!=='undefined'&&FR)(FR.imgKeys=FR.imgKeys||new Set()).add('obj:'+lab);
+  objDraw(c,'obj:'+lab,x,y,w,h,()=>drawImgRaw(c,img,x,y,w,h,o))
+}
 function drawImgRaw(c,img,x,y,w,h,o={}){
   const {ay=.5,ax=.5,label='Image',dark=false,shadow=0,fit='contain'}=o;
   if(!img){ph(c,x,y,w,h,label,dark);return}

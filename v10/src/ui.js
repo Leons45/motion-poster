@@ -747,6 +747,64 @@ ovc.addEventListener('drop',e=>{
     {const I=state.imgs[tp.id],slot=tp.images.find(s=>!I[s.k]&&s.k!=='logo')||tp.images[0];if(slot){I[slot.k]=im;buildImages();refreshStatus()}}
   });
 });
+
+/* ----- double-click to edit directly on the canvas -----
+   A double-click on a text field opens a positioned textarea right over it (instead of
+   making the user hunt for the matching control in the right panel); a double-click on a
+   photo slot opens the file picker directly. Image objects are only ever registered under
+   an 'obj:'+label hit-test key (drawImg()), never under their upload-slot key, so this maps
+   that key back to the real slot (tp.images[].k) the same way a person would: by matching
+   the slot's own label text, falling back to the template's only slot when there's just one. */
+function slotForObjKey(tp,key){
+  if(!key||!key.startsWith('obj:')||!tp.images||!tp.images.length)return null;
+  if(!(LAST&&LAST.imgKeys&&LAST.imgKeys.has(key)))return null;
+  const label=key.slice(4).toLowerCase();
+  if(tp.images.length===1)return tp.images[0];
+  let best=null,bestScore=-1;
+  tp.images.forEach(s=>{
+    const l=(s.l||'').toLowerCase();let score=0;
+    if(l===label)score=100;
+    else if(l.includes(label)||label.includes(l))score=60;
+    else{const aw=label.split(/\W+/).filter(Boolean),bw=new Set(l.split(/\W+/).filter(Boolean));score=aw.filter(w=>bw.has(w)).length}
+    if(score>bestScore){bestScore=score;best=s}
+  });
+  return bestScore>0?best:tp.images[0];
+}
+let editBox=null;
+function closeInlineEdit(commit){
+  if(!editBox)return;const {el:ta,key,tid,label}=editBox;
+  if(commit){const v=state.vals[tid];if(v&&key in v&&v[key]!==ta.value){v[key]=ta.value;dirty();buildFields0();if(typeof toast==='function')toast('Updated: '+label)}}
+  ta.remove();editBox=null;
+}
+function openInlineEdit(key){
+  const tp=cur(),f=tp.fields.find(x=>x.k===key),v=state.vals[tp.id];
+  if(editBox)closeInlineEdit(true);
+  if(!f||!(key in v))return;
+  const box=textBox(key);if(!box)return;
+  const wrap=$('#cvwrap'),r=ovc.getBoundingClientRect(),sx=r.width/W,sy=r.height/Hnow();
+  const ta=document.createElement('textarea');ta.className='inlineEdit';ta.value=v[key];ta.spellcheck=false;
+  ta.style.left=Math.round((box.x0-8)*sx)+'px';ta.style.top=Math.round((box.y0-8)*sy)+'px';
+  ta.style.width=Math.round((box.x1-box.x0+16)*sx)+'px';ta.style.height=Math.round((box.y1-box.y0+16)*sy)+'px';
+  wrap.append(ta);editBox={el:ta,key,tid:tp.id,label:f.l};ta.focus();ta.select();
+  ta.addEventListener('input',()=>{v[key]=ta.value;dirty()});
+  ta.addEventListener('blur',()=>closeInlineEdit(true));
+  ta.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Escape'){e.preventDefault();ta.value=v[key];closeInlineEdit(false)}
+    else if(e.key==='Enter'&&!e.shiftKey&&f.t!=='area'){e.preventDefault();closeInlineEdit(true)}
+  });
+}
+ovc.addEventListener('dblclick',e=>{
+  if(state.rec)return;const [x,y]=toCanvas(e),tp=cur(),key=hitText(x,y);if(!key)return;
+  if(key.startsWith('obj:')){
+    const slot=slotForObjKey(tp,key);
+    if(slot){select({type:'text',key});const I=state.imgs[tp.id];
+      pickFile(file=>loadImageFile(file,im=>{I[slot.k]=im;buildImages();refreshStatus()}))}
+    return;
+  }
+  const f=tp.fields.find(x=>x.k===key);
+  if(f&&(f.t==='text'||f.t==='area')){select({type:'text',key});openInlineEdit(key)}
+});
 document.addEventListener('keydown',e=>{
   const tag=document.activeElement&&document.activeElement.tagName;
   if(/INPUT|TEXTAREA|SELECT/.test(tag))return;
