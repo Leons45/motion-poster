@@ -431,7 +431,7 @@ function buildQuick(){
   add.append(sel);btn(add,'Add',()=>{const e=addQuick(tp.id,sel.value);select({type:'text',key:'obj:Quick'+e.id});buildQuick();dirty()},'primary');
   box.append(add);
 }
-const LAYOUT_ORDER=['sunray','gallery','ticket','diagonal','arch','circle','split','fullbleed','corner','stacked','poster','card','badge'];
+const LAYOUT_ORDER=['sunray','gallery','ticket','diagonal','arch','circle','split','fullbleed','corner','poster','card','badge'];
 const SIGNATURE=new Set(['gallery','arch','diagonal','sunray','ticket']);
 function buildLayoutGallery(box,tp){
   if(!tp.fields.some(f=>f.k==='layout'))return;
@@ -558,7 +558,7 @@ function buildLogoLib(){
   });
   box.append(el('p','note','Click a logo to use it on every post.'));
   ctl(box,'Logo layout','select',state,'logoAlign',{o:[['center','Centred'],['left','Left-aligned']],on:()=>{resetLogoOverrides();persistLogoAlign();render()}});
-  box.append(el('p','note','Applies to the classic Leon’s masthead templates and every Event Posts layout except Stacked bars (its eyebrow text sits in the gap next to the logo). Switching this snaps the logo back to that exact spot, even if you’ve dragged it by hand.'));
+  box.append(el('p','note','Applies to the classic Leon’s masthead templates and every Event Posts layout. Switching this snaps the logo back to that exact spot, even if you’ve dragged it by hand.'));
 }
 function persistLogoAlign(){try{localStorage.setItem('mps_logo_align',state.logoAlign||'center')}catch(e){}}
 /* The align toggle is a global "use the computed default position" switch. A manual

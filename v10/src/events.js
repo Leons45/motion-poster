@@ -5,7 +5,7 @@ const EVENT_CATS=[
   ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday'],
   ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery'],['canadian','Proudly Canadian']
 ];
-const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',stacked:'Stacked bars',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
+const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
    its own default `v` (a fixed shared object here previously meant every category's
    "Layout" field silently defaulted to 'circle', ignoring the distinct layout each one
@@ -295,46 +295,10 @@ function layoutCorner(c,W,H,t,D,F,I){
   if(F.flab)evPrice(c,W/2,H-ds.bot-ph2/2,pw2,F,dark,t,1.6);
 }
 
-/* ---------- layout 5: horizontal stacked colour bands ----------
-   The logo here stays left-fixed on purpose, not wired to the global logo-layout toggle:
-   the eyebrow is centred in the exact gap between the logo and the Made-in-Canada badge,
-   so moving the logo to the middle of the bar would run it straight into that text. */
-function layoutStacked(c,W,H,t,D,F,I){
-  const ST=postStyle(),M=evM(W),ds=DS(W,H),mc=F.mcol||'#111111',acc=F.acc||'#C8102E';
-  c.fillStyle=F.bg2||'#111';c.fillRect(0,0,W,H);
-  const barH=H*.12,lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,isDark(mc));
-  objDraw(c,'obj:Masthead',0,0,W,barH,()=>{
-    const p=ST.textEase(prog(t,0,.5*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,W,barH);c.restore();
-    pop(c,M+lw/2-lw*.046,barH/2,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
-    /* eyebrow centred in the room left between logo and badge */
-    const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kMax=W*.03,kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,kw,kMax,1.08,W*.022));
-    if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,barH/2-kb.h/2,{key:'kicker',wt:800,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw}));
-  });
-  if(F.maple!=='no')evMade(c,W-M,barH/2,micS,t,.3,isDark(mc),'right');
-  let titleSz=0;const hBandH=H*.22,hBandY=barH;
-  objDraw(c,'obj:Headline band',0,hBandY,W,hBandH,()=>{
-    c.fillStyle=F.bg1;c.fillRect(0,hBandY,W,hBandH);
-    const n=Math.max(1,String(F.head).split('\n').filter(l=>l.trim()!=='').length);
-    const hb=evFit(c,F.head,900,FM,W-2*M,Math.min(hBandH*.8/(n*1.08),W*.135),1.08,W*.07);titleSz=hb.size;
-    if(hb.h)evLines(c,hb,W/2,hBandY+(hBandH-hb.h)/2,{key:'head',wt:900,fill:inkOn(F.bg1),al:'center',t,at:.4,maxW:W-2*M});
-  });
-  const pBandY=hBandY+hBandH,pBandH=H*.44;
-  objDraw(c,'obj:Footer',0,pBandY,W,pBandH,()=>{
-    floorShadow(c,W/2,pBandY+pBandH*.86,W*.46,.22);
-    pop(c,W/2,pBandY+pBandH/2,t,.6,()=>drawImg(c,I.p,-W*.44,-pBandH*.45,W*.88,pBandH*.9,{label:'Product photo'}),{from:.8,dur:.9});
-  });
-  const oBandY=pBandY+pBandH,oBandH=H-oBandY,ink=inkOn(acc),sw=W-2*M;
-  objDraw(c,'obj:Price card',0,oBandY,W,oBandH,()=>{
-    const p=ST.textEase(prog(t,1.3*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=acc;c.fillRect(0,oBandY,W,oBandH);c.restore();
-    const pad=oBandH*.12,avail=oBandH-2*pad;
-    const ob=evFitM(c,F.off,900,FN,sw,Math.min(avail*.55,W*.15,titleSz?titleSz*.95:1e9),.98);
-    const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.3,Math.min(avail*.2,W*.04))));
-    const gap=sb.h?ob.size*.18:0,top=oBandY+(oBandH-(ob.h+gap+sb.h))/2;
-    c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
-    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();
-    if(sb.h)evLines(c,sb,W/2,top+ob.h+gap,{key:'osub',wt:800,fill:ink,al:'center',t,at:1.6,maxW:sw});
-  });
-}
+/* layout 5 ("Stacked bars") retired: flat horizontal colour bands with low contrast between
+   them and the weakest of the 13 layouts by a clear margin. Removed from LAYOUT_NAMES/LAYOUTS
+   rather than reworked - evDraw already falls back safely to layoutCircle for any post whose
+   saved state still says layout:'stacked'. */
 
 /* ---------- layout 6: centred poster — everything centred over a darkened photo ---------- */
 function layoutPoster(c,W,H,t,D,F,I){
@@ -507,10 +471,14 @@ function layoutGallery(c,W,H,t,D,F,I){
 
 /* S2 Arch: black luxe, centred; photo in an arched window with a brand-yellow keyline, offer set into its foot */
 function layoutArch(c,W,H,t,D,F,I){
-  const M=evM(W),ds=DS(W,H),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  /* background follows the person's own Background 1 choice, like every other layout -
+     it used to be derived from the masthead colour instead, so changing Background did
+     nothing here (it only coincidentally looked right while the default happened to be
+     near-black too) */
+  const M=evM(W),ds=DS(W,H),g=F.bg1||'#111111',ink=inkOn(g),hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
   const gl=c.createRadialGradient(W/2,H*.55,W*.05,W/2,H*.55,W*.8);gl.addColorStop(0,'rgba(255,255,255,.12)');gl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gl;c.fillRect(0,0,W,H);
-  const top=evTopRow(c,W,ds.top,t,I,F,{centre:true,chip:true});
+  const top=evTopRow(c,W,ds.top,t,I,F,{centre:true,chip:isDark(g)});
   const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,wI=sw*.66;
   const base=Math.min(W*.11,H*.08)*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,wI,base,false,base*.7);
@@ -520,7 +488,7 @@ function layoutArch(c,W,H,t,D,F,I){
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,lowH=ob.h+(sb.h?gS+sb.h:0);
   let y=top+H*.026;
   if(kb.h){evKick(c,kb,W/2,y,hl,'center',t,sw);y+=kb.h+gK}
-  if(hb.h){evLines(c,hb,W/2,y,{key:'head',wt:900,fill:'#fff',al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
+  if(hb.h){evLines(c,hb,W/2,y,{key:'head',wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
   const aTop=y+H*.034,aBot=H-ds.bot-sinceH-H*.022,ah=Math.max(aBot-aTop,H*.22),aw=Math.min(sw*.8,ah*1.02),ax=(W-aw)/2;
   const path=(o)=>{const x=ax-o,w=aw+2*o,rr2=w/2,yt=aTop-o;c.moveTo(x,aBot);c.lineTo(x,yt+rr2);c.arc(W/2,yt+rr2,rr2,Math.PI,0);c.lineTo(x+w,aBot);c.closePath()};
   const ko=W*.017;evRise(c,t,.25,H,()=>{c.strokeStyle=hl;c.lineWidth=Math.max(2.5,W*.003);c.beginPath();path(ko);c.stroke()});
@@ -532,12 +500,13 @@ function layoutArch(c,W,H,t,D,F,I){
   if(ob.h)evOffer(c,ob,W/2,ly,hl,'center',t,aw*.88);
   if(sb.h)evLines(c,sb,W/2,ly+ob.h+gS,{key:'osub',wt:700,fill:'rgba(255,255,255,.9)',al:'center',t,at:1.6,maxW:Math.max(aw*.88,wI)});
   if(hasP)evPrice(c,ax+aw-pw*.12,aTop+(aBot-aTop)*.5,pw,F,true,t,1.7);
-  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,'rgba(255,255,255,.62)','center');
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,ink==='#ffffff'?'rgba(255,255,255,.62)':'rgba(17,17,17,.6)','center');
 }
 
 /* S3 Diagonal: photo cut on a slant, brand-yellow stripe along the cut, black field with copy */
 function layoutDiagonal(c,W,H,t,D,F,I){
-  const M=evM(W),ds=DS(W,H),g=isDark(F.mcol||'#111111')?(F.mcol||'#111111'):'#151515',hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
+  /* background follows Background 1 like every other layout - see the matching note in layoutArch */
+  const M=evM(W),ds=DS(W,H),g=F.bg1||'#111111',dark=isDark(g),ink=inkOn(g),hl=contrast(F.acc||LY,g)>=4.5?(F.acc||LY):LY,sw=W-2*M;
   c.fillStyle=g;c.fillRect(0,0,W,H);
   const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw,slant=W*.1,st=W*.03;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.12,bh:.087});
@@ -548,14 +517,14 @@ function layoutDiagonal(c,W,H,t,D,F,I){
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
   evRise(c,t,.3,H,()=>{c.fillStyle=LY;c.beginPath();c.moveTo(0,yL);c.lineTo(W,yR);c.lineTo(W,yR+st);c.lineTo(0,yL+st);c.closePath();c.fill();
     if((F.acc||'').toLowerCase()!==LY.toLowerCase()&&contrast(F.acc||LY,g)>=2.2){c.fillStyle=F.acc;c.beginPath();c.moveTo(0,yL+st);c.lineTo(W,yR+st);c.lineTo(W,yR+st*1.35);c.lineTo(0,yL+st*1.35);c.closePath();c.fill()}});
-  evTopRow(c,W,ds.top,t,I,F,{chip:true});
+  evTopRow(c,W,ds.top,t,I,F,{chip:dark});
   let y=yL+st*1.4+W*.03;
   if(kb.h){evKick(c,kb,M,y,hl,'left',t,sw);y+=kb.h+gK}
-  if(hb.h){evLines(c,hb,M,y,{key:'head',wt:900,fill:'#fff',t,at:.9,maxW:sw});y+=hb.h+gH}
+  if(hb.h){evLines(c,hb,M,y,{key:'head',wt:900,fill:ink,t,at:.9,maxW:sw});y+=hb.h+gH}
   if(ob.h)evOffer(c,ob,M,y,hl,'left',t,wO);
-  if(sb.h)evLines(c,sb,M,y+ob.h+gS,{key:'osub',wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:wO});
-  if(hasP)evPrice(c,W-M-pw/2,y+rowH-ph/2,pw,F,true,t,1.7);
-  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,'rgba(255,255,255,.6)','left');
+  if(sb.h)evLines(c,sb,M,y+ob.h+gS,{key:'osub',wt:700,fill:ink==='#ffffff'?'rgba(255,255,255,.86)':'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
+  if(hasP)evPrice(c,W-M-pw/2,y+rowH-ph/2,pw,F,dark,t,1.7);
+  evSince(c,W,M,t,F,H-ds.bot-sinceH/2,ink==='#ffffff'?'rgba(255,255,255,.6)':'rgba(17,17,17,.6)','left');
 }
 
 /* S4 Sunray: tonal rays behind a round photo, offer on a full-width banner, price tag on the ring */
@@ -618,7 +587,7 @@ function layoutTicket(c,W,H,t,D,F,I){
   evSince(c,W,M,t,F,H-tb-sinceH/2-H*.002,gd?'rgba(255,255,255,.75)':'rgba(17,17,17,.62)','center');
 }
 
-const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sunray:layoutSunray,ticket:layoutTicket,circle:layoutCircle,split:layoutSplit,fullbleed:layoutFullbleed,corner:layoutCorner,stacked:layoutStacked,poster:layoutPoster,card:layoutCard,badge:layoutBadge};
+const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sunray:layoutSunray,ticket:layoutTicket,circle:layoutCircle,split:layoutSplit,fullbleed:layoutFullbleed,corner:layoutCorner,poster:layoutPoster,card:layoutCard,badge:layoutBadge};
 
 /* ---------- field schema shared by every event-category template, so switching the
    Layout dropdown never loses or breaks any of the person's content ---------- */
@@ -677,7 +646,7 @@ const T_EVENTS=[
   fields:evFields({layout:'card',pre:'',head:'BUY MORE,\nSAVE MORE',kicker:'SPEND MORE · SAVE MORE',off:'SAVE UP TO $1,000',osub:'ON SELECT FURNITURE · ASK IN STORE',flab:'ON ORDERS OVER',fprice:'$3,000',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_clearance',name:'Clearance Event',sub:'Last-chance clearance — red, loud, urgent',cat:'clearance',
-  fields:evFields({layout:'stacked',head:'CLEARANCE\nEVENT',kicker:'LAST CHANCE',off:'UP TO 70% OFF',osub:'WHILE QUANTITIES LAST',flab:'FROM',fprice:'$199',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
+  fields:evFields({layout:'diagonal',head:'CLEARANCE\nEVENT',kicker:'LAST CHANCE',off:'UP TO 70% OFF',osub:'WHILE QUANTITIES LAST',flab:'FROM',fprice:'$199',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_newarrivals',name:'New Arrivals',sub:'Lifestyle photo first — fresh collections and launches',cat:'newarrivals',
   fields:evFields({layout:'fullbleed',pre:'',head:'NEW\nARRIVALS',kicker:'JUST LANDED',off:'SHOP THE COLLECTION',osub:'IN STORE & ONLINE AT LEONS.CA',flab:'FROM',fprice:'$799',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
