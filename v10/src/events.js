@@ -578,7 +578,9 @@ function layoutSunray(c,W,H,t,D,F,I){
   evTopRow(c,W,ds.top,t,I,F,{chip:dark});
   if(kb.h)evKick(c,kb,W/2,yK,accOn(g,acc),'center',t,sw);
   if(hb.h)evLines(c,hb,W/2,yH,{key:'head',wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});
-  c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
+  objDraw(c,'obj:Backdrop',cx-d/2-W*.012,cy-d/2-W*.012,d+W*.024,d+W*.024,()=>{
+    c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle=F.disc||'#ffffff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
+  });
   if(F.pmask==='circle')evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
   else{/* free product: the disc is only a backdrop, the product stands in front of it and may overflow it */
     const bs=d*1.06;pop(c,cx,cy+d*.01,t,.35,()=>drawImg(c,I.p,-bs/2,-bs/2,bs,bs,{label:'Product photo',shadow:W*.018}),{from:.8,dur:.8})}
@@ -596,7 +598,7 @@ function layoutTicket(c,W,H,t,D,F,I){
   const M=evM(W),ds=DS(W,H),g=lum(F.bg1)>.9?(F.bg2||'#F2F2F2'):F.bg1,gd=isDark(g),acc=accOn('#ffffff',F.acc||'#C8102E');
   c.fillStyle=g;c.fillRect(0,0,W,H);
   const sinceH=evSinceH(W,F),tx=M*.5,ty=ds.story?ds.top*.7:M*.5,tb=ds.story?ds.bot*.7:M*.5,tw=W-2*tx,th=H-ty-tb-sinceH-H*.006,P=W*.05,x0=tx+P,sw=tw-2*P,nr=W*.026;
-  c.save();c.shadowColor='rgba(0,0,0,.22)';c.shadowBlur=W*.035;c.shadowOffsetY=W*.012;c.fillStyle='#fff';c.beginPath();c.roundRect(tx,ty,tw,th,W*.03);c.fill();c.restore();
+  c.save();c.shadowColor='rgba(0,0,0,.22)';c.shadowBlur=W*.035;c.shadowOffsetY=W*.012;c.fillStyle=F.disc||'#ffffff';c.beginPath();c.roundRect(tx,ty,tw,th,W*.03);c.fill();c.restore();
   const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.108,bh:.078});
   const top=evTopRow(c,W,ty+P,t,I,F,{chip:false});
@@ -623,9 +625,10 @@ const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sun
 function evFields(def){
   const base={num:'',head:'HEADLINE\nHERE',kicker:'FOR A LIMITED TIME',
     pre:'UP TO',off:'50% OFF',osub:'SELECT ITEMS',flab:'STARTING FROM',fprice:'$599',seal:'',
-    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',boxStyle:'rounded',maple:'yes',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
+    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',disc:'#ffffff',boxStyle:'rounded',maple:'yes',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
   const v=Object.assign({},base,def);
   return [STYLE_FIELD,layoutField(def&&def.layout),MCOL_FIELD,BOX_FIELD,
+    {k:'disc',l:'Backdrop shape colour (Sunray disc, Ticket card)',t:'color',v:v.disc},
     {k:'acc',l:'Accent colour',t:'color',v:v.acc},
     {k:'kicker',l:'Eyebrow / kicker',t:'text',v:v.kicker},
     {k:'num',l:'Big number (circle, split, full-bleed & poster layouts)',t:'text',v:v.num},
