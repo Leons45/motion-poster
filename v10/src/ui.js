@@ -467,12 +467,72 @@ function refreshStatus(){
   if(miss)setStatus(miss+(miss===1?' slot is':' slots are')+' still empty. Dashed placeholders will appear in the export.','warn');
   else setStatus('All slots filled. Ready to export.','ok');
 }
-/* logo */
-function applyLogo(im){state.logo=im;$('#logoPv').style.backgroundImage=im?'url('+im.src+')':'';$('#logoSm').textContent=im===BRAND.logo?'Leon\u2019s brand logo':im?'Custom logo loaded':'Used by every template';refreshStatus()}
-$('#logoBtn').addEventListener('click',()=>pickFile(file=>{
-  const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{applyLogo(im);try{localStorage.setItem('mps_logo',rd.result)}catch(e){}};im.src=rd.result};rd.readAsDataURL(file)}));
-$('#logoClr').addEventListener('click',()=>{applyLogo(BRAND.logo||null);try{localStorage.removeItem('mps_logo')}catch(e){}});
-try{const d=localStorage.getItem('mps_logo');if(d){const im=new Image();im.onload=()=>applyLogo(im);im.src=d}}catch(e){}
+/* ----- brand logo library -----
+   This browser can hold several uploaded logo variations (different crops,
+   French/English, light/dark backgrounds, etc.) and pick which one is active
+   for every post with one click. Nothing is baked in by default any more \u2014
+   until something is uploaded, templates fall back to the dashed "YOUR LOGO"
+   placeholder (logoRaw in helpers.js) instead of a hard-coded Leon's mark. */
+function activeLogo(){return state.logos.find(l=>l.id===state.logoId)||null}
+function persistLogos(){try{localStorage.setItem('mps_logos',JSON.stringify({logos:state.logos,logoId:state.logoId}))}catch(e){}}
+function setActiveLogo(id){
+  state.logoId=id;
+  const L=activeLogo();
+  if(L){const im=new Image();im.onload=()=>{state.logo=im;buildLogoLib();refreshStatus()};im.src=L.src}
+  else{state.logo=null;buildLogoLib();refreshStatus()}
+  persistLogos();
+}
+function addLogo(file){
+  if(!file||!file.type.startsWith('image/'))return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const id='lg'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const name=(file.name||'Logo').replace(/\.[^.]+$/,'').slice(0,40)||'Logo';
+    state.logos.push({id,name,src:rd.result});
+    setActiveLogo(id);
+  };
+  rd.readAsDataURL(file);
+}
+function renameLogo(id,name){const L=state.logos.find(l=>l.id===id);if(!L)return;L.name=name.slice(0,40)||L.name;persistLogos()}
+function removeLogo(id){
+  const i=state.logos.findIndex(l=>l.id===id);if(i<0)return;
+  const wasActive=state.logoId===id;state.logos.splice(i,1);
+  if(wasActive)setActiveLogo(state.logos.length?state.logos[0].id:null);
+  else{persistLogos();buildLogoLib()}
+}
+function buildLogoLib(){
+  const box=$('#logoLib');if(!box)return;box.innerHTML='';
+  if(!state.logos.length){
+    box.append(el('p','note','No logos uploaded yet. Upload your Leon\u2019s logo files below \u2014 PNG or SVG with a transparent background works best. Add as many variations as you like, then click one to make it the active logo for every post.'));
+    return;
+  }
+  const grid=el('div','lgrid logogrid');box.append(grid);
+  const none=el('button','lay logoitem'+(state.logoId?'':' on'));none.type='button';none.title='No logo';none.setAttribute('aria-pressed',!state.logoId);
+  none.append(el('div','logopv logopv-none','No logo'));none.append(el('span','laynm','None'));
+  none.addEventListener('click',()=>{if(state.logoId)setActiveLogo(null)});grid.append(none);
+  state.logos.forEach(L=>{
+    const on=state.logoId===L.id;
+    const b=el('button','lay logoitem'+(on?' on':''));b.type='button';b.title=L.name;b.setAttribute('aria-pressed',on);
+    const pv=el('div','logopv');pv.style.backgroundImage='url('+L.src+')';b.append(pv);
+    b.append(el('span','laynm',L.name));
+    const rm=el('button','logorm','\u00d7');rm.type='button';rm.title='Remove this logo';rm.setAttribute('aria-label','Remove '+L.name);
+    rm.addEventListener('click',e=>{e.stopPropagation();removeLogo(L.id)});
+    b.append(rm);
+    b.addEventListener('click',()=>{if(!on)setActiveLogo(L.id)});
+    grid.append(b);
+  });
+  box.append(el('p','note','Click a logo to use it on every post. The \u00d7 removes a variation from this browser.'));
+}
+$('#logoBtn').addEventListener('click',()=>pickFile(addLogo));
+try{
+  const d=JSON.parse(localStorage.getItem('mps_logos')||'null');
+  if(d&&Array.isArray(d.logos)){state.logos=d.logos;state.logoId=d.logoId||null}
+}catch(e){}
+function bootLogo(){
+  const L=activeLogo();
+  if(L){const im=new Image();im.onload=()=>{state.logo=im;buildLogoLib();refreshStatus();paintThumbs()};im.src=L.src}
+  else buildLogoLib();
+}
 /* format */
 (function(){const seg=$('#ratioSeg');Object.keys(RATIOS).forEach(r=>{const b=el('button',r===state.ratio?'on':'',r);b.type='button';b.dataset.r=r;
   b.addEventListener('click',()=>{if(state.rec)return;state.ratio=r;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#ratioNote').textContent=RNOTE[r];fitStage();dirty()});seg.append(b)});})();
@@ -737,7 +797,7 @@ try{
   }
 }catch(e){}
 HIST.last=snapState();histBtns();
-loadBrand(()=>{if(!state.logo)applyLogo(BRAND.logo);paintThumbs();});
+loadBrand(()=>{bootLogo();paintThumbs();});
 (function(){try{
   const tl=document.getElementById('topLogo');if(tl)tl.src=ASSETS.logo;
   const lk=document.createElement('link');lk.rel='icon';lk.href=ASSETS.logo;document.head.appendChild(lk);

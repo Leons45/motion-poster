@@ -165,6 +165,11 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 .lay canvas{width:100%;height:auto;aspect-ratio:4/5;border-radius:6px;background:var(--stage);display:block}
 .laynm{font:700 11px/1.15 var(--f-ui);text-align:center}
 .laynew{position:absolute;top:2px;right:2px;font:800 8px/1 var(--f-ui);letter-spacing:.06em;background:var(--red);color:#fff;border-radius:999px;padding:3px 5px;font-style:normal}
+.logogrid{grid-template-columns:repeat(3,1fr)}
+.logopv{width:100%;aspect-ratio:3/2;border-radius:6px;background-color:var(--stage);background-size:contain;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font:700 10px var(--f-ui);color:var(--mute)}
+.logoitem{padding-top:16px}
+.logorm{position:absolute;top:2px;right:2px;width:18px;height:18px;line-height:16px;padding:0;border:0;border-radius:999px;background:var(--surface);color:var(--mute);font:700 13px/1 var(--f-ui);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.logorm:hover{background:var(--red);color:#fff}
 .tpl-item canvas{width:72px;height:90px}
 .btn.danger{border-color:#D92D20;color:#D92D20;background:var(--surface)}
 .btn.danger:hover{background:#D92D20;color:#fff;border-color:#D92D20}

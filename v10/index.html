@@ -176,6 +176,11 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 .lay canvas{width:100%;height:auto;aspect-ratio:4/5;border-radius:6px;background:var(--stage);display:block}
 .laynm{font:700 11px/1.15 var(--f-ui);text-align:center}
 .laynew{position:absolute;top:2px;right:2px;font:800 8px/1 var(--f-ui);letter-spacing:.06em;background:var(--red);color:#fff;border-radius:999px;padding:3px 5px;font-style:normal}
+.logogrid{grid-template-columns:repeat(3,1fr)}
+.logopv{width:100%;aspect-ratio:3/2;border-radius:6px;background-color:var(--stage);background-size:contain;background-position:center;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font:700 10px var(--f-ui);color:var(--mute)}
+.logoitem{padding-top:16px}
+.logorm{position:absolute;top:2px;right:2px;width:18px;height:18px;line-height:16px;padding:0;border:0;border-radius:999px;background:var(--surface);color:var(--mute);font:700 13px/1 var(--f-ui);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.logorm:hover{background:var(--red);color:#fff}
 .tpl-item canvas{width:72px;height:90px}
 .btn.danger{border-color:#D92D20;color:#D92D20;background:var(--surface)}
 .btn.danger:hover{background:#D92D20;color:#fff;border-color:#D92D20}
@@ -266,7 +271,8 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
   </div>
   <div class="pane" data-pane="style" hidden>
     <h3>Brand logo</h3>
-    <div class="slot" id="logoSlot"><div class="pv" id="logoPv"></div><div class="lbl">Brand logo<small id="logoSm">Leon’s brand logo</small></div><button class="btn sm" id="logoBtn" type="button">Upload</button><button class="btn sm" id="logoClr" type="button">Clear</button></div>
+    <div id="logoLib"></div>
+    <button class="btn sm" id="logoBtn" type="button">Upload a logo</button>
     <div id="logoFxBox"></div>
     <h3>Film effects</h3><p class="note">These stack on top of any template.</p><div id="filmBox"></div>
     <h3>Fonts</h3>
@@ -2701,6 +2707,7 @@ const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({gr
   ...T_COMM.map(x=>({grp:'Community ports',...x})),].map(tp=>({cat:CAT_MAP[tp.id]||'classic',...tp}));
 
 const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},style:{},logo:null,rec:null,sel:null,
+  logos:[],logoId:null,
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   quick:{},quickNextId:1,
@@ -3331,12 +3338,72 @@ function refreshStatus(){
   if(miss)setStatus(miss+(miss===1?' slot is':' slots are')+' still empty. Dashed placeholders will appear in the export.','warn');
   else setStatus('All slots filled. Ready to export.','ok');
 }
-/* logo */
-function applyLogo(im){state.logo=im;$('#logoPv').style.backgroundImage=im?'url('+im.src+')':'';$('#logoSm').textContent=im===BRAND.logo?'Leon\u2019s brand logo':im?'Custom logo loaded':'Used by every template';refreshStatus()}
-$('#logoBtn').addEventListener('click',()=>pickFile(file=>{
-  const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{applyLogo(im);try{localStorage.setItem('mps_logo',rd.result)}catch(e){}};im.src=rd.result};rd.readAsDataURL(file)}));
-$('#logoClr').addEventListener('click',()=>{applyLogo(BRAND.logo||null);try{localStorage.removeItem('mps_logo')}catch(e){}});
-try{const d=localStorage.getItem('mps_logo');if(d){const im=new Image();im.onload=()=>applyLogo(im);im.src=d}}catch(e){}
+/* ----- brand logo library -----
+   This browser can hold several uploaded logo variations (different crops,
+   French/English, light/dark backgrounds, etc.) and pick which one is active
+   for every post with one click. Nothing is baked in by default any more \u2014
+   until something is uploaded, templates fall back to the dashed "YOUR LOGO"
+   placeholder (logoRaw in helpers.js) instead of a hard-coded Leon's mark. */
+function activeLogo(){return state.logos.find(l=>l.id===state.logoId)||null}
+function persistLogos(){try{localStorage.setItem('mps_logos',JSON.stringify({logos:state.logos,logoId:state.logoId}))}catch(e){}}
+function setActiveLogo(id){
+  state.logoId=id;
+  const L=activeLogo();
+  if(L){const im=new Image();im.onload=()=>{state.logo=im;buildLogoLib();refreshStatus()};im.src=L.src}
+  else{state.logo=null;buildLogoLib();refreshStatus()}
+  persistLogos();
+}
+function addLogo(file){
+  if(!file||!file.type.startsWith('image/'))return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const id='lg'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const name=(file.name||'Logo').replace(/\.[^.]+$/,'').slice(0,40)||'Logo';
+    state.logos.push({id,name,src:rd.result});
+    setActiveLogo(id);
+  };
+  rd.readAsDataURL(file);
+}
+function renameLogo(id,name){const L=state.logos.find(l=>l.id===id);if(!L)return;L.name=name.slice(0,40)||L.name;persistLogos()}
+function removeLogo(id){
+  const i=state.logos.findIndex(l=>l.id===id);if(i<0)return;
+  const wasActive=state.logoId===id;state.logos.splice(i,1);
+  if(wasActive)setActiveLogo(state.logos.length?state.logos[0].id:null);
+  else{persistLogos();buildLogoLib()}
+}
+function buildLogoLib(){
+  const box=$('#logoLib');if(!box)return;box.innerHTML='';
+  if(!state.logos.length){
+    box.append(el('p','note','No logos uploaded yet. Upload your Leon\u2019s logo files below \u2014 PNG or SVG with a transparent background works best. Add as many variations as you like, then click one to make it the active logo for every post.'));
+    return;
+  }
+  const grid=el('div','lgrid logogrid');box.append(grid);
+  const none=el('button','lay logoitem'+(state.logoId?'':' on'));none.type='button';none.title='No logo';none.setAttribute('aria-pressed',!state.logoId);
+  none.append(el('div','logopv logopv-none','No logo'));none.append(el('span','laynm','None'));
+  none.addEventListener('click',()=>{if(state.logoId)setActiveLogo(null)});grid.append(none);
+  state.logos.forEach(L=>{
+    const on=state.logoId===L.id;
+    const b=el('button','lay logoitem'+(on?' on':''));b.type='button';b.title=L.name;b.setAttribute('aria-pressed',on);
+    const pv=el('div','logopv');pv.style.backgroundImage='url('+L.src+')';b.append(pv);
+    b.append(el('span','laynm',L.name));
+    const rm=el('button','logorm','\u00d7');rm.type='button';rm.title='Remove this logo';rm.setAttribute('aria-label','Remove '+L.name);
+    rm.addEventListener('click',e=>{e.stopPropagation();removeLogo(L.id)});
+    b.append(rm);
+    b.addEventListener('click',()=>{if(!on)setActiveLogo(L.id)});
+    grid.append(b);
+  });
+  box.append(el('p','note','Click a logo to use it on every post. The \u00d7 removes a variation from this browser.'));
+}
+$('#logoBtn').addEventListener('click',()=>pickFile(addLogo));
+try{
+  const d=JSON.parse(localStorage.getItem('mps_logos')||'null');
+  if(d&&Array.isArray(d.logos)){state.logos=d.logos;state.logoId=d.logoId||null}
+}catch(e){}
+function bootLogo(){
+  const L=activeLogo();
+  if(L){const im=new Image();im.onload=()=>{state.logo=im;buildLogoLib();refreshStatus();paintThumbs()};im.src=L.src}
+  else buildLogoLib();
+}
 /* format */
 (function(){const seg=$('#ratioSeg');Object.keys(RATIOS).forEach(r=>{const b=el('button',r===state.ratio?'on':'',r);b.type='button';b.dataset.r=r;
   b.addEventListener('click',()=>{if(state.rec)return;state.ratio=r;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#ratioNote').textContent=RNOTE[r];fitStage();dirty()});seg.append(b)});})();
@@ -3601,7 +3668,7 @@ try{
   }
 }catch(e){}
 HIST.last=snapState();histBtns();
-loadBrand(()=>{if(!state.logo)applyLogo(BRAND.logo);paintThumbs();});
+loadBrand(()=>{bootLogo();paintThumbs();});
 (function(){try{
   const tl=document.getElementById('topLogo');if(tl)tl.src=ASSETS.logo;
   const lk=document.createElement('link');lk.rel='icon';lk.href=ASSETS.logo;document.head.appendChild(lk);
