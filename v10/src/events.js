@@ -472,7 +472,7 @@ function evPhoto(c,I,x,y,w,h,r,t,at,pathFn){
   const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.7*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,(1-p)*h*.03);
   c.beginPath();if(pathFn)pathFn();else c.roundRect(x,y,w,h,r);c.clip();
-  drawImg(c,I.p,x,y,w,h,{label:'Product photo',fit:'cover'});c.restore();
+  drawImg(c,I.p,x,y,w,h,{label:'Product photo',fit:'cover-safe'});c.restore();
 }
 const evRise=(c,t,at,H,fn)=>{const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.03);fn();c.restore()};
 

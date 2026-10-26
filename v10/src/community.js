@@ -36,7 +36,7 @@ const T_COMM=[
     objDraw(c,'obj:Card '+(i+1),-pw/2,-phh/2,pw,phh,()=>{
       c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=36;c.shadowOffsetY=14;
       rr(c,-pw/2,-phh/2,pw,phh,10);c.fillStyle='#fff';c.fill();c.shadowColor='transparent';
-      c.save();rr(c,-pw/2+14,-phh/2+14,pw-28,phh-28-54,6);c.clip();drawImg(c,q[0],-pw/2+14,-phh/2+14,pw-28,phh-82,{fit:'cover',label:'Photo '+(i+1)});c.restore();
+      c.save();rr(c,-pw/2+14,-phh/2+14,pw-28,phh-28-54,6);c.clip();drawImg(c,q[0],-pw/2+14,-phh/2+14,pw-28,phh-82,{fit:'cover-safe',label:'Photo '+(i+1)});c.restore();
       font(c,800,30,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(q[1],0,phh/2-32);
     });
     c.restore();
@@ -54,7 +54,7 @@ const T_COMM=[
   objDraw(c,'obj:Polaroid',-pw/2-18,-ph/2-18,pw+36,ph+36+78,()=>{
     c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=60;c.shadowOffsetY=24;
     rr(c,-pw/2-18,-ph/2-18,pw+36,ph+36+78,6);c.fillStyle='#fff';c.fill();c.shadowColor='transparent';
-    c.save();c.beginPath();c.rect(-pw/2,-ph/2,pw,ph);c.clip();drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{fit:'cover',label:'Photo'});c.restore();
+    c.save();c.beginPath();c.rect(-pw/2,-ph/2,pw,ph);c.clip();drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{fit:'cover-safe',label:'Photo'});c.restore();
     font(c,800,40,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cap,0,ph/2+44,pw);
   });
   c.restore();
@@ -71,7 +71,7 @@ const T_COMM=[
     const x=q[0]*W/2+q[1]*(1-q[2])*W/2;
     c.save();c.beginPath();c.rect(x,0,W/2,H);c.clip();
     c.fillStyle=q[3];c.fillRect(x,0,W/2,H);
-    if(q[4])drawImg(c,q[4],x,H*.22,W/2,H*.5,{fit:'cover',label:q[7]});else ph(c,x+30,H*.22,W/2-60,H*.5,q[7],q[8]==='#fff');
+    if(q[4])drawImg(c,q[4],x,H*.22,W/2,H*.5,{fit:'cover-safe',label:q[7]});else ph(c,x+30,H*.22,W/2-60,H*.5,q[7],q[8]==='#fff');
     font(c,900,58,FM);c.fillStyle=q[8];c.textAlign='center';c.textBaseline='middle';c.fillText(q[5],x+W/4,H*.14,W/2-50);
     font(c,700,34,FM);c.fillText(q[6],x+W/4,H*.8,W/2-50);c.restore();
   });

@@ -102,7 +102,7 @@ const T_PREM=[
     const x=g+i*(pw+g),p=eOut(prog(t,.5+i*.25,.9));if(p<=0)return;
     c.save();c.beginPath();c.rect(x,py+ph*(1-p),pw,ph*p);c.clip();
     const z=1.06+.03*Math.sin(TAU*(u+i/3));c.translate(x+pw/2,py+ph/2);c.scale(z,z);c.translate(-pw/2,-ph/2);
-    drawImg(c,q[0],0,0,pw,ph,{fit:'cover',label:q[3]});c.restore();
+    drawImg(c,q[0],0,0,pw,ph,{fit:'cover-safe',label:q[3]});c.restore();
     c.save();c.beginPath();c.rect(x,py,pw,ph);c.clip();
     const cp=eOut(prog(t,1.2+i*.25,.6));c.globalAlpha=cp;c.translate(0,(1-cp)*30);
     font(c,800,34,FM);const pw2=c.measureText(q[2]).width+52,ph2=34*1.9;

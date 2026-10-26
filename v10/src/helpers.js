@@ -137,7 +137,16 @@ function drawImg(c,img,x,y,w,h,o={}){
 function drawImgRaw(c,img,x,y,w,h,o={}){
   const {ay=.5,ax=.5,label='Image',dark=false,shadow=0,fit='contain'}=o;
   if(!img){ph(c,x,y,w,h,label,dark);return}
-  if(fit==='cover'){const s=Math.max(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s;
+  if(fit==='cover'||fit==='cover-safe'){
+    const sCover=Math.max(w/img.naturalWidth,h/img.naturalHeight),sContain=Math.min(w/img.naturalWidth,h/img.naturalHeight);
+    /* 'cover-safe' fills the box edge to edge exactly like 'cover' when the uploaded photo's own
+       aspect ratio is reasonably close to the box's (the common case: box and photo are
+       similar shapes, so the two scales are already close together) — but it caps how far the
+       image is allowed to zoom in past a plain contain-fit, so a photo whose aspect ratio is
+       very different from its box (a tall portrait dropped into a wide box, say) keeps most of
+       its subject on screen instead of having its far edges cropped away to fill every corner. */
+    const s=fit==='cover-safe'?Math.min(sCover,sContain*1.25):sCover;
+    const dw=img.naturalWidth*s,dh=img.naturalHeight*s;
     c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.drawImage(img,x+(w-dw)*ax,y+(h-dh)*ay,dw,dh);c.restore();return}
   const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s;
   const dx=x+(w-dw)*ax,dy=y+(h-dh)*ay;

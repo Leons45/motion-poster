@@ -196,7 +196,7 @@ const T_CLASSIC=[
     c.save();c.beginPath();c.rect(0,fromTop?y0:y0+h2-hh,W,hh);c.clip();
     c.fillStyle=F.bg;c.fillRect(0,y0,W,h2);const z=1.04+.025*wave(t,D,1,ph0);
     c.translate(W/2,y0+h2/2);c.scale(z,z);c.translate(-W/2,-(y0+h2/2));
-    drawImg(c,img,0,y0,W,h2,{fit:'cover',label:lab});c.restore();
+    drawImg(c,img,0,y0,W,h2,{fit:'cover-safe',label:lab});c.restore();
     font(c,800,46,FM);const w=c.measureText(txt).width,iw=icon==='none'?0:78,cx=W/2-iw/2,ly=y0+h2*.1;
     pop(c,cx,ly,t,at+.4,()=>{font(c,800,46,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,0,0)},{from:.7,dur:.6});
     if(icon!=='none')pop(c,cx+w/2+44,ly,t,at+.7,()=>{objDraw(c,'obj:'+(fromTop?'Top verdict':'Bottom verdict'),-26,-26,52,52,()=>verdict(c,icon,0,0,26))},{from:.2,rot:icon==='cross'?.6:0});
