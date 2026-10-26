@@ -101,16 +101,20 @@ const T_LEONS=[
     const band=(H-fh)-arcTop, os=Math.min(band*.46,fitSize(c,F.off,900,FN,W*.6,band*.46)), oy=arcTop+band*.42;
     c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));
     font(c,900,os,FN);const ow=c.measureText(F.off).width;
-    font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
-    font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
+    font(c,900,os*.34,FM);const preW=c.measureText(F.pre).width,offCx=anchorX('off',W/2,90+(preW+14+ow)/2,W-90-(preW+14+ow)/2);
+    c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,offCx-ow/2-14,oy);
+    font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,offCx+Math.min(40,ow*.1),oy);c.restore();
     text(c,{s:F.osub,key:'osub',x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
     if(F.flab){
       const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul));c.save();c.translate(0,(1-p)*fh);
       c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
-      font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.flab,W*.54,H-fh/2);
-      font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48;
-      c.fillStyle='#111';boxPath(c,F.boxStyle,W*.57,H-fh*.88,pw,fh*.76,10);c.fill();
-      c.fillStyle='#fff';c.textAlign='left';c.fillText(F.fprice,W*.57+24,H-fh/2);c.restore();
+      font(c,800,fh*.3,FM);const lw=c.measureText(F.flab).width;
+      font(c,900,fh*.44,FN);const pw=c.measureText(F.fprice).width+48,gp=fh*.03,barCx=anchorX('flab',W*.555,90+(lw+gp+pw)/2,W-90-(lw+gp+pw)/2),x0=barCx-(lw+gp+pw)/2;
+      c.textBaseline='middle';
+      font(c,800,fh*.3,FM);c.fillStyle='#fff';c.textAlign='left';c.fillText(F.flab,x0,H-fh/2);
+      font(c,900,fh*.44,FN);
+      c.fillStyle='#111';boxPath(c,F.boxStyle,x0+lw+gp,H-fh*.88,pw,fh*.76,10);c.fill();
+      c.fillStyle='#fff';c.fillText(F.fprice,x0+lw+gp+24,H-fh/2);c.restore();
     }
   });
   const ph=(arcTop-m.bottom)*.92, pcy=(m.bottom+arcTop)/2;
@@ -160,7 +164,7 @@ const T_LEONS=[
   });
   const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
-  const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=W*.2,by=m.bottom+(arcTop-m.bottom)*.42;
+  const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=anchorX('btxt',W*.2,90+br,W-90-br),by=m.bottom+(arcTop-m.bottom)*.42;
   pop(c,bx,by,t,.95,()=>{
     objDraw(c,'obj:Stamp badge',-br,-br,br*2,br*2,()=>{
       c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
@@ -225,9 +229,9 @@ const T_LEONS=[
     c.fillText(l,A.x,m.top+hs*.72+i*hs*1.0);c.restore();
   });
   const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
-  [[F.a1,F.a2,1.05],[F.b1,F.b2,1.25]].forEach((q,i)=>{
+  [[F.a1,F.a2,1.05,'a1'],[F.b1,F.b2,1.25,'b1']].forEach((q,i)=>{
     const p=clamp(prog(t,q[2]*ST.stagger,.5*ST.durMul));if(p<=0)return;c.save();c.globalAlpha=p;
-    mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88);c.restore();
+    mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88,q[3]);c.restore();
   });
   const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
   c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';const Af=alignFor('fine',W/2,W*.84);c.textAlign=Af.align;c.textBaseline='middle';

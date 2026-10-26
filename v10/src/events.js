@@ -84,8 +84,9 @@ function evPrice(c,cx,cy,pw,F,dark,t,at){
   pop(c,cx,cy,t,at,()=>{
     objDraw(c,'obj:Price card',-pw/2,-ph/2,pw,ph,()=>{
       boxPath(c,F.boxStyle,-pw/2,-ph/2,pw,ph,10*k);c.fillStyle=fill;c.fill();
-      font(c,700,16*k,FM);c.fillStyle=dark?'#111111':inkOn(fill);c.textAlign='center';c.textBaseline='middle';c.fillText(F.flab,0,-14*k,pw*.9);
-      font(c,900,26*k,FN);c.fillStyle=dark?'#111111':accOn(fill,F.acc);c.fillText(F.fprice,0,14*k,pw*.9);
+      c.textBaseline='middle';
+      font(c,700,16*k,FM);c.fillStyle=dark?'#111111':inkOn(fill);{const A=alignFor('flab',0,pw*.9);c.textAlign=A.align;c.fillText(F.flab,A.x,-14*k,pw*.9)}
+      font(c,900,26*k,FN);c.fillStyle=dark?'#111111':accOn(fill,F.acc);{const A=alignFor('fprice',0,pw*.9);c.textAlign=A.align;c.fillText(F.fprice,A.x,14*k,pw*.9)}
     });
   },{from:.75,dur:.6});
 }
@@ -129,20 +130,22 @@ function layoutCircle(c,W,H,t,D,F,I){
     const sb=evFitM(c,F.osub,700,FM,sw,Math.max(ds.sub,evCap(ob,.3,Math.min(band*.16,W*.04))));
     const gap=sb.h?band*.06:0,total=ob.h+gap+sb.h,top=arcTop+(band-total)/2+band*.04;
     if(ob.lines.length===1&&pre){
-      const ps=ob.size*.34;font(c,900,ob.size,FN);const ow=c.measureText(ob.lines[0]).width;font(c,900,ps,FM);const pw=c.measureText(pre).width,pg=ps*.55,x0=W/2-(pw+pg+ow)/2;
+      const ps=ob.size*.34;font(c,900,ob.size,FN);const ow=c.measureText(ob.lines[0]).width;font(c,900,ps,FM);const pw=c.measureText(pre).width,pg=ps*.55,
+        offCx=anchorX('off',W/2,M+(pw+pg+ow)/2,W-M-(pw+pg+ow)/2),x0=offCx-(pw+pg+ow)/2;
       c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));c.textBaseline='middle';c.textAlign='left';
       font(c,900,ps,FM);c.fillStyle=txC;c.fillText(pre,x0,top+ob.h/2);
       font(c,900,ob.size,FN);c.fillStyle=offC;c.fillText(ob.lines[0],x0+pw+pg,top+ob.h/2);c.restore();
     }else{
       c.save();c.globalAlpha=clamp(prog(t,1*ST.stagger,.5*ST.durMul));
-      ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=offC;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();
+      const Ao=alignFor('off',W/2,sw);
+      ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=offC;c.textAlign=Ao.align;c.textBaseline='middle';c.fillText(l,Ao.x,top+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();
     }
     evLines(c,sb,W/2,top+ob.h+gap,{key:'osub',wt:800,fill:txC,al:'center',t,at:1.25,maxW:sw});
     if(F.flab){
       const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul)),acc=F.acc||'#C8102E',ink=inkOn(acc);
       c.save();c.translate(0,(1-p)*fh);c.fillStyle=acc;c.fillRect(0,H-fh,W,fh);
       const ls=fh*.3,ps=fh*.44;font(c,800,ls,FM);const lw=c.measureText(F.flab).width;
-      font(c,900,ps,FN);const pw=c.measureText(F.fprice).width+fh*.7,gp=fh*.3,x0=W/2-(lw+gp+pw)/2;
+      font(c,900,ps,FN);const pw=c.measureText(F.fprice).width+fh*.7,gp=fh*.3,barCx=anchorX('flab',W/2,M+(lw+gp+pw)/2,W-M-(lw+gp+pw)/2),x0=barCx-(lw+gp+pw)/2;
       c.textBaseline='middle';c.textAlign='left';
       font(c,800,ls,FM);c.fillStyle=ink;c.fillText(F.flab,x0,H-fh/2);
       c.fillStyle=ink==='#111111'?'#111111':'#111111';boxPath(c,F.boxStyle,x0+lw+gp,H-fh*.88,pw,fh*.76,10);c.fill();
@@ -184,10 +187,11 @@ function layoutSplit(c,W,H,t,D,F,I){
     }
     let y=areaTop+Math.max(0,(areaBot-areaTop-total))*(V?.5:.42);
     if(kb.h){evTracked(c,evTrk(kb.size),()=>evLines(c,kb,cx,y,{key:'kicker',wt:800,fill:pAcc,al:'center',t,at:.3,maxW:cw}));y+=kb.h+gK}
-    if(ns){c.save();c.globalAlpha=clamp(prog(t,.5*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=pInk;c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.55*ST.stagger,.9*ST.durMul)),cx,y+ns*.5);c.restore();y+=ns+gN}
+    if(ns){c.save();c.globalAlpha=clamp(prog(t,.5*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=pInk;c.textBaseline='middle';const An=alignFor('num',cx,cw);c.textAlign=An.align;c.fillText(countText(F.num,prog(t,.55*ST.stagger,.9*ST.durMul)),An.x,y+ns*.5);c.restore();y+=ns+gN}
     if(hb.h){evLines(c,hb,cx,y,{key:'head',wt:900,fill:pInk,al:'center',t,at:.75,maxW:cw});y+=hb.h+gH}
     c.save();c.globalAlpha=clamp(prog(t,1.1*ST.stagger,.5*ST.durMul));
-    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=pAcc;c.textAlign='center';c.textBaseline='middle';c.fillText(l,cx,y+i*ob.size*ob.lh+ob.size*ob.lh/2,cw)});c.restore();y+=ob.h+gO;
+    const Aosp=alignFor('off',cx,cw);
+    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=pAcc;c.textAlign=Aosp.align;c.textBaseline='middle';c.fillText(l,Aosp.x,y+i*ob.size*ob.lh+ob.size*ob.lh/2,cw)});c.restore();y+=ob.h+gO;
     if(sb.h)evLines(c,sb,cx,y,{key:'osub',wt:700,fill:pInk,al:'center',t,at:1.3,maxW:cw});
   });
   /* photo region: beside the panel, or beneath it on a story */
@@ -206,7 +210,8 @@ function layoutSplit(c,W,H,t,D,F,I){
     objDraw(c,'obj:Price card',bx,barY,bw,barH,()=>{
       const p=ST.textEase(prog(t,1.5*ST.stagger,.6*ST.durMul)),acc=F.acc||'#C8102E',ink=inkOn(acc);c.save();c.globalAlpha=p;
       c.fillStyle=acc;if(V){rr(c,bx,barY,bw,barH,barH*.25);c.fill()}else c.fillRect(bx,barY,bw,barH);
-      let ls=barH*.3,ps=barH*.42;font(c,800,ls,FM);let a=c.measureText(F.flab).width;font(c,900,ps,FN);let b=c.measureText(F.fprice).width,gp=ls*.7;const fk=Math.min(1,(bw*.9)/(a+gp+b));if(fk<1){ls*=fk;ps*=fk;a*=fk;b*=fk;gp*=fk}const x0=bx+bw/2-(a+gp+b)/2;
+      let ls=barH*.3,ps=barH*.42;font(c,800,ls,FM);let a=c.measureText(F.flab).width;font(c,900,ps,FN);let b=c.measureText(F.fprice).width,gp=ls*.7;const fk=Math.min(1,(bw*.9)/(a+gp+b));if(fk<1){ls*=fk;ps*=fk;a*=fk;b*=fk;gp*=fk}
+      const barM=bw*.05,barCx=anchorX('flab',bx+bw/2,bx+barM+(a+gp+b)/2,bx+bw-barM-(a+gp+b)/2),x0=barCx-(a+gp+b)/2;
       c.textBaseline='middle';c.textAlign='left';font(c,800,ls,FM);c.fillStyle=ink;c.fillText(F.flab,x0,barY+barH/2);
       font(c,900,ps,FN);c.fillText(F.fprice,x0+a+gp,barY+barH/2);c.restore();
     });
@@ -246,11 +251,12 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   const headTop=y-hb.h;y=headTop-(kb.h?kb.size*.6:0);
   const kTop=y-kb.h;y=kTop-(ns?ns*.3+kb.size*.4:0);
   const numTop=y-ns;
-  if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),M,numTop+ns*.5);c.restore()}
+  if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textBaseline='middle';const An=leftAlignFor('num',M,sw);c.textAlign=An.align;c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),An.x,numTop+ns*.5);c.restore()}
   if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,kTop,{key:'kicker',wt:800,fill:acc,t,at:.3,maxW:sw}));
   if(hb.h)evLines(c,hb,M,headTop,{key:'head',wt:900,fill:'#fff',t,at:.9,maxW:sw});
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
-    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='left';c.textBaseline='middle';c.fillText(l,M,offTop+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore()}
+    const Ao2=leftAlignFor('off',M,sw);
+    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign=Ao2.align;c.textBaseline='middle';c.fillText(l,Ao2.x,offTop+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore()}
   if(sb.h)evLines(c,sb,M,subTop,{key:'osub',wt:700,fill:'rgba(255,255,255,.86)',t,at:1.6,maxW:sw});
   if(hasP)evPrice(c,M+pw2/2,H-ds.bot-ph2/2,pw2,F,true,t,1.7);
 }
@@ -279,7 +285,7 @@ function layoutCorner(c,W,H,t,D,F,I){
   floorShadow(c,W/2,photoTop+photoH-photoH*.04,W*.5,.24);
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.4,-photoH/2,W*.8,photoH,{label:'Product photo'}),{from:.8,dur:.9});
   /* offer badge: tilted sticker pinned to the photo frame's top-right corner, right edge on the margin */
-  const bh=Math.max(bw*.3,ob.h+sb.h+(sb.h?ob.size*.2:0)+bw*.12),bcx=W-M-bw/2-W*.008,bcy=photoTop+bh*.5;
+  const bh=Math.max(bw*.3,ob.h+sb.h+(sb.h?ob.size*.2:0)+bw*.12),bcx=anchorX('off',W/2,M+bw/2+W*.008,W-M-bw/2-W*.008),bcy=photoTop+bh*.5;
   objDraw(c,'obj:Corner badge',bcx-bw/2,bcy-bh/2,bw,bh,()=>{
     const p=ST.popEase(prog(t,.4*ST.stagger,.6*ST.durMul));if(p<=0)return;
     c.save();c.translate(bcx,bcy);c.rotate(-.07*p);c.scale(p,p);
@@ -321,11 +327,12 @@ function layoutPoster(c,W,H,t,D,F,I){
   const gK=kb.h?kb.size*.6:0,gN=ns?ns*.2:0,gH=hb.h?hb.size*.1:0,gS=sb.h?sb.size*.5:0,gP=hasP?H*.035:0;
   const total=ns+gN+kb.h+gK+hb.h+gH+ob.h+gS+sb.h+gP+(hasP?ph2:0);
   let y=Math.max(headerBottom+H*.03,Math.min(H*.53-total/2,H-ds.bot-total));
-  if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),W/2,y+ns*.5);c.restore();y+=ns+gN}
+  if(ns){c.save();c.globalAlpha=clamp(prog(t,.6*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle='#fff';c.textBaseline='middle';const An=alignFor('num',W/2,sw);c.textAlign=An.align;c.fillText(countText(F.num,prog(t,.65*ST.stagger,.9*ST.durMul)),An.x,y+ns*.5);c.restore();y+=ns+gN}
   if(kb.h){const ky=y;evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,ky,{key:'kicker',wt:800,fill:acc,al:'center',t,at:.3,maxW:sw}));y+=kb.h+gK}
   if(hb.h){evLines(c,hb,W/2,y,{key:'head',wt:900,fill:'#fff',al:'center',t,at:.9,maxW:sw});y+=hb.h+gH}
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
-    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='center';c.textBaseline='middle';c.fillText(l,W/2,y+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();y+=ob.h+gS}
+    const Ao3=alignFor('off',W/2,sw);
+    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign=Ao3.align;c.textBaseline='middle';c.fillText(l,Ao3.x,y+i*ob.size*ob.lh+ob.size*ob.lh/2,sw)});c.restore();y+=ob.h+gS}
   if(sb.h){evLines(c,sb,W/2,y,{key:'osub',wt:700,fill:'rgba(255,255,255,.86)',al:'center',t,at:1.6,maxW:sw});y+=sb.h+gP}
   if(hasP)evPrice(c,W/2,y+ph2/2,pw2,F,true,t,1.7);
 }
@@ -356,7 +363,8 @@ function layoutCard(c,W,H,t,D,F,I){
   if(kb.h){const ky=y;evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,ky,{key:'kicker',wt:800,fill:acc,t,at:.3,maxW:sw}));y+=kb.h+gK}
   if(hb.h){evLines(c,hb,M,y,{key:'head',wt:900,fill:ink,t,at:.9,maxW:sw});y+=hb.h+gH}
   if(ob.h){c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
-    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign='left';c.textBaseline='middle';c.fillText(l,M,y+i*ob.size*ob.lh+ob.size*ob.lh/2,wO)});c.restore()}
+    const Ao4=leftAlignFor('off',M,wO);
+    ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=acc;c.textAlign=Ao4.align;c.textBaseline='middle';c.fillText(l,Ao4.x,y+i*ob.size*ob.lh+ob.size*ob.lh/2,wO)});c.restore()}
   if(sb.h)evLines(c,sb,M,y+ob.h+gS,{key:'osub',wt:700,fill:ink==='#ffffff'?'rgba(255,255,255,.82)':'rgba(17,17,17,.82)',t,at:1.6,maxW:wO});
   if(hasP)evPrice(c,W-M-pw2/2,y+rowH2-ph2/2,pw2,F,isDark(mc),t,1.7);
 }
@@ -382,7 +390,7 @@ function layoutBadge(c,W,H,t,D,F,I){
   if(kb.h){const ky=y;evTracked(c,evTrk(kb.size),()=>evLines(c,kb,M,ky,{key:'kicker',wt:800,fill:contrast(acc,'#0a0a0a')>=4.5?acc:LY,t,at:.3,maxW:sw}));y+=kb.h+kb.size*.6}
   if(hb.h)evLines(c,hb,M,y,{key:'head',wt:900,fill:'#fff',t,at:.9,maxW:sw});
   /* offer badge, bottom-right on the margin */
-  const bcx=W-M-r,bcy=H-ds.bot-r,ob=evFit(c,F.off,900,FN,r*1.38,Math.min(r*.62,hb.size?hb.size*.95:1e9),.98,r*.3);
+  const bcx=anchorX('off',W-M-r,M+r,W-M-r),bcy=H-ds.bot-r,ob=evFit(c,F.off,900,FN,r*1.38,Math.min(r*.62,hb.size?hb.size*.95:1e9),.98,r*.3);
   pop(c,bcx,bcy,t,1.3,()=>{
     objDraw(c,'obj:Corner badge',-r,-r,2*r,2*r,()=>{
       c.fillStyle=acc;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
@@ -413,7 +421,7 @@ const evSinceH=(W,F)=>String(F.since==null?evSinceDefault:F.since).trim()?W*.025
 function evSince(c,W,M,t,F,cy,fill,al){
   const s=String(F.since==null?evSinceDefault:F.since);if(!s.trim())return;
   const sz=W*.025,x=al==='left'?M:al==='right'?W-M:W/2;
-  evTracked(c,sz*.18,()=>text(c,{s:s.toUpperCase(),x,y:cy-sz*.55,size:sz,wt:700,fam:FM,fill,al:al||'center',t,at:2,maxW:W-2*M}));
+  evTracked(c,sz*.18,()=>text(c,{s:s.toUpperCase(),x,y:cy-sz*.55,size:sz,wt:700,fam:FM,fill,al:al||'center',key:'since',t,at:2,maxW:W-2*M}));
 }
 /* measured kicker / headline / offer / sub blocks, headline first in rank */
 function evBlocks(c,W,H,F,o){
@@ -429,11 +437,15 @@ function evBlocks(c,W,H,F,o){
 function evOffer(c,ob,x,y,fill,al,t,maxW){
   const ST=postStyle();c.save();c.globalAlpha=clamp(prog(t,1.4*ST.stagger,.5*ST.durMul));
   /* evOffer draws straight to the canvas instead of going through text(), so it needs its
-     own copy of the same "only re-anchor a call that was already centred" override logic. */
+     own copy of text()'s override logic - same three conventions (centre-anchored,
+     left-anchored, right-anchored calls), re-derived from whichever edge x already is. */
+  const tp=typeof cur==='function'?cur():null,ov=tp?styleFor(tp.id,'off'):null;
   let align=al,ax=x;
-  if(al==='center'){
-    const tp=typeof cur==='function'?cur():null,ov=tp?styleFor(tp.id,'off'):null;
-    if(ov&&ov.al&&ov.al!=='center'){align=ov.al;ax=align==='left'?x-maxW/2:x+maxW/2}
+  if(ov&&ov.al&&ov.al!==al){
+    align=ov.al;
+    if(al==='center')ax=align==='left'?x-maxW/2:x+maxW/2;
+    else if(al==='left')ax=align==='center'?x+maxW/2:x+maxW;
+    else ax=align==='center'?x-maxW/2:x-maxW;
   }
   ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=fill;c.textAlign=align;c.textBaseline='middle';c.fillText(l,ax,y+i*ob.size*ob.lh+ob.size*ob.lh/2,maxW)});c.restore();
 }

@@ -83,7 +83,8 @@ const T_ADV=[
      fixed-position logo's bottom edge (logo is centred at y=82 with height ~100, so its
      bottom sits around y=132), letting the pill creep up underneath it. Keep a fixed clearance
      below the logo regardless of how tall/short the burst ends up on this ratio. */
-  pop(c,W/2,Math.max(cy-R-10,176),t,.3,()=>{
+  font(c,800,32,FM);const eyeW0=c.measureText(F.eyebrow).width+64;
+  pop(c,anchorX('eyebrow',W/2,90+eyeW0/2,W-90-eyeW0/2),Math.max(cy-R-10,176),t,.3,()=>{
     const s=1+.04*wave(t,D,3);c.scale(s,s);font(c,800,32,FM);const w=c.measureText(F.eyebrow).width+64;
     objDraw(c,'obj:Eyebrow pill',-w/2,-30,w,60,()=>{rr(c,-w/2,-30,w,60,30);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.eyebrow,0,2)});
   },{from:.6});
@@ -100,7 +101,8 @@ const T_ADV=[
   if(rp>0){c.save();c.translate(W*.76+(1-rp)*W*.6,cy-R*.62);c.rotate(.12);font(c,900,44,FN);const w=c.measureText(F.save).width+60;
     objDraw(c,'obj:Ribbon',-w/2,-40,w,80,()=>{rr(c,-w/2,-40,w,80,10);c.fillStyle='#111';c.fill();c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';c.fillText(F.save,0,2)});
     c.restore()}
-  pop(c,W/2,H-135,t,2.0,()=>{
+  font(c,900,40,FM);const ctaW0=c.measureText(F.cta).width+120;
+  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H-135,t,2.0,()=>{
     const s=1+.04*wave(t,D,2);c.scale(s,s);font(c,900,40,FM);const w=c.measureText(F.cta).width+120;
     objDraw(c,'obj:Button',-w/2,-42,w,84,()=>{rr(c,-w/2,-42,w,84,42);c.fillStyle=F.acc;c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,2)});
   },{from:.5});
@@ -131,7 +133,8 @@ const T_ADV=[
       font(c,900,46,FN);{const A=alignFor('bigsub',0,200);c.textAlign=A.align;c.fillText(F.bigsub,A.x,50)}
     });
   },{from:.3});
-  pop(c,W/2,H-120,t,1.8,()=>{
+  font(c,900,44,FM);const ctaW0=c.measureText(F.cta).width+130;
+  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H-120,t,1.8,()=>{
     const s=1+.04*wave(t,D,2);c.scale(s,s);font(c,900,44,FM);const w=c.measureText(F.cta).width+130;
     objDraw(c,'obj:Button',-w/2,-45,w,90,()=>{rr(c,-w/2,-45,w,90,45);c.fillStyle='#fff';c.fill();c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,2)});
   },{from:.5});
@@ -178,8 +181,9 @@ const T_ADV=[
   if(tp>0){c.save();c.translate(W/2,H*.8);c.globalAlpha=tp;c.scale(1,Math.max(.02,Math.cos((1-eOut(prog(u,.2,.2)))*Math.PI/2)));
     objDraw(c,'obj:Price card',-W*.4,-70,W*.8,140,()=>{
       rr(c,-W*.4,-70,W*.8,140,30);c.fillStyle='#000';c.fill();
-      font(c,800,46,FM);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';c.fillText(nm,-W*.4+40,0,W*.8-250);
-      font(c,900,76,FN);c.fillStyle=F.bg;c.textAlign='right';c.fillText(pr,W*.4-40,0);
+      const nameKey=['n1','n2','n3'][i],priceKey=['p1','p2','p3'][i],nameW=W*.8-250;
+      font(c,800,46,FM);c.fillStyle='#fff';c.textBaseline='middle';{const A=alignFor(nameKey,-W*.4+40+nameW/2,nameW);c.textAlign=A.align;c.fillText(nm,A.x,0,nameW)}
+      font(c,900,76,FN);c.fillStyle=F.bg;{const A=alignFor(priceKey,W*.4-170,260);c.textAlign=A.align;c.fillText(pr,A.x,0)}
     });
     c.restore()}
   for(let k=0;k<3;k++){c.fillStyle=k===i?'#111':'rgba(0,0,0,.25)';c.beginPath();c.arc(W/2+(k-1)*44,H-70,k===i?12:9,0,7);c.fill()}
@@ -204,9 +208,11 @@ const T_ADV=[
       rr(c,-bw/2,-bh/2,bw,bh,44);c.fillStyle='#fff';c.fill();
       c.beginPath();c.moveTo(-bw*.42,bh/2-6);c.lineTo(-bw*.62,bh/2+120);c.lineTo(-bw*.2,bh/2-6);c.closePath();c.fill();
       c.shadowColor='transparent';
-      font(c,800,sz,FM);c.fillStyle='#111';c.textAlign='left';c.textBaseline='middle';
+      font(c,800,sz,FM);c.fillStyle='#111';c.textBaseline='middle';
+      const sayOv=styleFor(cur().id,'say'),sayMw=bw-90;let sayAlign='left';if(sayOv&&sayOv.al&&sayOv.al!=='left')sayAlign=sayOv.al;
+      const sayX=sayAlign==='left'?-bw/2+45:sayAlign==='center'?-bw/2+45+sayMw/2:-bw/2+45+sayMw;c.textAlign=sayAlign;
       let left=Math.floor(lines.join('').length*prog(t,1.4,1.6));
-      lines.forEach((l,i)=>{const k=Math.min(l.length,Math.max(0,left));left-=l.length;if(k>0)c.fillText(l.slice(0,k),-bw/2+45,-bh/2+40+(i+.5)*sz*1.12)});
+      lines.forEach((l,i)=>{const k=Math.min(l.length,Math.max(0,left));left-=l.length;if(k>0)c.fillText(l.slice(0,k),sayX,-bh/2+40+(i+.5)*sz*1.12)});
     });
   },{from:.3});
  }},

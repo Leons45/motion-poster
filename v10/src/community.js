@@ -119,7 +119,7 @@ const T_COMM=[
   });
   const ls=F.head.split('\n'),sz=Math.min(150,H*.115);
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
-    charRise(c,l,W/2,H*.3+(i-(ls.length-1)/2)*sz*1.05,s,900,FM,'#fff',t,.2+i*.3,.03,50)});
+    charRise(c,l,W/2,H*.3+(i-(ls.length-1)/2)*sz*1.05,s,900,FM,'#fff',t,.2+i*.3,.03,50,'head',W*.84)});
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.5,size:42,wt:700,fill:'rgba(255,255,255,.85)',t,at:1.1,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
@@ -139,9 +139,10 @@ const T_COMM=[
   glow(c,W,H,cx,cy,W*.6,'rgba(255,232,26,.14)','rgba(0,0,0,0)');
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const hs=Math.min(130,fitSize(c,F.head,900,FM,W*.88,130));
-  charRise(c,F.head,W/2,H*.44,hs,900,FM,'#fff',t,.4,.03,60);
+  charRise(c,F.head,W/2,H*.44,hs,900,FM,'#fff',t,.4,.03,60,'head',W*.88);
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.56,size:42,wt:700,fill:'rgba(255,255,255,.82)',t,at:1.1,maxW:W*.8});
-  pop(c,W/2,H*.72,t,1.5,()=>{
+  font(c,800,42,FM);const ctaW0=c.measureText(F.cta).width+96;
+  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.72,t,1.5,()=>{
     font(c,800,42,FM);const bw=c.measureText(F.cta).width+96,bh=42*1.9;
     objDraw(c,'obj:Button',-bw/2,-bh/2,bw,bh,()=>pill(c,0,0,F.cta,42,F.acc,'#111',48));
   },{from:.7});
@@ -159,7 +160,7 @@ const T_COMM=[
   }
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const hs=Math.min(110,fitSize(c,F.head,900,FM,W*.86,110));
-  charRise(c,F.head,W/2,H*.32,hs,900,FM,'#fff',t,.3,.03,50);
+  charRise(c,F.head,W/2,H*.32,hs,900,FM,'#fff',t,.3,.03,50,'head',W*.86);
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.42,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:.9,maxW:W*.8});
  }},
 {id:'highlight',name:'Marker Highlight',sub:CRED_RVE+' — each word gets a marker sweep as it is spoken',
@@ -174,8 +175,9 @@ const T_COMM=[
   words.forEach(w=>{const ww=c.measureText(w).width;if(wd+ww>W*.8&&cur.length){lines.push(cur);cur=[];wd=0}cur.push([w,ww]);wd+=ww+sp});
   if(cur.length)lines.push(cur);
   let idx=0;const lh=sz*1.5,y0=H*.48-(lines.length-1)*lh/2;
+  const wA=alignFor('words',W/2,W*.8);
   lines.forEach((ln,li)=>{
-    const tot=ln.reduce((m,q)=>m+q[1],0)+sp*(ln.length-1);let x=W/2-tot/2;
+    const tot=ln.reduce((m,q)=>m+q[1],0)+sp*(ln.length-1);let x=wA.align==='left'?wA.x:wA.align==='right'?wA.x-tot:wA.x-tot/2;
     ln.forEach(q=>{
       const hp=clamp(prog(t,.4+idx*per,per*.5));idx++;
       if(hp>0){c.save();c.fillStyle=F.acc;rr(c,x-12,y0+li*lh-sz*.56,(q[1]+24)*hp,sz*1.12,8);c.fill();c.restore()}
@@ -192,15 +194,14 @@ const T_COMM=[
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   const n=Math.max(2,Math.min(20,parseInt(F.n)||7)),sz=Math.min(190,fitSize(c,F.title,900,FM,W*.86,190));
   font(c,900,sz,FM);const tw=c.measureText(F.title).width,cy=H*.44;
+  /* the reveal band is clipped to this text's own measured bounding box, so the clip rect
+     has to track the same anchor the text itself uses - move both together, by the same key. */
+  const A=alignFor('title',W/2,W*.86),boxX=A.align==='left'?A.x-10:A.align==='right'?A.x-tw-10:A.x-tw/2-10;
   for(let i=0;i<n;i++){
     const p=eEnter(prog(t,.15+i*.055,.5));if(p<=0)continue;
     const y0=cy-sz*.62+i*(sz*1.24/n);
-    /* the reveal band is clipped to this centred text's own measured bounding box (tw,
-       centred on W/2) - an alignment override would move the text out from under its
-       clip band, so this one stays centre-only by design, like a few other effects whose
-       visuals are built around one fixed anchor point. */
-    c.save();c.beginPath();c.rect(W/2-tw/2-10,y0,(tw+20)*p,sz*1.24/n+1);c.clip();
-    c.fillStyle=F.ink;c.textAlign='center';c.textBaseline='middle';c.fillText(F.title,W/2,cy);c.restore();
+    c.save();c.beginPath();c.rect(boxX,y0,(tw+20)*p,sz*1.24/n+1);c.clip();
+    c.fillStyle=F.ink;c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.title,A.x,cy);c.restore();
   }
   const dp=eBack(prog(t,.9,.5));
   if(dp>0){c.save();c.translate(W/2,H*.58);c.scale(dp,dp);objDraw(c,'obj:Dot',-22,-22,44,44,()=>{c.fillStyle=F.acc;c.beginPath();c.arc(0,0,22,0,TAU);c.fill()});c.restore()}
@@ -221,7 +222,7 @@ const T_COMM=[
   const ls=F.head.split('\n'),sz=Math.min(160,H*.12);
   c.save();c.shadowColor='rgba(0,0,0,.55)';c.shadowBlur=36;
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
-    charRise(c,l,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.04,s,900,FM,'#fff',t,.25+i*.28,.03,50)});
+    charRise(c,l,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.04,s,900,FM,'#fff',t,.25+i*.28,.03,50,'head',W*.84)});
   c.restore();
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.64,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:1.1,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
@@ -239,7 +240,8 @@ const T_COMM=[
   font(c,900,hs,FM);c.fillStyle=F.acc;{const A=alignFor('head',W/2,W*.88);c.textAlign=A.align;c.textBaseline='middle';
   c.save();c.shadowColor=F.acc;c.shadowBlur=26;c.fillText(scramble(F.head,eEnter(prog(t,.3,1.4)),fr),A.x,H*.44);c.restore()}
   font(c,800,52,FM);c.fillStyle='#fff';{const A=alignFor('sub',W/2,W*.8);c.textAlign=A.align;c.fillText(scramble(F.sub,eEnter(prog(t,1.1,1.4)),fr+11),A.x,H*.56)}
-  pop(c,W/2,H*.74,t,2.3,()=>{
+  font(c,800,42,FM);const ctaW0=c.measureText(F.cta).width+96;
+  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.74,t,2.3,()=>{
     font(c,800,42,FM);const bw=c.measureText(F.cta).width+96,bh=42*1.9;
     objDraw(c,'obj:Button',-bw/2,-bh/2,bw,bh,()=>pill(c,0,0,F.cta,42,'#fff','#111',48));
   },{from:.7});
@@ -253,6 +255,7 @@ const T_COMM=[
   const cwid=W*.8,chh=H*.42,x0=W/2-cwid/2,y0=H*.36-chh/2,fw=cwid/cols,fh=chh/rows;
   const p=eOut(prog(t,.07,1.6)),r=rng(13);
   font(c,900,Math.min(120,fitSize(c,F.title,900,FM,cwid*.86,120)),FM);
+  const tA=alignFor('title',W/2,cwid*.86);
   for(let i=0;i<cols*rows;i++){
     const col=i%cols,row=Math.floor(i/cols);
     const ang=r()*TAU, dist=(1-p)*(140+r()*460), rot=(1-p)*(r()-.5)*3;
@@ -261,7 +264,7 @@ const T_COMM=[
     c.translate(cxm+Math.cos(ang)*dist,cym+Math.sin(ang)*dist);c.rotate(rot);c.translate(-cxm,-cym);
     c.beginPath();c.rect(fx2,fy,fw+.6,fh+.6);c.clip();
     c.fillStyle=F.tile;c.fillRect(fx2-1,fy-1,fw+2,fh+2);
-    c.fillStyle=F.ink;c.textAlign='center';c.textBaseline='middle';c.fillText(F.title,W/2,H*.36);
+    c.fillStyle=F.ink;c.textAlign=tA.align;c.textBaseline='middle';c.fillText(F.title,tA.x,H*.36);
     c.restore();
   }
   const bs=eBack(prog(t,1.9,.6));

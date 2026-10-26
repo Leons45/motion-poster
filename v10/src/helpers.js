@@ -74,18 +74,22 @@ function text(c,o){
   const ST=postStyle();
   const str=up?String(s).toUpperCase():String(s);
   /* A per-field alignment choice (the Text style panel's Left/Centre/Right control, stored
-     per template on styleFor(tid,key).al) only has an unambiguous meaning when the call's
-     own x already sits at the horizontal CENTRE of its text column (maxW giving the column's
-     width) - which is the convention nearly every call written with al defaulting to
-     'center' already follows. A call that was written left- or right-anchored on purpose
-     (x already *is* that edge, not the centre) keeps its own alignment untouched, since
-     re-deriving an edge from a centre that was never computed would just misplace it. */
+     per template on styleFor(tid,key).al) needs to know which edge of the text's own column
+     x already is, so it can re-derive the OTHER edges from it: a call written with the
+     'center' default has x at the column's centre; a call written with 'left' or 'right' (the
+     left-margin-anchored blocks most layouts use, e.g. evLines' default) has x already AT that
+     edge, with maxW running away from it in the write direction. Either way, this only has an
+     unambiguous meaning while x and maxW stay the ones the call's own default already uses -
+     so a center-default call's x is read as a centre, and a left/right-default call's x is
+     read as that edge, and the override recomputes the other two cases from there. */
   let align=al,ax=x;
-  if(al==='center'&&key){
+  if(key){
     const tp=typeof cur==='function'?cur():null,ov=tp?styleFor(tp.id,key):null;
-    if(ov&&ov.al&&ov.al!=='center'){
+    if(ov&&ov.al&&ov.al!==al){
       align=ov.al;
-      ax=align==='left'?x-maxW/2:x+maxW/2;
+      if(al==='center')ax=align==='left'?x-maxW/2:x+maxW/2;
+      else if(al==='left')ax=align==='center'?x+maxW/2:x+maxW;
+      else ax=align==='center'?x-maxW/2:x-maxW;
     }
   }
   font(c,wt,size,fam);c.textAlign=align;c.textBaseline='middle';c.fillStyle=fill;
@@ -102,15 +106,42 @@ function text(c,o){
    use. Like text(), this only has a well-defined answer when the call's own default is centre
    alignment with x already at the column's centre - a call written left- or right-anchored on
    purpose keeps that, unchanged, same as text()'s own rule. */
+/* For a small auto-sized element (a button, pill, badge, ribbon) that always sizes itself to
+   its own text - there's no "column" to shift text within, since the box IS the text's width.
+   The only way Left/Centre/Right can mean anything for one of these is to relocate the whole
+   element toward the canvas's left/centre/right, same as a word processor's paragraph alignment
+   moving a short line. leftX/rightX are the anchor positions to use at each extreme (callers
+   pass their own canvas margins); centreX is whatever position the element already used. */
+function anchorX(key,centreX,leftX,rightX){
+  const tp=typeof cur==='function'?cur():null,ov=tp&&key?styleFor(tp.id,key):null;
+  if(ov&&ov.al==='left')return leftX;
+  if(ov&&ov.al==='right')return rightX;
+  return centreX;
+}
 function alignFor(key,x,maxW){
   const tp=typeof cur==='function'?cur():null,ov=tp&&key?styleFor(tp.id,key):null;
   if(ov&&ov.al&&ov.al!=='center')return{align:ov.al,x:ov.al==='left'?x-maxW/2:x+maxW/2};
   return{align:'center',x};
 }
-function mixed(c,parts,cx,cy,size,wt,fam,maxW){
+/* Same override, for a call written with x already at the LEFT edge of its column (the
+   convention evLines and a lot of hand-rolled left-margin blocks use) instead of the centre -
+   so 'center' moves to the middle of maxW and 'right' moves to its far edge, while the
+   default ('left') leaves x exactly where the call already had it. */
+function leftAlignFor(key,x,maxW){
+  const tp=typeof cur==='function'?cur():null,ov=tp&&key?styleFor(tp.id,key):null;
+  if(ov&&ov.al&&ov.al!=='left')return{align:ov.al,x:ov.al==='center'?x+maxW/2:x+maxW};
+  return{align:'left',x};
+}
+function mixed(c,parts,cx,cy,size,wt,fam,maxW,key){
   font(c,wt,size,fam);let tot=parts.reduce((a,p)=>a+c.measureText(p[0]).width,0);let s=size;
   if(maxW&&tot>maxW){s=size*maxW/tot;font(c,wt,s,fam);tot=parts.reduce((a,p)=>a+c.measureText(p[0]).width,0)}
-  let x=cx-tot/2;c.textAlign='left';c.textBaseline='middle';
+  /* parts combine two different fields (different colours) into one visual line, so there's
+     no single field that "owns" the line's position - key names whichever of them should drive
+     it when the person picks an alignment for it (the other field's own alignment control, if
+     it has one, has no separate effect here since the two are drawn as one inseparable unit). */
+  const A=key?alignFor(key,cx,maxW||tot):{align:'center',x:cx};
+  let x=A.align==='left'?A.x:A.align==='right'?A.x-tot:A.x-tot/2;
+  c.textAlign='left';c.textBaseline='middle';
   parts.forEach(p=>{c.fillStyle=p[1];c.fillText(p[0],x,cy);x+=c.measureText(p[0]).width});
 }
 function pop(c,cx,cy,t,at,fn,o={}){
