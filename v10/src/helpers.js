@@ -164,6 +164,20 @@ function logo(c,I,cx,cy,w,h,mult){
   const box=logoBoxSize(h*k,w*k,I,mult),dw=box.w,dh=box.h;
   objDraw(c,'obj:Logo',cx-dw/2,cy-dh/2,dw,dh,()=>logoFx(c,I,cx,cy,dw,dh));
 }
+/* Position a logo() call from its LEFT edge (logoAnchorX) or RIGHT edge (logoAnchorRightX)
+   instead of guessing a fixed centre x. A call site that just hands logo() a centre x
+   computed for the old ~2:1 assets will overflow once a wider "logo + tagline" lockup is
+   selected, because the real rendered width (via logoBoxSize, same h/maxW/mult/scale
+   this call will use) can be much wider than that assumption. These give the exact edge
+   instead, so the margin stays correct for any logo's real aspect ratio. */
+function logoAnchorX(edgeX,h,maxW,I,mult){
+  const k=(typeof state!=='undefined'&&state.logo2&&typeof state.logo2.scale==='number')?state.logo2.scale:1;
+  return edgeX+logoBoxSize(h*k,maxW*k,I,mult).w/2;
+}
+function logoAnchorRightX(edgeX,h,maxW,I,mult){
+  const k=(typeof state!=='undefined'&&state.logo2&&typeof state.logo2.scale==='number')?state.logo2.scale:1;
+  return edgeX-logoBoxSize(h*k,maxW*k,I,mult).w/2;
+}
 /* nine logo reveals, ported from the Remotion logo-reveal set */
 function logoFx(c,I,cx,cy,w,h){
   const S=(typeof state!=='undefined'&&state.logo2)||null, fx=S?S.fx:'none';

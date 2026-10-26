@@ -504,6 +504,20 @@ function logo(c,I,cx,cy,w,h,mult){
   const box=logoBoxSize(h*k,w*k,I,mult),dw=box.w,dh=box.h;
   objDraw(c,'obj:Logo',cx-dw/2,cy-dh/2,dw,dh,()=>logoFx(c,I,cx,cy,dw,dh));
 }
+/* Position a logo() call from its LEFT edge (logoAnchorX) or RIGHT edge (logoAnchorRightX)
+   instead of guessing a fixed centre x. A call site that just hands logo() a centre x
+   computed for the old ~2:1 assets will overflow once a wider "logo + tagline" lockup is
+   selected, because the real rendered width (via logoBoxSize, same h/maxW/mult/scale
+   this call will use) can be much wider than that assumption. These give the exact edge
+   instead, so the margin stays correct for any logo's real aspect ratio. */
+function logoAnchorX(edgeX,h,maxW,I,mult){
+  const k=(typeof state!=='undefined'&&state.logo2&&typeof state.logo2.scale==='number')?state.logo2.scale:1;
+  return edgeX+logoBoxSize(h*k,maxW*k,I,mult).w/2;
+}
+function logoAnchorRightX(edgeX,h,maxW,I,mult){
+  const k=(typeof state!=='undefined'&&state.logo2&&typeof state.logo2.scale==='number')?state.logo2.scale:1;
+  return edgeX-logoBoxSize(h*k,maxW*k,I,mult).w/2;
+}
 /* nine logo reveals, ported from the Remotion logo-reveal set */
 function logoFx(c,I,cx,cy,w,h){
   const S=(typeof state!=='undefined'&&state.logo2)||null, fx=S?S.fx:'none';
@@ -899,7 +913,7 @@ const T_PREM=[
   pop(c,W/2,H*.5+Math.sin(TAU*u)*14,t,.4,()=>{c.rotate(Math.sin(TAU*u)*.03);drawImg(c,I.p,-440,-ph/2,880,ph,{label:'Product photo',dark:true,shadow:60})},{from:.7,dur:.9,rot:.2});
   pop(c,W*.82,H*.2,t,1.0,()=>{c.rotate(.2*Math.sin(TAU*u*2)*.3);objDraw(c,'obj:Price badge',-150,-150,300,300,()=>{burstPath(c,0,0,150,150,14,.86,0);c.fillStyle='#E4262C';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';font(c,900,70,FN);c.fillText(F.price,0,4)})},{from:.3,dur:.8,rot:.5});
   const hs=Math.min(90,fitSize(c,F.head,900,FM,W*.86,90));charRise(c,F.head,W/2,H*.9,hs,900,FM,'#fff',t,1.2,.03,30);
-  pop(c,150,90,t,.2,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
+  pop(c,logoAnchorX(45,105,210,I,1.6),90,t,.2,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
  }},
 {id:'stats',name:'Big Numbers',sub:'Three animated stat cards with counting numbers and progress rings',
  fields:[{k:'title',l:'Title',t:'text',v:'LEON\'S BY THE NUMBERS'},{k:'n1',l:'Number 1',t:'text',v:'90+'},{k:'l1',l:'Label 1',t:'text',v:'Years serving Canadians'},{k:'n2',l:'Number 2',t:'text',v:'300,000'},{k:'l2',l:'Label 2',t:'text',v:'Products in stock'},{k:'n3',l:'Number 3',t:'text',v:'100%'},{k:'l3',l:'Label 3',t:'text',v:'Canadian owned'},{k:'bg',l:'Background',t:'color',v:'#0C0C0C'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -1012,7 +1026,7 @@ const T_PREM=[
   pop(c,W-220,uy-40,t,1.0,()=>{objDraw(c,'obj:Badge',-160,-160,320,320,()=>{c.beginPath();c.arc(0,0,160,0,7);c.fillStyle=F.acc;c.fill();arcText(c,F.ring,0,0,118,TAU*u,34,'#fff');c.fillStyle='#fff';burstPath(c,0,0,46,46,8,.55,TAU*u*-1);c.fill()})},{from:.2,dur:.9,rot:1.5});
   const ty=H*.86;c.fillStyle=F.ink;c.fillRect(60,ty-60,(W-120)*eOut(prog(t,1.3,.8)),6);
   text(c,{s:F.title,x:W/2,y:ty,size:56,wt:800,fill:F.ink,t,at:1.5,maxW:W*.8});
-  pop(c,150,H-70,t,1.8,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,logoAnchorX(45,100,200,I,1.6),H-70,t,1.8,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'festive',name:'Festive Greeting',sub:'String lights, rolling waves and falling snow for holiday posts',
  fields:[{k:'head',l:'Greeting',t:'area',v:'Happy\nHolidays'},{k:'sub',l:'Sub line',t:'text',v:'From all of us at Leon\'s'},{k:'cta',l:'Button',t:'text',v:'Shop holiday deals'},{k:'bg1',l:'Sky top',t:'color',v:'#B3122A'},{k:'bg2',l:'Sky bottom',t:'color',v:'#5A0A18'},{k:'wave',l:'Wave colour',t:'color',v:'#FFE81A'}],
@@ -1157,7 +1171,7 @@ const T_PREM2=[
     font(c,800,40,FM);const pw=c.measureText(lab).width+88,ph=76;
     objDraw(c,'obj:Label',-pw/2,-ph/2,pw,ph,()=>pill(c,0,0,lab,40,'#111','#fff',44));
   },{from:.7});
-  pop(c,W-140,H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
+  pop(c,logoAnchorRightX(W-55,85,170,I,1.6),H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
  }},
 {id:'bilingual',name:'EN / FR Flip',sub:'Headline flips between English and French, built for Canadian posts',
  fields:[{k:'en',l:'English headline',t:'area',v:'SUPER\nSALE'},{k:'fr',l:'French headline',t:'area',v:'SUPER\nSOLDE'},{k:'sen',l:'English sub',t:'text',v:'Up to 50% off select sofas'},{k:'sfr',l:'French sub',t:'text',v:'Jusqu\'à 50 % de rabais sur sofas'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Ink',t:'color',v:'#111111'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
@@ -1880,6 +1894,10 @@ function evPrice(c,cx,cy,pw,F,dark,t,at){
 /* "UP TO" + an offer that already starts with "UP TO" must not read "UP TO UP TO 50%" */
 const evPre=F=>(F.pre&&!String(F.off).toUpperCase().trim().startsWith(String(F.pre).toUpperCase().trim()))?F.pre:'';
 const evLogoW=W=>W*.16;
+/* Shared read of the Style tab's global logo-layout toggle, for every masthead-style
+   logo row across the Event Posts layouts (not just the Circle masthead). 'center' is
+   the engine's own default so this never needs a template to opt in. */
+const evLogoAlign=()=>(typeof state!=='undefined'&&state.logoAlign)||'center';
 /* TYPE HIERARCHY for every Event Post. Rank: title (the event name, headline) > offer > support (sub line)
    > label (eyebrow, small caps with tracking) > caption (tagline / fine print). TY gives each tier's
    size as a fraction of the layout's `base` (its hero size); evCap then caps a tier relative to the
@@ -1951,7 +1969,7 @@ function layoutSplit(c,W,H,t,D,F,I){
   const lw=(V?logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6):logoBoxSize(W*.065,W*.13,null,2.6)).w,lh=(V?logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6):logoBoxSize(W*.065,W*.13,null,2.6)).h,fh=F.flab?(V?H*.058:H*.075):0,rightDark=V?isDark(mc):isDark(F.bg1,F.bg2);
   objDraw(c,'obj:Masthead',0,0,panelW,panelH,()=>{
     const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,panelH);c.restore();
-    pop(c,V?M+lw/2-lw*.046:cx,ds.top+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
+    pop(c,evLogoAlign()==='left'?M+lw/2-lw*.046:cx,ds.top+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
     /* measure the copy stack, then centre it in the space between logo and tagline */
     const hasN=!!F.num,areaTop=ds.top+lh+H*.03,areaBot=V?panelH-H*.03:H-ds.bot-H*.02;
     let sbase=V?Math.min(H*.06,W*.12):Math.min(H*.1,panelW*.3),hb,ob,sb,kb,ns,gK,gN,gH,gO,total;
@@ -2012,7 +2030,7 @@ function layoutFullbleed(c,W,H,t,D,F,I){
 
   const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
   objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{
-    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
+    pop(c,evLogoAlign()==='left'?M+lw/2-lw*.046:W/2,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
 
@@ -2046,7 +2064,7 @@ function layoutCorner(c,W,H,t,D,F,I){
   yellowField(c,W,H,F.bg1,F.bg2);
   const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,dark),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
   objDraw(c,'obj:Masthead',M,ds.top,W-2*M,rowH,()=>{
-    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
+    pop(c,evLogoAlign()==='left'?M+lw/2-lw*.046:W/2,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,1.8,dark,'right');
   const sw=W-2*M,pw2=ds.pw*1.08,ph2=pw2*.355; /* price card stays below the headline in rank */
@@ -2079,7 +2097,10 @@ function layoutCorner(c,W,H,t,D,F,I){
   if(F.flab)evPrice(c,W/2,H-ds.bot-ph2/2,pw2,F,dark,t,1.6);
 }
 
-/* ---------- layout 5: horizontal stacked colour bands ---------- */
+/* ---------- layout 5: horizontal stacked colour bands ----------
+   The logo here stays left-fixed on purpose, not wired to the global logo-layout toggle:
+   the eyebrow is centred in the exact gap between the logo and the Made-in-Canada badge,
+   so moving the logo to the middle of the bar would run it straight into that text. */
 function layoutStacked(c,W,H,t,D,F,I){
   const ST=postStyle(),M=evM(W),ds=DS(W,H),mc=F.mcol||'#111111',acc=F.acc||'#C8102E';
   c.fillStyle=F.bg2||'#111';c.fillRect(0,0,W,H);
@@ -2125,8 +2146,9 @@ function layoutPoster(c,W,H,t,D,F,I){
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(.5,'rgba(0,0,0,.42)');g.addColorStop(1,'rgba(0,0,0,.82)');
   c.save();c.fillStyle=g;c.fillRect(0,0,W,H);c.restore();
   const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),hasM=F.maple!=='no';
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,lh,()=>{pop(c,W/2,ds.top+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
-  if(hasM)evMade(c,W/2,ds.top+lh+H*.02+MB.h/2,micS,t,.3,true,'center');
+  const lx=evLogoAlign()==='left'?M+lw/2-lw*.046:W/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,lh,()=>{pop(c,lx,ds.top+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
+  if(hasM)evMade(c,lx,ds.top+lh+H*.02+MB.h/2,micS,t,.3,true,'center');
   const headerBottom=ds.top+lh+(hasM?H*.02+MB.h:0);
   const hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105)*ds.k;
   const {tb:hb,ob}=evDisplay(c,F,sw,sw,base,hasN,base*.7);
@@ -2162,7 +2184,7 @@ function layoutCard(c,W,H,t,D,F,I){
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
   const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,evLogoAlign()==='left'?M+lw/2-lw*.046:W/2,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
   objDraw(c,'obj:Footer',0,cardTop,W,H-cardTop,()=>{
     const p=ST.textEase(prog(t,.15,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.05);
@@ -2187,7 +2209,7 @@ function layoutBadge(c,W,H,t,D,F,I){
   const gb=c.createLinearGradient(0,H*.6,0,H);gb.addColorStop(0,'rgba(0,0,0,0)');gb.addColorStop(1,'rgba(0,0,0,.6)');
   c.save();c.fillStyle=gb;c.fillRect(0,H*.6,W,H*.4);c.restore();
   const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,evLogoAlign()==='left'?M+lw/2-lw*.046:W/2,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
   const r=W*.215,hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,base=Math.min(W*.14,H*.105)*ds.k,gap=W*.03;
   const hb=evFit(c,F.head,900,FM,sw,base,1.08,base*.7);
@@ -2218,7 +2240,8 @@ function layoutBadge(c,W,H,t,D,F,I){
    They use the same grid, measured text and type hierarchy as the layouts above. ---------- */
 const evSinceDefault='PROUDLY CANADIAN · SINCE 1909';
 function evTopRow(c,W,yT,t,I,F,o){
-  o=o||{};const M=evM(W),lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
+  o=o||{};const M=evM(W),lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2;
+  const lx=evLogoAlign()==='left'?M+lw/2-lw*.046:W/2;
   objDraw(c,'obj:Logo bar',M,yT,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
     logo(c,I,0,0,lw,lh,2.6)},{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,cy,micS,t,.3,!!o.chip,'right');
@@ -2562,7 +2585,10 @@ const T_CLASSIC=[
   const top=ty+170,bot=H-350,bh=Math.min(560,bot-top),cy=(top+bot)/2;
   pop(c,cl,cy,t,.6,()=>{c.translate(0,wave(t,D,2)*8);drawImg(c,I.a,-210,-bh/2,420,bh,{label:'Left image'})},{from:.5});
   pop(c,cr,cy,t,.9,()=>{c.translate(0,wave(t,D,2,.3)*8);drawImg(c,I.b,-250,-bh/2,500,bh,{label:'Right image'})},{from:.5});
-  const cp=eOut(prog(t,1.1,.8)),ct=H-310+(1-cp)*340;
+  /* the card is 420 tall and meant to overlap the bottom of the two images, never the
+     canvas edge itself - anchor it from the bottom with a real margin instead of a
+     fixed offset that put it 110px below the artboard on every ratio. */
+  const cp=eOut(prog(t,1.1,.8)),ct=H-420-W*.037+(1-cp)*340;
   objDraw(c,'obj:Card',W/2-240,ct,480,420,()=>{rr(c,W/2-240,ct,480,420,56);c.fillStyle='#0A0A0A';c.fill()});
   logo(c,I,W/2,ct+100,250,125);
   text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
@@ -2662,7 +2688,10 @@ const T_CLASSIC=[
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
   const fe=eOut(prog(t,.9,.9));
-  c.save();c.translate(W*.33,H*.69+(1-fe)*H*.5);c.rotate(-.13+wave(t,D,1)*.02);drawImg(c,I.flyer,-W*.19,0,W*.38,H*.42,{ay:0,label:'Flyer'});c.restore();
+  /* anchored + sized so the tilted flyer's bottom edge lands inside the artboard with a
+     real margin, not H*.69+H*.42 = 1.11H, which ran 11-21% of the canvas height off the
+     bottom edge on every ratio. */
+  c.save();c.translate(W*.33,H*.58+(1-fe)*H*.5);c.rotate(-.13+wave(t,D,1)*.02);drawImg(c,I.flyer,-W*.19,0,W*.38,H*.37,{ay:0,label:'Flyer'});c.restore();
   pop(c,W*.76,H*.85,t,1.3,()=>{const s=1+.03*wave(t,D,2);c.scale(s,s);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';
     const L=F.cta.split('\n');font(c,900,100,FN);L.forEach((l,i)=>c.fillText(l,0,(i-(L.length-1)/2)*95,W*.42))},{from:.6});
  }},
@@ -2708,7 +2737,10 @@ const T_CLASSIC=[
  images:[{k:'hero',l:'Peeking character (transparent PNG, cropped at the chest)'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.5,H*.35,W*.1,W*.5,H*.35,H*.8);g.addColorStop(0,shade(F.bg,.2));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  const hs=fitSize(c,F.head,900,FM,W*.7,360);
+  /* cap the headline so a short, all-caps word (little width constraint, so it grows
+     toward the font-size cap) still leaves real breathing room above it instead of
+     nearly touching the top edge */
+  const hs=fitSize(c,F.head,900,FM,W*.7,Math.min(330,H*.3));
   pop(c,W/2,H*.19,t,.15,()=>{font(c,900,hs,FM);c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(F.head,0,0)},{from:.5});
   text(c,{s:F.sub,x:W/2,y:H*.30,size:54,wt:800,fill:'#111',maxW:W*.88,lh:1.12,t,at:.7,gap:.15});
   const bh=H*.4,pk=eBack(prog(t,1.0,1.1));

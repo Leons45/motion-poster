@@ -45,7 +45,7 @@ const T_PREM=[
   pop(c,W/2,H*.5+Math.sin(TAU*u)*14,t,.4,()=>{c.rotate(Math.sin(TAU*u)*.03);drawImg(c,I.p,-440,-ph/2,880,ph,{label:'Product photo',dark:true,shadow:60})},{from:.7,dur:.9,rot:.2});
   pop(c,W*.82,H*.2,t,1.0,()=>{c.rotate(.2*Math.sin(TAU*u*2)*.3);objDraw(c,'obj:Price badge',-150,-150,300,300,()=>{burstPath(c,0,0,150,150,14,.86,0);c.fillStyle='#E4262C';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';font(c,900,70,FN);c.fillText(F.price,0,4)})},{from:.3,dur:.8,rot:.5});
   const hs=Math.min(90,fitSize(c,F.head,900,FM,W*.86,90));charRise(c,F.head,W/2,H*.9,hs,900,FM,'#fff',t,1.2,.03,30);
-  pop(c,150,90,t,.2,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
+  pop(c,logoAnchorX(45,105,210,I,1.6),90,t,.2,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
  }},
 {id:'stats',name:'Big Numbers',sub:'Three animated stat cards with counting numbers and progress rings',
  fields:[{k:'title',l:'Title',t:'text',v:'LEON\'S BY THE NUMBERS'},{k:'n1',l:'Number 1',t:'text',v:'90+'},{k:'l1',l:'Label 1',t:'text',v:'Years serving Canadians'},{k:'n2',l:'Number 2',t:'text',v:'300,000'},{k:'l2',l:'Label 2',t:'text',v:'Products in stock'},{k:'n3',l:'Number 3',t:'text',v:'100%'},{k:'l3',l:'Label 3',t:'text',v:'Canadian owned'},{k:'bg',l:'Background',t:'color',v:'#0C0C0C'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -158,7 +158,7 @@ const T_PREM=[
   pop(c,W-220,uy-40,t,1.0,()=>{objDraw(c,'obj:Badge',-160,-160,320,320,()=>{c.beginPath();c.arc(0,0,160,0,7);c.fillStyle=F.acc;c.fill();arcText(c,F.ring,0,0,118,TAU*u,34,'#fff');c.fillStyle='#fff';burstPath(c,0,0,46,46,8,.55,TAU*u*-1);c.fill()})},{from:.2,dur:.9,rot:1.5});
   const ty=H*.86;c.fillStyle=F.ink;c.fillRect(60,ty-60,(W-120)*eOut(prog(t,1.3,.8)),6);
   text(c,{s:F.title,x:W/2,y:ty,size:56,wt:800,fill:F.ink,t,at:1.5,maxW:W*.8});
-  pop(c,150,H-70,t,1.8,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,logoAnchorX(45,100,200,I,1.6),H-70,t,1.8,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'festive',name:'Festive Greeting',sub:'String lights, rolling waves and falling snow for holiday posts',
  fields:[{k:'head',l:'Greeting',t:'area',v:'Happy\nHolidays'},{k:'sub',l:'Sub line',t:'text',v:'From all of us at Leon\'s'},{k:'cta',l:'Button',t:'text',v:'Shop holiday deals'},{k:'bg1',l:'Sky top',t:'color',v:'#B3122A'},{k:'bg2',l:'Sky bottom',t:'color',v:'#5A0A18'},{k:'wave',l:'Wave colour',t:'color',v:'#FFE81A'}],

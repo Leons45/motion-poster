@@ -60,7 +60,7 @@ const T_PREM2=[
     font(c,800,40,FM);const pw=c.measureText(lab).width+88,ph=76;
     objDraw(c,'obj:Label',-pw/2,-ph/2,pw,ph,()=>pill(c,0,0,lab,40,'#111','#fff',44));
   },{from:.7});
-  pop(c,W-140,H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
+  pop(c,logoAnchorRightX(W-55,85,170,I,1.6),H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
  }},
 {id:'bilingual',name:'EN / FR Flip',sub:'Headline flips between English and French, built for Canadian posts',
  fields:[{k:'en',l:'English headline',t:'area',v:'SUPER\nSALE'},{k:'fr',l:'French headline',t:'area',v:'SUPER\nSOLDE'},{k:'sen',l:'English sub',t:'text',v:'Up to 50% off select sofas'},{k:'sfr',l:'French sub',t:'text',v:'Jusqu\'à 50 % de rabais sur sofas'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Ink',t:'color',v:'#111111'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],

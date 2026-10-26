@@ -24,7 +24,10 @@ const T_CLASSIC=[
   const top=ty+170,bot=H-350,bh=Math.min(560,bot-top),cy=(top+bot)/2;
   pop(c,cl,cy,t,.6,()=>{c.translate(0,wave(t,D,2)*8);drawImg(c,I.a,-210,-bh/2,420,bh,{label:'Left image'})},{from:.5});
   pop(c,cr,cy,t,.9,()=>{c.translate(0,wave(t,D,2,.3)*8);drawImg(c,I.b,-250,-bh/2,500,bh,{label:'Right image'})},{from:.5});
-  const cp=eOut(prog(t,1.1,.8)),ct=H-310+(1-cp)*340;
+  /* the card is 420 tall and meant to overlap the bottom of the two images, never the
+     canvas edge itself - anchor it from the bottom with a real margin instead of a
+     fixed offset that put it 110px below the artboard on every ratio. */
+  const cp=eOut(prog(t,1.1,.8)),ct=H-420-W*.037+(1-cp)*340;
   objDraw(c,'obj:Card',W/2-240,ct,480,420,()=>{rr(c,W/2-240,ct,480,420,56);c.fillStyle='#0A0A0A';c.fill()});
   logo(c,I,W/2,ct+100,250,125);
   text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
@@ -124,7 +127,10 @@ const T_CLASSIC=[
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
   const fe=eOut(prog(t,.9,.9));
-  c.save();c.translate(W*.33,H*.69+(1-fe)*H*.5);c.rotate(-.13+wave(t,D,1)*.02);drawImg(c,I.flyer,-W*.19,0,W*.38,H*.42,{ay:0,label:'Flyer'});c.restore();
+  /* anchored + sized so the tilted flyer's bottom edge lands inside the artboard with a
+     real margin, not H*.69+H*.42 = 1.11H, which ran 11-21% of the canvas height off the
+     bottom edge on every ratio. */
+  c.save();c.translate(W*.33,H*.58+(1-fe)*H*.5);c.rotate(-.13+wave(t,D,1)*.02);drawImg(c,I.flyer,-W*.19,0,W*.38,H*.37,{ay:0,label:'Flyer'});c.restore();
   pop(c,W*.76,H*.85,t,1.3,()=>{const s=1+.03*wave(t,D,2);c.scale(s,s);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';
     const L=F.cta.split('\n');font(c,900,100,FN);L.forEach((l,i)=>c.fillText(l,0,(i-(L.length-1)/2)*95,W*.42))},{from:.6});
  }},
@@ -170,7 +176,10 @@ const T_CLASSIC=[
  images:[{k:'hero',l:'Peeking character (transparent PNG, cropped at the chest)'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.5,H*.35,W*.1,W*.5,H*.35,H*.8);g.addColorStop(0,shade(F.bg,.2));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  const hs=fitSize(c,F.head,900,FM,W*.7,360);
+  /* cap the headline so a short, all-caps word (little width constraint, so it grows
+     toward the font-size cap) still leaves real breathing room above it instead of
+     nearly touching the top edge */
+  const hs=fitSize(c,F.head,900,FM,W*.7,Math.min(330,H*.3));
   pop(c,W/2,H*.19,t,.15,()=>{font(c,900,hs,FM);c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(F.head,0,0)},{from:.5});
   text(c,{s:F.sub,x:W/2,y:H*.30,size:54,wt:800,fill:'#111',maxW:W*.88,lh:1.12,t,at:.7,gap:.15});
   const bh=H*.4,pk=eBack(prog(t,1.0,1.1));
