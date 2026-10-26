@@ -439,11 +439,16 @@ function evOffer(c,ob,x,y,fill,al,t,maxW){
 }
 function evKick(c,kb,x,y,fill,al,t,maxW){evTracked(c,evTrk(kb.size),()=>evLines(c,kb,x,y,{key:'kicker',wt:800,fill,al,t,at:.3,maxW}))}
 /* photo revealed inside any clip shape (default: rounded rectangle) */
-function evPhoto(c,I,x,y,w,h,r,t,at,pathFn){
+/* Defaults to 'contain' - the whole uploaded photo visible, never cropped - for every Event
+   Posts product-photo slot. The one deliberate exception is Sunray's opt-in "Masked inside
+   the circle" product mode (its own call site passes fit explicitly): that field's own label
+   already tells the person it crops to a circle, and the alternative "Free - not masked" mode
+   sits right next to it for anyone who doesn't want that. */
+function evPhoto(c,I,x,y,w,h,r,t,at,pathFn,fit){
   const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.7*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,(1-p)*h*.03);
   c.beginPath();if(pathFn)pathFn();else c.roundRect(x,y,w,h,r);c.clip();
-  drawImg(c,I.p,x,y,w,h,{label:'Product photo',fit:'cover-safe'});c.restore();
+  drawImg(c,I.p,x,y,w,h,{label:'Product photo',fit:fit||'contain'});c.restore();
 }
 const evRise=(c,t,at,H,fn)=>{const ST=postStyle(),p=ST.textEase(prog(t,at*ST.stagger,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.03);fn();c.restore()};
 
@@ -550,7 +555,7 @@ function layoutSunray(c,W,H,t,D,F,I){
   objDraw(c,'obj:Backdrop',cx-d/2-W*.012,cy-d/2-W*.012,d+W*.024,d+W*.024,()=>{
     c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle=F.disc||'#ffffff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();
   });
-  if(F.pmask==='circle')evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU));
+  if(F.pmask==='circle')evPhoto(c,I,cx-d/2,cy-d/2,d,d,0,t,.35,()=>c.arc(cx,cy,d/2,0,TAU),'cover-safe');
   else{/* free product: the disc is only a backdrop, the product stands in front of it and may overflow it */
     const bs=d*1.06;pop(c,cx,cy+d*.01,t,.35,()=>drawImg(c,I.p,-bs/2,-bs/2,bs,bs,{label:'Product photo',shadow:W*.018}),{from:.8,dur:.8})}
   const by=cy+d*.36;
