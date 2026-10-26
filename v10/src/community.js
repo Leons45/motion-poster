@@ -41,7 +41,11 @@ const T_COMM=[
     });
     c.restore();
   });
-  pop(c,W/2,H*.9,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
+  /* On a square canvas the fanned stack runs tall enough that the lowest card (the one
+     offset +54, drawn first) can reach down into the logo's fixed H*.9 slot. Push the logo
+     below that card's real bottom edge instead on ratios where it would otherwise clip it. */
+  const stackBottom=H*.54+54+pw*1.28/2;
+  pop(c,W/2,Math.max(H*.9,stackBottom+70),t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'polaroid',name:'Polaroid Drop',sub:CRED_RVE+' — a polaroid swings down from above and settles',
  fields:[{k:'cap',l:'Caption',t:'text',v:'Avery Sofa — $649'},{k:'sub',l:'Sub line',t:'text',v:'In stores now'},{k:'bg',l:'Background',t:'color',v:'#111827'}],

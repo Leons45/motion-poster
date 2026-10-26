@@ -79,7 +79,11 @@ const T_ADV=[
   objDraw(c,'obj:Burst',-R,-R,R*2,R*2,()=>{burstPath(c,0,0,R,R,24,.86,(t/D)*TAU/24);c.fillStyle=F.acc;c.fill()});
   c.restore();
   pop(c,W/2,82,t,0,()=>logo(c,I,0,0,200,100),{from:.8,dur:.6});
-  pop(c,W/2,cy-R-10,t,.3,()=>{
+  /* On a near-square canvas R (capped by H*.34) shrinks enough that cy-R-10 rises above the
+     fixed-position logo's bottom edge (logo is centred at y=82 with height ~100, so its
+     bottom sits around y=132), letting the pill creep up underneath it. Keep a fixed clearance
+     below the logo regardless of how tall/short the burst ends up on this ratio. */
+  pop(c,W/2,Math.max(cy-R-10,176),t,.3,()=>{
     const s=1+.04*wave(t,D,3);c.scale(s,s);font(c,800,32,FM);const w=c.measureText(F.eyebrow).width+64;
     objDraw(c,'obj:Eyebrow pill',-w/2,-30,w,60,()=>{rr(c,-w/2,-30,w,60,30);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.eyebrow,0,2)});
   },{from:.6});
