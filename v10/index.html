@@ -712,7 +712,7 @@ const T_ADV=[
   c.save();c.fillStyle=F.acc;c.globalAlpha=.07;const sh=(t/D)*220;
   for(let i=-3;i<9;i++){const x=i*220+sh;c.beginPath();c.moveTo(x,0);c.lineTo(x+90,0);c.lineTo(x-300,H);c.lineTo(x-390,H);c.closePath();c.fill()}c.restore();
   c.save();c.translate(sx,sy);
-  pop(c,W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const sz=Math.min(250,H*.5/(n*.95)),total=n*sz*.95,cy=H*.46;
   words.forEach((w,i)=>{
     const p=prog(t,.3+i*.35,.45);if(p<=0)return;
@@ -744,7 +744,7 @@ const T_ADV=[
   c.save();c.translate(W/2,cy);c.scale(bp,bp);
   objDraw(c,'obj:Burst',-R,-R,R*2,R*2,()=>{burstPath(c,0,0,R,R,24,.86,(t/D)*TAU/24);c.fillStyle=F.acc;c.fill()});
   c.restore();
-  pop(c,W/2,82,t,0,()=>logo(c,I,0,0,200,100),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,82,t,0,()=>logo(c,I,0,0,200,100),{from:.8,dur:.6});
   /* On a near-square canvas R (capped by H*.34) shrinks enough that cy-R-10 rises above the
      fixed-position logo's bottom edge (logo is centred at y=82 with height ~100, so its
      bottom sits around y=132), letting the pill creep up underneath it. Keep a fixed clearance
@@ -825,7 +825,7 @@ const T_ADV=[
       c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
       lines.forEach((l,i)=>c.fillText(l,0,(i-(lines.length-1)/2)*lh))},{from:2.4,dur:.6});
     text(c,{s:F.sub,x:W/2,y:cy+H*.17,size:46,wt:700,fill:'#fff',maxW:W*.86,t,at:tf+.5});
-    pop(c,W/2,H*.1,t,tf+.2,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
+    pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H*.1,t,tf+.2,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
   }
  }},
 
@@ -834,7 +834,7 @@ const T_ADV=[
  images:[{k:'a',l:'Product 1'},{k:'b',l:'Product 2'},{k:'c',l:'Product 3'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W/2,H*.45,W*.1,W/2,H*.45,H*.8);g.addColorStop(0,shade(F.bg,.25));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  pop(c,W/2,95,t,0,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,95,t,0,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
   text(c,{s:F.head,x:W/2,y:200,size:72,wt:900,fill:'#111',maxW:W*.9,t,at:.2});
   const seg=D/3,i=Math.floor(t/seg)%3,u=(t%seg)/seg,keys=['a','b','c'],nm=[F.n1,F.n2,F.n3][i],pr=[F.p1,F.p2,F.p3][i];
   const inP=eOut(prog(u,0,.28)),outP=prog(u,.84,.16),x=(1-inP)*W*.9-outP*outP*W*.9;
@@ -857,7 +857,7 @@ const T_ADV=[
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.4,H*.5,W*.1,W*.4,H*.5,H*.85);g.addColorStop(0,shade(F.bg,.22));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
   fx(c,W,H,t,D,'sparkle');
-  pop(c,W*.5,H*.07,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H*.07,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const hp=prog(t,.2,1.0);
   if(hp>0){c.save();c.translate(W*.3,H*.98);const s=.6+.4*eBack(hp);c.scale(s,s);c.rotate(wave(t,D,1)*.012);c.globalAlpha=clamp(hp*2.5);
     drawImg(c,I.hero,-W*.3,-H*.74,W*.6,H*.74,{ay:1,label:'Character cutout'});c.restore()}
@@ -899,7 +899,7 @@ const T_ADV=[
     font(c,800,36,FM);const w=c.measureText(F.lb).width+68,h=36*1.9;
     objDraw(c,'obj:Right label',-w/2,-h/2,w,h,()=>pill(c,0,0,F.lb,36,'#111','#fff',34));
   },{from:.6});
-  pop(c,W/2,H-100,t,.9,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H-100,t,.9,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
  }}
 ];
 
@@ -927,7 +927,7 @@ const T_PREM=[
   glow(c,W,H,W/2,H*.44,W*(.5+.4*k),'rgba(255,255,255,'+(.2*k)+')','rgba(255,255,255,0)');
   c.save();const g=c.createLinearGradient(0,0,0,H*.7);g.addColorStop(0,'rgba(255,255,255,'+(.16*k)+')');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;
   c.beginPath();c.moveTo(W*.44,0);c.lineTo(W*.56,0);c.lineTo(W*.92,H*.7);c.lineTo(W*.08,H*.7);c.closePath();c.fill();c.restore();
-  pop(c,W/2,90,t,.1,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,90,t,.1,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
   text(c,{s:F.eye,x:W/2,y:H*.17,size:30,wt:800,fill:F.acc,t,at:.4,maxW:W*.8});
   const py=H*.43+Math.sin(TAU*u)*16,ph=H*.36;
   floorShadow(c,W/2,H*.43+ph/2+30,620-Math.sin(TAU*u)*40,.55*k);
@@ -958,7 +958,7 @@ const T_PREM=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
   c.save();c.globalAlpha=.06;c.fillStyle=F.acc;burstPath(c,W*.9,H*.1,420,420,16,.9,TAU*u/16);c.fill();c.restore();
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.2,size:44,wt:900,fill:'#fff',t,at:.4,maxW:W*.86});
   const top=H*.27,ch=(H*.66)/3-24;
   [[F.n1,F.l1],[F.n2,F.l2],[F.n3,F.l3]].forEach((q,i)=>{
@@ -987,7 +987,7 @@ const T_PREM=[
     const ph=i*1.7,x=W*(b[2]+.18*Math.cos(TAU*(u*b[1])+ph)),y=H*(b[3]+.14*Math.sin(TAU*(u*b[1])+ph*1.3)),r=W*b[4]*.62*(.6+.4*k);
     const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,b[0]+'DD');g.addColorStop(1,b[0]+'00');c.fillStyle=g;c.fillRect(0,0,W,H)});
   c.restore();c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);
-  pop(c,W/2,100,t,.2,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.2,()=>logo(c,I,0,0,220,110),{from:.8});
   const ls=F.head.split('\n'),sz=Math.min(210,H*.17),cy=H*.45;
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.88,sz));charRise(c,l,W/2,cy+(i-(ls.length-1)/2)*sz*1.02,s,900,FM,'#fff',t,.5+i*.28,.03,60)});
   text(c,{s:F.sub,x:W/2,y:cy+ls.length*sz*.55+40,size:40,wt:600,fill:'rgba(255,255,255,.9)',t,at:1.6,maxW:W*.8});
@@ -1015,7 +1015,7 @@ const T_PREM=[
     c.restore();
     text(c,{s:q[1].toUpperCase(),x:x+pw/2,y:py+ph+50,size:38,wt:800,fill:'#111',t,at:1.1+i*.25,maxW:pw});
   });
-  pop(c,W/2,H-80,t,1.9,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H-80,t,1.9,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'glass',name:'Glass Countdown',sub:'Slow-zoom photo with a frosted card and a live ticking timer',
  fields:[{k:'head',l:'Headline',t:'text',v:'Black Friday starts in'},{k:'sub',l:'Sub line',t:'text',v:'Early access for members'},{k:'cta',l:'Button',t:'text',v:'Set a reminder'},{k:'d',l:'Days',t:'text',v:'02'},{k:'h',l:'Hours',t:'text',v:'14'},{k:'m',l:'Minutes',t:'text',v:'37'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -1026,7 +1026,7 @@ const T_PREM=[
   else{const g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#2B2B35');g.addColorStop(1,'#0B0B10');c.fillStyle=g;c.fillRect(0,0,W,H);
     c.fillStyle='rgba(255,255,255,.4)';c.textAlign='center';font(c,700,34,FM);c.fillText('+ Add a background photo',W/2,H*.3)}
   const sh=c.createLinearGradient(0,H*.3,0,H);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.65)');c.fillStyle=sh;c.fillRect(0,0,W,H);
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const cw=W-120,chh=H*.46,cy=H-chh-70,p=eOut(prog(t,.5,.9));
   c.save();c.translate(0,(1-p)*200);c.globalAlpha=p;
   objDraw(c,'obj:Card',60,cy,cw,chh,()=>{
@@ -1085,7 +1085,7 @@ const T_PREM=[
     font(c,800,40,FM);const w=c.measureText(F.cta).width+100;
     objDraw(c,'obj:Button',-w/2,-46,w,92,()=>{rr(c,-w/2,-46,w,92,46);c.fillStyle=F.bg1;c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)});
   },{from:.7});
-  pop(c,W/2,H*.8,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.8,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'neon',name:'Neon Night',sub:'Glowing neon sign with a realistic flicker and pulsing frame',
  fields:[{k:'l1',l:'Neon line 1',t:'text',v:'OPEN'},{k:'l2',l:'Neon line 2',t:'text',v:'LATE NIGHT SALE'},{k:'sub',l:'Sub line',t:'text',v:'Fri to Sun • Up to 50% off'},{k:'g1',l:'Glow 1',t:'color',v:'#FF2E9A'},{k:'g2',l:'Glow 2',t:'color',v:'#27E1FF'},{k:'bg',l:'Background',t:'color',v:'#09090F'}],
@@ -1105,7 +1105,7 @@ const T_PREM=[
   const s1=Math.min(300,fitSize(c,F.l1,900,FM,W*.7,300));neon(F.l1,H*.34,s1,F.g1);
   const s2=Math.min(104,fitSize(c,F.l2,900,FM,W*.76,104));neon(F.l2,H*.34+s1*.8,s2,F.g2);
   text(c,{s:F.sub,x:W/2,y:H*.84,size:42,wt:700,fill:'#fff',t,at:1.2,maxW:W*.82});
-  pop(c,W/2,H*.93,t,1.5,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'doorbuster',name:'Doorbuster Alert',sub:'Hazard-tape banners, slam price and a draining countdown bar',
  fields:[{k:'tag',l:'Tag',t:'text',v:'TODAY ONLY'},{k:'item',l:'Item',t:'text',v:'3-PIECE SECTIONAL'},{k:'price',l:'Price',t:'text',v:'$899'},{k:'was',l:'Was price',t:'text',v:'Was $1,799'},{k:'tape',l:'Tape text',t:'text',v:'DOORBUSTER'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -1135,7 +1135,7 @@ const T_PREM=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,ls=F.lines.split('\n').filter(Boolean),n=Math.max(1,ls.length);
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const pos=u*n,sz=Math.min(104,H*.075),gap=sz*1.75,cy=H*.46;
   ls.forEach((l,i)=>{let d=Math.abs(pos-(i+.5));d=Math.min(d,n-d);const w=clamp(1-d/1.1),e=eInOut?eInOut(w):w,p=prog(t,.3+i*.2,.6);
     if(p<=0)return;const s=Math.min(sz*(1+.08*e),fitSize(c,l,900,FM,W*.86,sz*1.1));
@@ -1170,14 +1170,14 @@ const T_PREM2=[
     objDraw(c,'obj:Price '+(i+1),-w,-34,w,68,()=>{rr(c,-w,-34,w,68,34);c.fillStyle='#E4262C';c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(q[2],-w/2,2)});
     c.restore();c.restore();
   });
-  pop(c,W/2,H-55,t,2,()=>logo(c,I,0,0,190,95),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,95,190,I,1.6):W/2,H-55,t,2,()=>logo(c,I,0,0,190,95),{from:.8});
  }},
 {id:'testimonial',name:'Review Card',sub:'Five-star review with typewriter quote and avatar',
  fields:[{k:'quote',l:'Quote',t:'area',v:'The delivery team was on time, careful and friendly. Our new sofa looks incredible and the whole process was effortless.'},{k:'name',l:'Name',t:'text',v:'Sarah M.'},{k:'place',l:'Location',t:'text',v:'Verified buyer, Toronto'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Card',t:'color',v:'#111111'}],
  images:[{k:'av',l:'Customer photo'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const cx=70,cw=W-140,cy=H*.18,ch=H*.68,p=eOut(prog(t,.2,.8));
   c.save();c.translate(0,(1-p)*120);c.globalAlpha=p;
   objDraw(c,'obj:Card',cx,cy,cw,ch,()=>{c.save();c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=50;c.shadowOffsetY=20;rr(c,cx,cy,cw,ch,56);c.fillStyle=F.ink;c.fill();c.restore()});
@@ -1217,7 +1217,7 @@ const T_PREM2=[
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,ph=(u*2)%1,fr=Math.floor(u*2)%2===1;
   const k=eInOut(Math.min(1,ph/.12,(1-ph)/.12)),ent=eOut(prog(t,0,.6));
   c.save();c.fillStyle=F.ink;c.globalAlpha=.07;rays(c,W/2,H*.45,t,D,20,F.ink,.05,W*1.2);c.restore();
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const ls=(fr?F.fr:F.en).split('\n'),sz=Math.min(260,H*.2);
   c.save();c.translate(W/2,H*.45);c.scale(1,Math.max(.001,k*ent));c.globalAlpha=ent;
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FN,W*.88,sz));font(c,900,s,FN);c.fillStyle=i%2?F.acc:F.ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,(i-(ls.length-1)/2)*sz*.95)});c.restore();
@@ -1234,7 +1234,7 @@ const T_PREM2=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
   const y0=H*.33,gap=(H*.5)/2,x=170;
   c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2);c.stroke();
@@ -1253,7 +1253,7 @@ const T_PREM2=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;rays(c,W/2,H*.5,t,D,24,'#fff',.07,W*1.2);
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
   const segs=F.segs.split('\n').filter(Boolean),n=Math.max(2,segs.length),arc=TAU/n,R=Math.min(W*.42,H*.27),cy=H*.52,ang=TAU*3*eOut(prog(t,.4,3.4)),land=prog(t,3.8,.5);
   c.save();c.translate(W/2,cy);
@@ -1286,7 +1286,7 @@ const T_PREM2=[
     shimmer(c,0,0,tw,th,40,(u*2)%1,'rgba(255,255,255,.35)');
   });
   c.restore();
-  pop(c,W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'callouts',name:'Feature Callouts',sub:'Lines draw out from the product to labelled features',
  fields:[{k:'title',l:'Title',t:'text',v:'Why you will love it'},{k:'f1',l:'Feature 1',t:'text',v:'Stain-resistant fabric'},{k:'f2',l:'Feature 2',t:'text',v:'Solid hardwood frame'},{k:'f3',l:'Feature 3',t:'text',v:'Memory foam seats'},{k:'f4',l:'Feature 4',t:'text',v:'10-year warranty'},{k:'bg',l:'Background',t:'color',v:'#F4F0E8'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
@@ -1305,7 +1305,7 @@ const T_PREM2=[
       objDraw(c,'obj:Feature '+(i+1),-w/2,-40,w,80,()=>{rr(c,-w/2,-40,w,80,40);c.fillStyle='#111';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(f,0,2,w-40)});
       c.restore()}}
   });
-  pop(c,W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'coupon',name:'Promo Coupon',sub:'A cut-out coupon with a counting amount and a code that types in',
  fields:[{k:'tag',l:'Tag',t:'text',v:'EXCLUSIVE OFFER'},{k:'amt',l:'Amount',t:'text',v:'$100'},{k:'desc',l:'Description',t:'text',v:'off your next purchase'},{k:'code',l:'Code',t:'text',v:'LEONS100'},{k:'terms',l:'Terms',t:'text',v:'Min. spend $999. Ends Oct 31.'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'acc',l:'Coupon',t:'color',v:'#FFE81A'}],
@@ -1313,7 +1313,7 @@ const T_PREM2=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
   c.save();c.globalAlpha=.12;c.fillStyle='#fff';for(let i=0;i<9;i++)for(let j=0;j<12;j++){const x=(i*140+(j%2)*70+u*140)%1260-90,y=j*130;c.beginPath();c.arc(x,y,12,0,7);c.fill()}c.restore();
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const cw=W-120,ch=H*.52,p=eBack(prog(t,.3,.8));
   c.save();c.translate(W/2,H*.5);c.rotate(Math.sin(TAU*u)*.015-.03);c.scale(p,p);c.translate(-cw/2,-ch/2);
   objDraw(c,'obj:Coupon',0,0,cw,ch,()=>{
@@ -1355,7 +1355,7 @@ const T_COMM=[
   const ls=wrap(c,F.q,W*.78),lh=Math.min(64,H*.047)*1.42;c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
   ls.forEach((l,i)=>c.fillText(l,W/2,H*.5+(i-(ls.length-1)/2)*lh));c.restore();
   c.save();c.globalAlpha=ao;font(c,800,40,FM);c.fillStyle=F.acc;c.textAlign='center';c.fillText(F.by,W/2+ax,H*.78);c.restore();
-  pop(c,W/2,H*.9,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'photostack',name:'Photo Stack',sub:CRED_RVE+' — three bordered photos spring into a fanned stack',
  fields:[{k:'title',l:'Title',t:'text',v:'NEW IN STORE'},{k:'c1',l:'Caption 1',t:'text',v:'Lounge'},{k:'c2',l:'Caption 2',t:'text',v:'Dine'},{k:'c3',l:'Caption 3',t:'text',v:'Rest'},{k:'bg',l:'Background',t:'color',v:'#111827'}],
@@ -1379,7 +1379,7 @@ const T_COMM=[
      offset +54, drawn first) can reach down into the logo's fixed H*.9 slot. Push the logo
      below that card's real bottom edge instead on ratios where it would otherwise clip it. */
   const stackBottom=H*.54+54+pw*1.28/2;
-  pop(c,W/2,Math.max(H*.9,stackBottom+70),t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,Math.max(H*.9,stackBottom+70),t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'polaroid',name:'Polaroid Drop',sub:CRED_RVE+' — a polaroid swings down from above and settles',
  fields:[{k:'cap',l:'Caption',t:'text',v:'Avery Sofa — $649'},{k:'sub',l:'Sub line',t:'text',v:'In stores now'},{k:'bg',l:'Background',t:'color',v:'#111827'}],
@@ -1397,7 +1397,7 @@ const T_COMM=[
   });
   c.restore();
   text(c,{s:F.sub,x:W/2,y:H*.85,size:44,wt:800,fill:'#fff',t,at:1.2,maxW:W*.8});
-  pop(c,W/2,H*.93,t,1.5,()=>logo(c,I,0,0,190,95),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,95,190,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,190,95),{from:.8});
  }},
 {id:'splitscreen',name:'Split Screen',sub:CRED_RVE+' — two panels slide in and meet, divider fades up',
  fields:[{k:'ha',l:'Left heading',t:'text',v:'BEFORE'},{k:'sa',l:'Left line',t:'text',v:'Tired living room'},{k:'hb',l:'Right heading',t:'text',v:'AFTER'},{k:'sb',l:'Right line',t:'text',v:'Styled by Leon\'s'},{k:'ca',l:'Left colour',t:'color',v:'#1F2937'},{k:'cb',l:'Right colour',t:'color',v:'#FFE81A'}],
@@ -1414,7 +1414,7 @@ const T_COMM=[
     font(c,700,34,FM);c.fillText(q[6],x+W/4,H*.8,W/2-50);c.restore();
   });
   c.save();c.globalAlpha=dv;c.fillStyle='#fff';c.fillRect(W/2-3,0,6,H);c.restore();
-  pop(c,W/2,H*.93,t,1.1,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.1,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'matrix',name:'Matrix Rain',sub:CRED_RVE+' — falling character columns behind a headline',
  fields:[{k:'head',l:'Headline',t:'area',v:'TECH\nEVENT'},{k:'sub',l:'Sub line',t:'text',v:'Smart home, set up for you'},{k:'bg1',l:'Background top',t:'color',v:'#0A1933'},{k:'bg2',l:'Background bottom',t:'color',v:'#101010'},{k:'acc',l:'Rain colour',t:'color',v:'#FFE81A'}],
@@ -1437,7 +1437,7 @@ const T_COMM=[
     pop(c,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.02,t,.3+i*.18,()=>{font(c,900,s,FM);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
       c.save();c.shadowColor=F.acc;c.shadowBlur=40;c.fillText(l,0,0);c.restore()},{from:.6,dur:.7})});
   text(c,{s:F.sub,x:W/2,y:H*.68,size:42,wt:700,fill:'#fff',t,at:1,maxW:W*.84});
-  pop(c,W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'liquidwave',name:'Liquid Wave',sub:CRED_RVE+' — a soft blurred wave rolls under the message',
  fields:[{k:'head',l:'Headline',t:'area',v:'Comfort,\ndelivered'},{k:'sub',l:'Sub line',t:'text',v:'Free delivery over $999'},{k:'bg',l:'Background',t:'color',v:'#111827'},{k:'c1',l:'Wave from',t:'color',v:'#F5C900'},{k:'c2',l:'Wave to',t:'color',v:'#FFE81A'}],
@@ -1455,7 +1455,7 @@ const T_COMM=[
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
     charRise(c,l,W/2,H*.3+(i-(ls.length-1)/2)*sz*1.05,s,900,FM,'#fff',t,.2+i*.3,.03,50)});
   text(c,{s:F.sub,x:W/2,y:H*.5,size:42,wt:700,fill:'rgba(255,255,255,.85)',t,at:1.1,maxW:W*.8});
-  pop(c,W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'starfield',name:'Starfield',sub:CRED_RVE+' — stars stream outward from the centre, golden-angle spread',
  fields:[{k:'head',l:'Headline',t:'text',v:'BOXING WEEK'},{k:'sub',l:'Sub line',t:'text',v:'The biggest event of the year'},{k:'cta',l:'Button',t:'text',v:'Starts Dec 26'},{k:'bg',l:'Background',t:'color',v:'#0A0A1A'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -1471,7 +1471,7 @@ const T_COMM=[
     c.beginPath();c.arc(x,y,bs*(1+p*2),0,TAU);c.fill();c.restore();
   }
   glow(c,W,H,cx,cy,W*.6,'rgba(255,232,26,.14)','rgba(0,0,0,0)');
-  pop(c,W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const hs=Math.min(130,fitSize(c,F.head,900,FM,W*.88,130));
   charRise(c,F.head,W/2,H*.44,hs,900,FM,'#fff',t,.4,.03,60);
   text(c,{s:F.sub,x:W/2,y:H*.56,size:42,wt:700,fill:'rgba(255,255,255,.82)',t,at:1.1,maxW:W*.8});
@@ -1491,7 +1491,7 @@ const T_COMM=[
     c.save();c.fillStyle=F.acc;c.shadowColor=F.acc;c.shadowBlur=22;
     rr(c,i*gap+(gap-bw)/2,cy-hgt/2,bw,Math.max(bw,hgt),bw/2);c.fill();c.restore();
   }
-  pop(c,W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const hs=Math.min(110,fitSize(c,F.head,900,FM,W*.86,110));
   charRise(c,F.head,W/2,H*.32,hs,900,FM,'#fff',t,.3,.03,50);
   text(c,{s:F.sub,x:W/2,y:H*.42,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:.9,maxW:W*.8});
@@ -1501,7 +1501,7 @@ const T_COMM=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  pop(c,W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const words=F.words.split(/\s+/).filter(Boolean),sz=Math.min(92,H*.068),per=.42;
   font(c,900,sz,FM);const sp=c.measureText(' ').width;
   const lines=[];let cur=[],wd=0;
@@ -1535,7 +1535,7 @@ const T_COMM=[
   const dp=eBack(prog(t,.9,.5));
   if(dp>0){c.save();c.translate(W/2,H*.58);c.scale(dp,dp);objDraw(c,'obj:Dot',-22,-22,44,44,()=>{c.fillStyle=F.acc;c.beginPath();c.arc(0,0,22,0,TAU);c.fill()});c.restore()}
   text(c,{s:F.desc,x:W/2,y:H*.68,size:44,wt:700,fill:F.ink,t,at:1.1,maxW:W*.78});
-  pop(c,W/2,H*.86,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.86,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'gridwave',name:'Grid Wave',sub:CRED_RC+' — a dot grid breathing in a diagonal wave, seamless loop',
  fields:[{k:'head',l:'Headline',t:'area',v:'Always\nin stock'},{k:'sub',l:'Sub line',t:'text',v:'Over 300,000 products ready to go'},{k:'bg',l:'Background',t:'color',v:'#0A0F1E'},{k:'dot',l:'Dots',t:'color',v:'#334155'},{k:'acc',l:'Peak colour',t:'color',v:'#FFE81A'}],
@@ -1554,7 +1554,7 @@ const T_COMM=[
     charRise(c,l,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.04,s,900,FM,'#fff',t,.25+i*.28,.03,50)});
   c.restore();
   text(c,{s:F.sub,x:W/2,y:H*.64,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:1.1,maxW:W*.8});
-  pop(c,W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'scramble',name:'Scramble Text',sub:CRED_RC+' — characters resolve out of random noise, left to right',
  fields:[{k:'head',l:'Headline',t:'text',v:'SECRET SALE'},{k:'sub',l:'Sub line',t:'text',v:'UNLOCKED FOR MEMBERS'},{k:'cta',l:'Button',t:'text',v:'Shop now'},{k:'bg',l:'Background',t:'color',v:'#0B0B0D'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -1563,7 +1563,7 @@ const T_COMM=[
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   c.save();c.globalAlpha=.07;c.strokeStyle=F.acc;c.lineWidth=2;
   for(let y=0;y<H;y+=28){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}c.restore();
-  pop(c,W/2,H*.18,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.18,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const fr=Math.floor(t*30);
   const hs=Math.min(140,fitSize(c,F.head,900,FM,W*.88,140));
   font(c,900,hs,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
@@ -1598,7 +1598,7 @@ const T_COMM=[
   const bs=eBack(prog(t,1.9,.6));
   if(bs>0){c.save();c.translate(W/2,H*.63);c.scale(bs,1);objDraw(c,'obj:Bar',-200,-9,400,18,()=>{c.fillStyle=F.acc;rr(c,-200,-9,400,18,9);c.fill()});c.restore()}
   text(c,{s:F.sub,x:W/2,y:H*.72,size:46,wt:800,fill:'#fff',t,at:2,maxW:W*.8});
-  pop(c,W/2,H*.87,t,2.3,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.87,t,2.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }}
 ];
 
@@ -1623,11 +1623,16 @@ function mastCircle(c,W,H,t,I,fill,bf){
 function mastCard(c,W,H,t,I,fill,boxStyle){
   const ST=postStyle();
   const lw=logoBoxSize(58,115,I,2.6).w;
-  const cw=Math.max(W*.26,250,lw+40),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
+  /* The card used to hug the logo at exactly lw+40 wide. For the wide "logo + tagline"
+     lockup (the default active logo) that left zero slack inside the card, so "left" and
+     "centre" landed on the exact same pixel - the toggle looked like it had stopped working
+     even though it was computing a different position every time. Give the card real slack
+     (lw+160) regardless of which logo variant is active, so left vs centre always visibly differ. */
+  const cw=Math.max(W*.26,250,lw+160),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;boxPath(c,boxStyle,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
   const align=(typeof state!=='undefined'&&state.logoAlign)||'center';
-  const lx=align==='left'?(x+20+lw/2):W/2;
+  const lx=align==='left'?(x+30+lw/2):W/2;
   pop(c,lx,ly,t,.12,()=>logo(c,I,0,0,115,58,2.6),{from:.7,dur:.6});
   return {bottom:ch,top:ch+H*.03,band:0};
 }
@@ -2631,7 +2636,9 @@ const T_CLASSIC=[
      fixed offset that put it 110px below the artboard on every ratio. */
   const cp=eOut(prog(t,1.1,.8)),ct=H-420-W*.037+(1-cp)*340;
   objDraw(c,'obj:Card',W/2-240,ct,480,420,()=>{rr(c,W/2-240,ct,480,420,56);c.fillStyle='#0A0A0A';c.fill()});
-  logo(c,I,W/2,ct+100,250,125);
+  /* this logo lives inside the fixed 480-wide card, not the full canvas, so "left" means
+     the card's own left edge (with a little padding), not the artboard's edge. */
+  logo(c,I,evLogoAlign()==='left'?logoAnchorX(W/2-240+25,125,250,I,1.6):W/2,ct+100,250,125);
   text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
  }},
 {id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
@@ -2677,7 +2684,7 @@ const T_CLASSIC=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const oy=(H-1080)*.14;
   const ap=eOut(prog(t,.2,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W/2,H*1.2+(1-ap)*H*.5,W*1.0,H*.6,0,0,7);c.fill();
-  pop(c,W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const hp=prog(t,.45,.6);c.save();c.globalAlpha=hp;c.translate(0,(1-eOut(hp))*40);mixed(c,[[F.lead+' ','#fff'],[F.title,F.acc]],W/2,258,84,900,FN,W*.92);c.restore();
   const pre=F.pre.split('\n'),pz=44;font(c,900,pz,FN);const preW=Math.max(...pre.map(s=>c.measureText(s).width));
   const bigSz=fitSize(c,F.big,900,FN,W*.92-preW-30,210);font(c,900,bigSz,FN);const tot=preW+30+c.measureText(F.big).width;
@@ -2694,7 +2701,7 @@ const T_CLASSIC=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   const ap=eOut(prog(t,.1,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W*.78,H*1.16+(1-ap)*H*.5,W*1.0,H*.62,-.06,0,7);c.fill();
-  pop(c,W/2,92,t,0,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,92,t,0,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
   const h1=prog(t,.4,.6),h2=prog(t,.55,.6);
   c.save();c.globalAlpha=h1;c.translate(0,(1-eOut(h1))*40);mixed(c,[[F.lead+' ','#fff'],[F.l1,F.acc]],W/2,235,104,900,FN,W*.92);c.restore();
   c.save();c.globalAlpha=h2;c.translate(0,(1-eOut(h2))*40);mixed(c,[[F.l2,F.acc]],W/2,335,104,900,FN,W*.92);c.restore();
@@ -2724,7 +2731,7 @@ const T_CLASSIC=[
     c.fillStyle=F.bg;c.beginPath();c.moveTo(0,0);c.lineTo(W,0);c.lineTo(W,y0*k);c.quadraticCurveTo(W/2,(y0+H*.22)*k,0,y0*k);c.closePath();c.fill();
   });
   const lcy=Math.max(100,H*.085);
-  pop(c,W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const ns=fitSize(c,F.num,900,FN,W*.62,520),ncy=H*.32;
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
@@ -2749,7 +2756,7 @@ const T_CLASSIC=[
     c.save();c.translate(W/2,cy);c.rotate((1-p)*-.5);const s=S*eBack(p)*(1+.012*wave(t,D,2));c.scale(s,s);
     c.shadowColor='rgba(0,0,0,.14)';c.shadowBlur=30/Math.max(s,1)*S;c.fillStyle='#fff';leafPath(c);c.fill();c.restore()
   })}
-  pop(c,W/2,cy-300,t,.7,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,cy-300,t,.7,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
   const sz=Math.min(fitSize(c,F.l1,900,FN,W*.6,190),fitSize(c,F.l2,900,FN,W*.6,190));
   pop(c,W/2,cy-135,t,.9,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l1,0,0)},{from:.6});
   pop(c,W/2,cy+35,t,1.05,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l2,0,0)},{from:.6});
@@ -2761,7 +2768,7 @@ const T_CLASSIC=[
  images:[{k:'logo',l:'Logo override (e.g. a sub-brand logo)'},{k:'prop',l:'Product (crib, bed, sofa)'},{k:'hero',l:'Character cutout (transparent PNG)'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.5,H*.4,W*.1,W*.5,H*.4,H*.8);g.addColorStop(0,shade(F.bg,.2));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  pop(c,W/2,H*.125,t,.1,()=>logo(c,I,0,0,300,130),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,130,300,I,1.6):W/2,H*.125,t,.1,()=>logo(c,I,0,0,300,130),{from:.8,dur:.6});
   const pe=eOut(prog(t,.4,.9));
   if(pe>0){c.save();c.globalAlpha=clamp(pe*2);c.translate((1-pe)*W*.5,wave(t,D,2,.2)*4);drawImg(c,I.prop,W*.38,H*.5,W*.54,H*.44,{ay:1,label:'Product'});c.restore()}
   const hp=prog(t,.6,1.0);

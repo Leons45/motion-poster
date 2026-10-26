@@ -19,11 +19,16 @@ function mastCircle(c,W,H,t,I,fill,bf){
 function mastCard(c,W,H,t,I,fill,boxStyle){
   const ST=postStyle();
   const lw=logoBoxSize(58,115,I,2.6).w;
-  const cw=Math.max(W*.26,250,lw+40),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
+  /* The card used to hug the logo at exactly lw+40 wide. For the wide "logo + tagline"
+     lockup (the default active logo) that left zero slack inside the card, so "left" and
+     "centre" landed on the exact same pixel - the toggle looked like it had stopped working
+     even though it was computing a different position every time. Give the card real slack
+     (lw+160) regardless of which logo variant is active, so left vs centre always visibly differ. */
+  const cw=Math.max(W*.26,250,lw+160),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;boxPath(c,boxStyle,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
   const align=(typeof state!=='undefined'&&state.logoAlign)||'center';
-  const lx=align==='left'?(x+20+lw/2):W/2;
+  const lx=align==='left'?(x+30+lw/2):W/2;
   pop(c,lx,ly,t,.12,()=>logo(c,I,0,0,115,58,2.6),{from:.7,dur:.6});
   return {bottom:ch,top:ch+H*.03,band:0};
 }

@@ -22,14 +22,14 @@ const T_PREM2=[
     objDraw(c,'obj:Price '+(i+1),-w,-34,w,68,()=>{rr(c,-w,-34,w,68,34);c.fillStyle='#E4262C';c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(q[2],-w/2,2)});
     c.restore();c.restore();
   });
-  pop(c,W/2,H-55,t,2,()=>logo(c,I,0,0,190,95),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,95,190,I,1.6):W/2,H-55,t,2,()=>logo(c,I,0,0,190,95),{from:.8});
  }},
 {id:'testimonial',name:'Review Card',sub:'Five-star review with typewriter quote and avatar',
  fields:[{k:'quote',l:'Quote',t:'area',v:'The delivery team was on time, careful and friendly. Our new sofa looks incredible and the whole process was effortless.'},{k:'name',l:'Name',t:'text',v:'Sarah M.'},{k:'place',l:'Location',t:'text',v:'Verified buyer, Toronto'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Card',t:'color',v:'#111111'}],
  images:[{k:'av',l:'Customer photo'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const cx=70,cw=W-140,cy=H*.18,ch=H*.68,p=eOut(prog(t,.2,.8));
   c.save();c.translate(0,(1-p)*120);c.globalAlpha=p;
   objDraw(c,'obj:Card',cx,cy,cw,ch,()=>{c.save();c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=50;c.shadowOffsetY=20;rr(c,cx,cy,cw,ch,56);c.fillStyle=F.ink;c.fill();c.restore()});
@@ -69,7 +69,7 @@ const T_PREM2=[
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,ph=(u*2)%1,fr=Math.floor(u*2)%2===1;
   const k=eInOut(Math.min(1,ph/.12,(1-ph)/.12)),ent=eOut(prog(t,0,.6));
   c.save();c.fillStyle=F.ink;c.globalAlpha=.07;rays(c,W/2,H*.45,t,D,20,F.ink,.05,W*1.2);c.restore();
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const ls=(fr?F.fr:F.en).split('\n'),sz=Math.min(260,H*.2);
   c.save();c.translate(W/2,H*.45);c.scale(1,Math.max(.001,k*ent));c.globalAlpha=ent;
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FN,W*.88,sz));font(c,900,s,FN);c.fillStyle=i%2?F.acc:F.ink;c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,(i-(ls.length-1)/2)*sz*.95)});c.restore();
@@ -86,7 +86,7 @@ const T_PREM2=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
   const y0=H*.33,gap=(H*.5)/2,x=170;
   c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2);c.stroke();
@@ -105,7 +105,7 @@ const T_PREM2=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;rays(c,W/2,H*.5,t,D,24,'#fff',.07,W*1.2);
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
   const segs=F.segs.split('\n').filter(Boolean),n=Math.max(2,segs.length),arc=TAU/n,R=Math.min(W*.42,H*.27),cy=H*.52,ang=TAU*3*eOut(prog(t,.4,3.4)),land=prog(t,3.8,.5);
   c.save();c.translate(W/2,cy);
@@ -138,7 +138,7 @@ const T_PREM2=[
     shimmer(c,0,0,tw,th,40,(u*2)%1,'rgba(255,255,255,.35)');
   });
   c.restore();
-  pop(c,W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'callouts',name:'Feature Callouts',sub:'Lines draw out from the product to labelled features',
  fields:[{k:'title',l:'Title',t:'text',v:'Why you will love it'},{k:'f1',l:'Feature 1',t:'text',v:'Stain-resistant fabric'},{k:'f2',l:'Feature 2',t:'text',v:'Solid hardwood frame'},{k:'f3',l:'Feature 3',t:'text',v:'Memory foam seats'},{k:'f4',l:'Feature 4',t:'text',v:'10-year warranty'},{k:'bg',l:'Background',t:'color',v:'#F4F0E8'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
@@ -157,7 +157,7 @@ const T_PREM2=[
       objDraw(c,'obj:Feature '+(i+1),-w/2,-40,w,80,()=>{rr(c,-w/2,-40,w,80,40);c.fillStyle='#111';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(f,0,2,w-40)});
       c.restore()}}
   });
-  pop(c,W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'coupon',name:'Promo Coupon',sub:'A cut-out coupon with a counting amount and a code that types in',
  fields:[{k:'tag',l:'Tag',t:'text',v:'EXCLUSIVE OFFER'},{k:'amt',l:'Amount',t:'text',v:'$100'},{k:'desc',l:'Description',t:'text',v:'off your next purchase'},{k:'code',l:'Code',t:'text',v:'LEONS100'},{k:'terms',l:'Terms',t:'text',v:'Min. spend $999. Ends Oct 31.'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'acc',l:'Coupon',t:'color',v:'#FFE81A'}],
@@ -165,7 +165,7 @@ const T_PREM2=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
   c.save();c.globalAlpha=.12;c.fillStyle='#fff';for(let i=0;i<9;i++)for(let j=0;j<12;j++){const x=(i*140+(j%2)*70+u*140)%1260-90,y=j*130;c.beginPath();c.arc(x,y,12,0,7);c.fill()}c.restore();
-  pop(c,W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const cw=W-120,ch=H*.52,p=eBack(prog(t,.3,.8));
   c.save();c.translate(W/2,H*.5);c.rotate(Math.sin(TAU*u)*.015-.03);c.scale(p,p);c.translate(-cw/2,-ch/2);
   objDraw(c,'obj:Coupon',0,0,cw,ch,()=>{

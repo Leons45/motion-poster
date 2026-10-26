@@ -46,7 +46,7 @@ const T_ADV=[
   c.save();c.fillStyle=F.acc;c.globalAlpha=.07;const sh=(t/D)*220;
   for(let i=-3;i<9;i++){const x=i*220+sh;c.beginPath();c.moveTo(x,0);c.lineTo(x+90,0);c.lineTo(x-300,H);c.lineTo(x-390,H);c.closePath();c.fill()}c.restore();
   c.save();c.translate(sx,sy);
-  pop(c,W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const sz=Math.min(250,H*.5/(n*.95)),total=n*sz*.95,cy=H*.46;
   words.forEach((w,i)=>{
     const p=prog(t,.3+i*.35,.45);if(p<=0)return;
@@ -78,7 +78,7 @@ const T_ADV=[
   c.save();c.translate(W/2,cy);c.scale(bp,bp);
   objDraw(c,'obj:Burst',-R,-R,R*2,R*2,()=>{burstPath(c,0,0,R,R,24,.86,(t/D)*TAU/24);c.fillStyle=F.acc;c.fill()});
   c.restore();
-  pop(c,W/2,82,t,0,()=>logo(c,I,0,0,200,100),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,82,t,0,()=>logo(c,I,0,0,200,100),{from:.8,dur:.6});
   /* On a near-square canvas R (capped by H*.34) shrinks enough that cy-R-10 rises above the
      fixed-position logo's bottom edge (logo is centred at y=82 with height ~100, so its
      bottom sits around y=132), letting the pill creep up underneath it. Keep a fixed clearance
@@ -159,7 +159,7 @@ const T_ADV=[
       c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
       lines.forEach((l,i)=>c.fillText(l,0,(i-(lines.length-1)/2)*lh))},{from:2.4,dur:.6});
     text(c,{s:F.sub,x:W/2,y:cy+H*.17,size:46,wt:700,fill:'#fff',maxW:W*.86,t,at:tf+.5});
-    pop(c,W/2,H*.1,t,tf+.2,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
+    pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H*.1,t,tf+.2,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
   }
  }},
 
@@ -168,7 +168,7 @@ const T_ADV=[
  images:[{k:'a',l:'Product 1'},{k:'b',l:'Product 2'},{k:'c',l:'Product 3'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W/2,H*.45,W*.1,W/2,H*.45,H*.8);g.addColorStop(0,shade(F.bg,.25));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  pop(c,W/2,95,t,0,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,95,t,0,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
   text(c,{s:F.head,x:W/2,y:200,size:72,wt:900,fill:'#111',maxW:W*.9,t,at:.2});
   const seg=D/3,i=Math.floor(t/seg)%3,u=(t%seg)/seg,keys=['a','b','c'],nm=[F.n1,F.n2,F.n3][i],pr=[F.p1,F.p2,F.p3][i];
   const inP=eOut(prog(u,0,.28)),outP=prog(u,.84,.16),x=(1-inP)*W*.9-outP*outP*W*.9;
@@ -191,7 +191,7 @@ const T_ADV=[
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.4,H*.5,W*.1,W*.4,H*.5,H*.85);g.addColorStop(0,shade(F.bg,.22));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
   fx(c,W,H,t,D,'sparkle');
-  pop(c,W*.5,H*.07,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H*.07,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const hp=prog(t,.2,1.0);
   if(hp>0){c.save();c.translate(W*.3,H*.98);const s=.6+.4*eBack(hp);c.scale(s,s);c.rotate(wave(t,D,1)*.012);c.globalAlpha=clamp(hp*2.5);
     drawImg(c,I.hero,-W*.3,-H*.74,W*.6,H*.74,{ay:1,label:'Character cutout'});c.restore()}
@@ -233,6 +233,6 @@ const T_ADV=[
     font(c,800,36,FM);const w=c.measureText(F.lb).width+68,h=36*1.9;
     objDraw(c,'obj:Right label',-w/2,-h/2,w,h,()=>pill(c,0,0,F.lb,36,'#111','#fff',34));
   },{from:.6});
-  pop(c,W/2,H-100,t,.9,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,H-100,t,.9,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
  }}
 ];

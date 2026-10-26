@@ -22,7 +22,7 @@ const T_PREM=[
   glow(c,W,H,W/2,H*.44,W*(.5+.4*k),'rgba(255,255,255,'+(.2*k)+')','rgba(255,255,255,0)');
   c.save();const g=c.createLinearGradient(0,0,0,H*.7);g.addColorStop(0,'rgba(255,255,255,'+(.16*k)+')');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;
   c.beginPath();c.moveTo(W*.44,0);c.lineTo(W*.56,0);c.lineTo(W*.92,H*.7);c.lineTo(W*.08,H*.7);c.closePath();c.fill();c.restore();
-  pop(c,W/2,90,t,.1,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,90,t,.1,()=>logo(c,I,0,0,220,110),{from:.8,dur:.6});
   text(c,{s:F.eye,x:W/2,y:H*.17,size:30,wt:800,fill:F.acc,t,at:.4,maxW:W*.8});
   const py=H*.43+Math.sin(TAU*u)*16,ph=H*.36;
   floorShadow(c,W/2,H*.43+ph/2+30,620-Math.sin(TAU*u)*40,.55*k);
@@ -53,7 +53,7 @@ const T_PREM=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
   c.save();c.globalAlpha=.06;c.fillStyle=F.acc;burstPath(c,W*.9,H*.1,420,420,16,.9,TAU*u/16);c.fill();c.restore();
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   text(c,{s:F.title,x:W/2,y:H*.2,size:44,wt:900,fill:'#fff',t,at:.4,maxW:W*.86});
   const top=H*.27,ch=(H*.66)/3-24;
   [[F.n1,F.l1],[F.n2,F.l2],[F.n3,F.l3]].forEach((q,i)=>{
@@ -82,7 +82,7 @@ const T_PREM=[
     const ph=i*1.7,x=W*(b[2]+.18*Math.cos(TAU*(u*b[1])+ph)),y=H*(b[3]+.14*Math.sin(TAU*(u*b[1])+ph*1.3)),r=W*b[4]*.62*(.6+.4*k);
     const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,b[0]+'DD');g.addColorStop(1,b[0]+'00');c.fillStyle=g;c.fillRect(0,0,W,H)});
   c.restore();c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);
-  pop(c,W/2,100,t,.2,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.2,()=>logo(c,I,0,0,220,110),{from:.8});
   const ls=F.head.split('\n'),sz=Math.min(210,H*.17),cy=H*.45;
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.88,sz));charRise(c,l,W/2,cy+(i-(ls.length-1)/2)*sz*1.02,s,900,FM,'#fff',t,.5+i*.28,.03,60)});
   text(c,{s:F.sub,x:W/2,y:cy+ls.length*sz*.55+40,size:40,wt:600,fill:'rgba(255,255,255,.9)',t,at:1.6,maxW:W*.8});
@@ -110,7 +110,7 @@ const T_PREM=[
     c.restore();
     text(c,{s:q[1].toUpperCase(),x:x+pw/2,y:py+ph+50,size:38,wt:800,fill:'#111',t,at:1.1+i*.25,maxW:pw});
   });
-  pop(c,W/2,H-80,t,1.9,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H-80,t,1.9,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'glass',name:'Glass Countdown',sub:'Slow-zoom photo with a frosted card and a live ticking timer',
  fields:[{k:'head',l:'Headline',t:'text',v:'Black Friday starts in'},{k:'sub',l:'Sub line',t:'text',v:'Early access for members'},{k:'cta',l:'Button',t:'text',v:'Set a reminder'},{k:'d',l:'Days',t:'text',v:'02'},{k:'h',l:'Hours',t:'text',v:'14'},{k:'m',l:'Minutes',t:'text',v:'37'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -121,7 +121,7 @@ const T_PREM=[
   else{const g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#2B2B35');g.addColorStop(1,'#0B0B10');c.fillStyle=g;c.fillRect(0,0,W,H);
     c.fillStyle='rgba(255,255,255,.4)';c.textAlign='center';font(c,700,34,FM);c.fillText('+ Add a background photo',W/2,H*.3)}
   const sh=c.createLinearGradient(0,H*.3,0,H);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.65)');c.fillStyle=sh;c.fillRect(0,0,W,H);
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const cw=W-120,chh=H*.46,cy=H-chh-70,p=eOut(prog(t,.5,.9));
   c.save();c.translate(0,(1-p)*200);c.globalAlpha=p;
   objDraw(c,'obj:Card',60,cy,cw,chh,()=>{
@@ -180,7 +180,7 @@ const T_PREM=[
     font(c,800,40,FM);const w=c.measureText(F.cta).width+100;
     objDraw(c,'obj:Button',-w/2,-46,w,92,()=>{rr(c,-w/2,-46,w,92,46);c.fillStyle=F.bg1;c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)});
   },{from:.7});
-  pop(c,W/2,H*.8,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.8,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'neon',name:'Neon Night',sub:'Glowing neon sign with a realistic flicker and pulsing frame',
  fields:[{k:'l1',l:'Neon line 1',t:'text',v:'OPEN'},{k:'l2',l:'Neon line 2',t:'text',v:'LATE NIGHT SALE'},{k:'sub',l:'Sub line',t:'text',v:'Fri to Sun • Up to 50% off'},{k:'g1',l:'Glow 1',t:'color',v:'#FF2E9A'},{k:'g2',l:'Glow 2',t:'color',v:'#27E1FF'},{k:'bg',l:'Background',t:'color',v:'#09090F'}],
@@ -200,7 +200,7 @@ const T_PREM=[
   const s1=Math.min(300,fitSize(c,F.l1,900,FM,W*.7,300));neon(F.l1,H*.34,s1,F.g1);
   const s2=Math.min(104,fitSize(c,F.l2,900,FM,W*.76,104));neon(F.l2,H*.34+s1*.8,s2,F.g2);
   text(c,{s:F.sub,x:W/2,y:H*.84,size:42,wt:700,fill:'#fff',t,at:1.2,maxW:W*.82});
-  pop(c,W/2,H*.93,t,1.5,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'doorbuster',name:'Doorbuster Alert',sub:'Hazard-tape banners, slam price and a draining countdown bar',
  fields:[{k:'tag',l:'Tag',t:'text',v:'TODAY ONLY'},{k:'item',l:'Item',t:'text',v:'3-PIECE SECTIONAL'},{k:'price',l:'Price',t:'text',v:'$899'},{k:'was',l:'Was price',t:'text',v:'Was $1,799'},{k:'tape',l:'Tape text',t:'text',v:'DOORBUSTER'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -230,7 +230,7 @@ const T_PREM=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,ls=F.lines.split('\n').filter(Boolean),n=Math.max(1,ls.length);
-  pop(c,W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const pos=u*n,sz=Math.min(104,H*.075),gap=sz*1.75,cy=H*.46;
   ls.forEach((l,i)=>{let d=Math.abs(pos-(i+.5));d=Math.min(d,n-d);const w=clamp(1-d/1.1),e=eInOut?eInOut(w):w,p=prog(t,.3+i*.2,.6);
     if(p<=0)return;const s=Math.min(sz*(1+.08*e),fitSize(c,l,900,FM,W*.86,sz*1.1));

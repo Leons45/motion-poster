@@ -29,7 +29,9 @@ const T_CLASSIC=[
      fixed offset that put it 110px below the artboard on every ratio. */
   const cp=eOut(prog(t,1.1,.8)),ct=H-420-W*.037+(1-cp)*340;
   objDraw(c,'obj:Card',W/2-240,ct,480,420,()=>{rr(c,W/2-240,ct,480,420,56);c.fillStyle='#0A0A0A';c.fill()});
-  logo(c,I,W/2,ct+100,250,125);
+  /* this logo lives inside the fixed 480-wide card, not the full canvas, so "left" means
+     the card's own left edge (with a little padding), not the artboard's edge. */
+  logo(c,I,evLogoAlign()==='left'?logoAnchorX(W/2-240+25,125,250,I,1.6):W/2,ct+100,250,125);
   text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
  }},
 {id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
@@ -75,7 +77,7 @@ const T_CLASSIC=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const oy=(H-1080)*.14;
   const ap=eOut(prog(t,.2,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W/2,H*1.2+(1-ap)*H*.5,W*1.0,H*.6,0,0,7);c.fill();
-  pop(c,W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const hp=prog(t,.45,.6);c.save();c.globalAlpha=hp;c.translate(0,(1-eOut(hp))*40);mixed(c,[[F.lead+' ','#fff'],[F.title,F.acc]],W/2,258,84,900,FN,W*.92);c.restore();
   const pre=F.pre.split('\n'),pz=44;font(c,900,pz,FN);const preW=Math.max(...pre.map(s=>c.measureText(s).width));
   const bigSz=fitSize(c,F.big,900,FN,W*.92-preW-30,210);font(c,900,bigSz,FN);const tot=preW+30+c.measureText(F.big).width;
@@ -92,7 +94,7 @@ const T_CLASSIC=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   const ap=eOut(prog(t,.1,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W*.78,H*1.16+(1-ap)*H*.5,W*1.0,H*.62,-.06,0,7);c.fill();
-  pop(c,W/2,92,t,0,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,92,t,0,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
   const h1=prog(t,.4,.6),h2=prog(t,.55,.6);
   c.save();c.globalAlpha=h1;c.translate(0,(1-eOut(h1))*40);mixed(c,[[F.lead+' ','#fff'],[F.l1,F.acc]],W/2,235,104,900,FN,W*.92);c.restore();
   c.save();c.globalAlpha=h2;c.translate(0,(1-eOut(h2))*40);mixed(c,[[F.l2,F.acc]],W/2,335,104,900,FN,W*.92);c.restore();
@@ -122,7 +124,7 @@ const T_CLASSIC=[
     c.fillStyle=F.bg;c.beginPath();c.moveTo(0,0);c.lineTo(W,0);c.lineTo(W,y0*k);c.quadraticCurveTo(W/2,(y0+H*.22)*k,0,y0*k);c.closePath();c.fill();
   });
   const lcy=Math.max(100,H*.085);
-  pop(c,W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const ns=fitSize(c,F.num,900,FN,W*.62,520),ncy=H*.32;
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
@@ -147,7 +149,7 @@ const T_CLASSIC=[
     c.save();c.translate(W/2,cy);c.rotate((1-p)*-.5);const s=S*eBack(p)*(1+.012*wave(t,D,2));c.scale(s,s);
     c.shadowColor='rgba(0,0,0,.14)';c.shadowBlur=30/Math.max(s,1)*S;c.fillStyle='#fff';leafPath(c);c.fill();c.restore()
   })}
-  pop(c,W/2,cy-300,t,.7,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,cy-300,t,.7,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
   const sz=Math.min(fitSize(c,F.l1,900,FN,W*.6,190),fitSize(c,F.l2,900,FN,W*.6,190));
   pop(c,W/2,cy-135,t,.9,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l1,0,0)},{from:.6});
   pop(c,W/2,cy+35,t,1.05,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l2,0,0)},{from:.6});
@@ -159,7 +161,7 @@ const T_CLASSIC=[
  images:[{k:'logo',l:'Logo override (e.g. a sub-brand logo)'},{k:'prop',l:'Product (crib, bed, sofa)'},{k:'hero',l:'Character cutout (transparent PNG)'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W*.5,H*.4,W*.1,W*.5,H*.4,H*.8);g.addColorStop(0,shade(F.bg,.2));g.addColorStop(1,F.bg);c.fillStyle=g;c.fillRect(0,0,W,H);
-  pop(c,W/2,H*.125,t,.1,()=>logo(c,I,0,0,300,130),{from:.8,dur:.6});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,130,300,I,1.6):W/2,H*.125,t,.1,()=>logo(c,I,0,0,300,130),{from:.8,dur:.6});
   const pe=eOut(prog(t,.4,.9));
   if(pe>0){c.save();c.globalAlpha=clamp(pe*2);c.translate((1-pe)*W*.5,wave(t,D,2,.2)*4);drawImg(c,I.prop,W*.38,H*.5,W*.54,H*.44,{ay:1,label:'Product'});c.restore()}
   const hp=prog(t,.6,1.0);

@@ -21,7 +21,7 @@ const T_COMM=[
   const ls=wrap(c,F.q,W*.78),lh=Math.min(64,H*.047)*1.42;c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
   ls.forEach((l,i)=>c.fillText(l,W/2,H*.5+(i-(ls.length-1)/2)*lh));c.restore();
   c.save();c.globalAlpha=ao;font(c,800,40,FM);c.fillStyle=F.acc;c.textAlign='center';c.fillText(F.by,W/2+ax,H*.78);c.restore();
-  pop(c,W/2,H*.9,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'photostack',name:'Photo Stack',sub:CRED_RVE+' — three bordered photos spring into a fanned stack',
  fields:[{k:'title',l:'Title',t:'text',v:'NEW IN STORE'},{k:'c1',l:'Caption 1',t:'text',v:'Lounge'},{k:'c2',l:'Caption 2',t:'text',v:'Dine'},{k:'c3',l:'Caption 3',t:'text',v:'Rest'},{k:'bg',l:'Background',t:'color',v:'#111827'}],
@@ -45,7 +45,7 @@ const T_COMM=[
      offset +54, drawn first) can reach down into the logo's fixed H*.9 slot. Push the logo
      below that card's real bottom edge instead on ratios where it would otherwise clip it. */
   const stackBottom=H*.54+54+pw*1.28/2;
-  pop(c,W/2,Math.max(H*.9,stackBottom+70),t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,Math.max(H*.9,stackBottom+70),t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'polaroid',name:'Polaroid Drop',sub:CRED_RVE+' — a polaroid swings down from above and settles',
  fields:[{k:'cap',l:'Caption',t:'text',v:'Avery Sofa — $649'},{k:'sub',l:'Sub line',t:'text',v:'In stores now'},{k:'bg',l:'Background',t:'color',v:'#111827'}],
@@ -63,7 +63,7 @@ const T_COMM=[
   });
   c.restore();
   text(c,{s:F.sub,x:W/2,y:H*.85,size:44,wt:800,fill:'#fff',t,at:1.2,maxW:W*.8});
-  pop(c,W/2,H*.93,t,1.5,()=>logo(c,I,0,0,190,95),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,95,190,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,190,95),{from:.8});
  }},
 {id:'splitscreen',name:'Split Screen',sub:CRED_RVE+' — two panels slide in and meet, divider fades up',
  fields:[{k:'ha',l:'Left heading',t:'text',v:'BEFORE'},{k:'sa',l:'Left line',t:'text',v:'Tired living room'},{k:'hb',l:'Right heading',t:'text',v:'AFTER'},{k:'sb',l:'Right line',t:'text',v:'Styled by Leon\'s'},{k:'ca',l:'Left colour',t:'color',v:'#1F2937'},{k:'cb',l:'Right colour',t:'color',v:'#FFE81A'}],
@@ -80,7 +80,7 @@ const T_COMM=[
     font(c,700,34,FM);c.fillText(q[6],x+W/4,H*.8,W/2-50);c.restore();
   });
   c.save();c.globalAlpha=dv;c.fillStyle='#fff';c.fillRect(W/2-3,0,6,H);c.restore();
-  pop(c,W/2,H*.93,t,1.1,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.1,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'matrix',name:'Matrix Rain',sub:CRED_RVE+' — falling character columns behind a headline',
  fields:[{k:'head',l:'Headline',t:'area',v:'TECH\nEVENT'},{k:'sub',l:'Sub line',t:'text',v:'Smart home, set up for you'},{k:'bg1',l:'Background top',t:'color',v:'#0A1933'},{k:'bg2',l:'Background bottom',t:'color',v:'#101010'},{k:'acc',l:'Rain colour',t:'color',v:'#FFE81A'}],
@@ -103,7 +103,7 @@ const T_COMM=[
     pop(c,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.02,t,.3+i*.18,()=>{font(c,900,s,FM);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
       c.save();c.shadowColor=F.acc;c.shadowBlur=40;c.fillText(l,0,0);c.restore()},{from:.6,dur:.7})});
   text(c,{s:F.sub,x:W/2,y:H*.68,size:42,wt:700,fill:'#fff',t,at:1,maxW:W*.84});
-  pop(c,W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'liquidwave',name:'Liquid Wave',sub:CRED_RVE+' — a soft blurred wave rolls under the message',
  fields:[{k:'head',l:'Headline',t:'area',v:'Comfort,\ndelivered'},{k:'sub',l:'Sub line',t:'text',v:'Free delivery over $999'},{k:'bg',l:'Background',t:'color',v:'#111827'},{k:'c1',l:'Wave from',t:'color',v:'#F5C900'},{k:'c2',l:'Wave to',t:'color',v:'#FFE81A'}],
@@ -121,7 +121,7 @@ const T_COMM=[
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
     charRise(c,l,W/2,H*.3+(i-(ls.length-1)/2)*sz*1.05,s,900,FM,'#fff',t,.2+i*.3,.03,50)});
   text(c,{s:F.sub,x:W/2,y:H*.5,size:42,wt:700,fill:'rgba(255,255,255,.85)',t,at:1.1,maxW:W*.8});
-  pop(c,W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'starfield',name:'Starfield',sub:CRED_RVE+' — stars stream outward from the centre, golden-angle spread',
  fields:[{k:'head',l:'Headline',t:'text',v:'BOXING WEEK'},{k:'sub',l:'Sub line',t:'text',v:'The biggest event of the year'},{k:'cta',l:'Button',t:'text',v:'Starts Dec 26'},{k:'bg',l:'Background',t:'color',v:'#0A0A1A'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -137,7 +137,7 @@ const T_COMM=[
     c.beginPath();c.arc(x,y,bs*(1+p*2),0,TAU);c.fill();c.restore();
   }
   glow(c,W,H,cx,cy,W*.6,'rgba(255,232,26,.14)','rgba(0,0,0,0)');
-  pop(c,W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const hs=Math.min(130,fitSize(c,F.head,900,FM,W*.88,130));
   charRise(c,F.head,W/2,H*.44,hs,900,FM,'#fff',t,.4,.03,60);
   text(c,{s:F.sub,x:W/2,y:H*.56,size:42,wt:700,fill:'rgba(255,255,255,.82)',t,at:1.1,maxW:W*.8});
@@ -157,7 +157,7 @@ const T_COMM=[
     c.save();c.fillStyle=F.acc;c.shadowColor=F.acc;c.shadowBlur=22;
     rr(c,i*gap+(gap-bw)/2,cy-hgt/2,bw,Math.max(bw,hgt),bw/2);c.fill();c.restore();
   }
-  pop(c,W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const hs=Math.min(110,fitSize(c,F.head,900,FM,W*.86,110));
   charRise(c,F.head,W/2,H*.32,hs,900,FM,'#fff',t,.3,.03,50);
   text(c,{s:F.sub,x:W/2,y:H*.42,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:.9,maxW:W*.8});
@@ -167,7 +167,7 @@ const T_COMM=[
  images:[],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  pop(c,W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const words=F.words.split(/\s+/).filter(Boolean),sz=Math.min(92,H*.068),per=.42;
   font(c,900,sz,FM);const sp=c.measureText(' ').width;
   const lines=[];let cur=[],wd=0;
@@ -201,7 +201,7 @@ const T_COMM=[
   const dp=eBack(prog(t,.9,.5));
   if(dp>0){c.save();c.translate(W/2,H*.58);c.scale(dp,dp);objDraw(c,'obj:Dot',-22,-22,44,44,()=>{c.fillStyle=F.acc;c.beginPath();c.arc(0,0,22,0,TAU);c.fill()});c.restore()}
   text(c,{s:F.desc,x:W/2,y:H*.68,size:44,wt:700,fill:F.ink,t,at:1.1,maxW:W*.78});
-  pop(c,W/2,H*.86,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.86,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'gridwave',name:'Grid Wave',sub:CRED_RC+' — a dot grid breathing in a diagonal wave, seamless loop',
  fields:[{k:'head',l:'Headline',t:'area',v:'Always\nin stock'},{k:'sub',l:'Sub line',t:'text',v:'Over 300,000 products ready to go'},{k:'bg',l:'Background',t:'color',v:'#0A0F1E'},{k:'dot',l:'Dots',t:'color',v:'#334155'},{k:'acc',l:'Peak colour',t:'color',v:'#FFE81A'}],
@@ -220,7 +220,7 @@ const T_COMM=[
     charRise(c,l,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.04,s,900,FM,'#fff',t,.25+i*.28,.03,50)});
   c.restore();
   text(c,{s:F.sub,x:W/2,y:H*.64,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:1.1,maxW:W*.8});
-  pop(c,W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'scramble',name:'Scramble Text',sub:CRED_RC+' — characters resolve out of random noise, left to right',
  fields:[{k:'head',l:'Headline',t:'text',v:'SECRET SALE'},{k:'sub',l:'Sub line',t:'text',v:'UNLOCKED FOR MEMBERS'},{k:'cta',l:'Button',t:'text',v:'Shop now'},{k:'bg',l:'Background',t:'color',v:'#0B0B0D'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -229,7 +229,7 @@ const T_COMM=[
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   c.save();c.globalAlpha=.07;c.strokeStyle=F.acc;c.lineWidth=2;
   for(let y=0;y<H;y+=28){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}c.restore();
-  pop(c,W/2,H*.18,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.18,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const fr=Math.floor(t*30);
   const hs=Math.min(140,fitSize(c,F.head,900,FM,W*.88,140));
   font(c,900,hs,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
@@ -264,6 +264,6 @@ const T_COMM=[
   const bs=eBack(prog(t,1.9,.6));
   if(bs>0){c.save();c.translate(W/2,H*.63);c.scale(bs,1);objDraw(c,'obj:Bar',-200,-9,400,18,()=>{c.fillStyle=F.acc;rr(c,-200,-9,400,18,9);c.fill()});c.restore()}
   text(c,{s:F.sub,x:W/2,y:H*.72,size:46,wt:800,fill:'#fff',t,at:2,maxW:W*.8});
-  pop(c,W/2,H*.87,t,2.3,()=>logo(c,I,0,0,200,100),{from:.8});
+  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.87,t,2.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }}
 ];
