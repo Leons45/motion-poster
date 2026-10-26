@@ -114,7 +114,7 @@ const T_ADV=[
     marquee(c,W,rh*(i+.5),size,phr[i%phr.length],t,D,1,i%2?-1:1,i%2?'stroke':'fill',i%2?'#fff':F.acc,3);c.restore()}
   glow(c,W,H,W/2,H*.5,H*.62,'rgba(0,0,0,.78)','rgba(0,0,0,0)');
   c.save();c.translate(W/2,H*.075);const lp=prog(t,.3,.5);c.globalAlpha=lp;
-  objDraw(c,'obj:Logo panel',-170,-62,340,124,()=>{rr(c,-170,-62,340,124,28);c.fillStyle='#000';c.fill();c.strokeStyle=F.acc;c.lineWidth=4;c.stroke();logo(c,I,0,0,230,110)});
+  objDraw(c,'obj:Logo panel',-170,-62,340,124,()=>{rr(c,-170,-62,340,124,28);c.fillStyle='#000';c.fill();c.strokeStyle=F.acc;c.lineWidth=4;c.stroke();logo(c,I,0,0,230,110,1.35)});
   c.restore();
   const pe=eBack(prog(t,.7,.9));
   if(pe>0){c.save();c.translate(W/2,H*.5+wave(t,D,2)*10);c.rotate(wave(t,D,1)*.035);const s=.4+.6*pe;c.scale(s,s);c.globalAlpha*=clamp(pe*2);drawImg(c,I.prod,-W*.4,-H*.2,W*.8,H*.4,{label:'Product',shadow:40});c.restore()}

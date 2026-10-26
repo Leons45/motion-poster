@@ -135,9 +135,34 @@ function drawImgRaw(c,img,x,y,w,h,o={}){
   const dx=x+(w-dw)*ax,dy=y+(h-dh)*ay;
   if(shadow){c.save();c.shadowColor='rgba(0,0,0,.35)';c.shadowBlur=shadow;c.shadowOffsetY=shadow*.4;c.drawImage(img,dx,dy,dw,dh);c.restore()}else c.drawImage(img,dx,dy,dw,dh);
 }
-function logo(c,I,cx,cy,w,h){
+/* Every call site sized its logo box for the old single logo asset's ~2:1 aspect
+   ratio. The selectable logo library (BUILTIN_LOGOS) includes a wide "logo +
+   tagline" lockup (~4.7:1), and naively fitting that into a ~2:1 box shrinks it
+   to keep its height down to a sliver. Treat h as the real target (the size the
+   template was designed around) and derive width from the ACTIVE logo's own
+   aspect ratio instead, so the mark stays legible whichever variant is picked;
+   maxW still caps how wide it's allowed to get, for layouts with tight margins.
+   Exposed separately from logo() so a caller that positions the logo by its
+   left/right edge (not just its centre) can size it the same way first and
+   place it without clipping. */
+function logoBoxSize(h,maxW,I,mult){
+  const img=(I&&I.logo)||(typeof state!=='undefined'?state.logo:null);
+  const ar=(img&&img.naturalWidth&&img.naturalHeight)?img.naturalWidth/img.naturalHeight:((maxW||h*2)/h);
+  let dh=h,dw=dh*ar;
+  /* mult controls how far width may grow past the box the template author sized
+     for the old ~2:1 asset. 2.6 is used for placements already checked to have
+     enough margin around a growing logo (the masthead circle/card and the
+     Event Posts logo bar, both centred or re-anchored to the real width); every
+     other call keeps a conservative default so a wide "logo + tagline" lockup
+     can't push past a tight corner badge. */
+  const cap=(maxW||h*2)*(mult||1.6);
+  if(dw>cap){dw=cap;dh=dw/ar}
+  return {w:dw,h:dh};
+}
+function logo(c,I,cx,cy,w,h,mult){
   const k=(typeof state!=='undefined'&&state.logo2&&typeof state.logo2.scale==='number')?state.logo2.scale:1;
-  w*=k;h*=k;objDraw(c,'obj:Logo',cx-w/2,cy-h/2,w,h,()=>logoFx(c,I,cx,cy,w,h));
+  const box=logoBoxSize(h*k,w*k,I,mult),dw=box.w,dh=box.h;
+  objDraw(c,'obj:Logo',cx-dw/2,cy-dh/2,dw,dh,()=>logoFx(c,I,cx,cy,dw,dh));
 }
 /* nine logo reveals, ported from the Remotion logo-reveal set */
 function logoFx(c,I,cx,cy,w,h){

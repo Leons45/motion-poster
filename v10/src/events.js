@@ -109,7 +109,7 @@ function layoutCircle(c,W,H,t,D,F,I){
   yellowField(c,W,H,F.bg1,F.bg2);
   let m,titleSz=0;
   objDraw(c,'obj:Masthead',0,0,W,H*.46,()=>{
-    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',F.num?.37:.34);
+    m=mastCircle(c,W,H,t,I,F.mcol||'#111111',F.num?.37:.34);
     /* the masthead circle's lower edge curves UP toward the sides (~100px at the edge of a wide headline), so
        hand the headline a slightly shorter band: the block lifts and tightens instead of grazing the arc */
     titleSz=mastText(c,W,Object.assign({},m,{band:m.band-W*.05}),t,F.num,String(F.head).split('\n').filter(l=>l.trim()!==''),'#fff',accOn(F.mcol||'#111111',F.acc||LY),.4,.75,{cap:W*.1,nShare:.4,width:W*.8,chord:{cy:m.cy,R:m.R}});
@@ -160,12 +160,12 @@ function layoutSplit(c,W,H,t,D,F,I){
   const ST=postStyle(),M=evM(W),ds=DS(W,H),V=ds.story;
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
   const longW=Math.max(0,...String(F.head).split(/\s+/).map(w=>w.length)),panelW=V?W:W*(longW>9?.5:.44),panelH=V?H*.54:H,pad=V?M:W*.04,cx=panelW/2,cw=panelW-2*pad,mc=F.mcol||'#111111',pInk=inkOn(mc),pAcc=accOn(mc,F.acc||LY);
-  const lw=V?evLogoW(W):W*.13,lh=lw/2,fh=F.flab?(V?H*.058:H*.075):0,rightDark=V?isDark(mc):isDark(F.bg1,F.bg2);
+  const lw=(V?logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6):logoBoxSize(W*.065,W*.13,null,2.6)).w,lh=(V?logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6):logoBoxSize(W*.065,W*.13,null,2.6)).h,fh=F.flab?(V?H*.058:H*.075):0,rightDark=V?isDark(mc):isDark(F.bg1,F.bg2);
   objDraw(c,'obj:Masthead',0,0,panelW,panelH,()=>{
     const p=ST.textEase(prog(t,0,.6*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,panelW,panelH);c.restore();
-    pop(c,V?M+lw/2-lw*.046:cx,ds.top+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
+    pop(c,V?M+lw/2-lw*.046:cx,ds.top+lh/2,t,.12,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
     /* measure the copy stack, then centre it in the space between logo and tagline */
-    const hasN=!!F.num,showTag=F.tag&&!V,tagH=showTag?Math.min(18,panelW*.045)*1.2:0,areaTop=ds.top+lh+H*.03,areaBot=V?panelH-H*.03:H-ds.bot-tagH-H*.02;
+    const hasN=!!F.num,areaTop=ds.top+lh+H*.03,areaBot=V?panelH-H*.03:H-ds.bot-H*.02;
     let sbase=V?Math.min(H*.06,W*.12):Math.min(H*.1,panelW*.3),hb,ob,sb,kb,ns,gK,gN,gH,gO,total;
     /* shrink the whole stack together until it fits the panel (a story's top half is the tightest case) */
     for(let it=0;it<10;it++){
@@ -185,7 +185,6 @@ function layoutSplit(c,W,H,t,D,F,I){
     c.save();c.globalAlpha=clamp(prog(t,1.1*ST.stagger,.5*ST.durMul));
     ob.lines.forEach((l,i)=>{font(c,900,ob.size,FN);c.fillStyle=pAcc;c.textAlign='center';c.textBaseline='middle';c.fillText(l,cx,y+i*ob.size*ob.lh+ob.size*ob.lh/2,cw)});c.restore();y+=ob.h+gO;
     if(sb.h)evLines(c,sb,cx,y,{wt:700,fill:pInk,al:'center',t,at:1.3,maxW:cw});
-    if(showTag){c.save();c.globalAlpha=clamp(prog(t,1.5*ST.stagger,.4*ST.durMul));font(c,700,Math.min(18,panelW*.045),FM);c.fillStyle=pInk==='#ffffff'?'rgba(255,255,255,.72)':'rgba(17,17,17,.72)';c.textAlign='center';c.textBaseline='middle';c.fillText(F.tag,cx,H-ds.bot-tagH/2,cw);c.restore()}
   });
   /* photo region: beside the panel, or beneath it on a story */
   const rx=V?0:panelW,ry=V?panelH:0,pw=V?W:W-panelW,pcx=rx+pw/2,rp=W*.04,chipH=evMadeBox(W*.019,rightDark).h;
@@ -223,9 +222,9 @@ function layoutFullbleed(c,W,H,t,D,F,I){
   const g=c.createLinearGradient(0,H*.22,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.45,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,.92)');
   c.save();c.fillStyle=g;c.fillRect(0,H*.22,W,H*.78);c.restore();
 
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
   objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{
-    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
+    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
 
@@ -257,9 +256,9 @@ function layoutFullbleed(c,W,H,t,D,F,I){
 function layoutCorner(c,W,H,t,D,F,I){
   const ST=postStyle(),M=evM(W),ds=DS(W,H),dark=isDark(F.bg1,F.bg2),ink=inkOn(dark?'#000000':'#ffffff'),acc=F.acc||'#C8102E';
   yellowField(c,W,H,F.bg1,F.bg2);
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,dark),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,dark),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
   objDraw(c,'obj:Masthead',M,ds.top,W-2*M,rowH,()=>{
-    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
+    pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
   });
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,1.8,dark,'right');
   const sw=W-2*M,pw2=ds.pw*1.08,ph2=pw2*.355; /* price card stays below the headline in rank */
@@ -296,10 +295,10 @@ function layoutCorner(c,W,H,t,D,F,I){
 function layoutStacked(c,W,H,t,D,F,I){
   const ST=postStyle(),M=evM(W),ds=DS(W,H),mc=F.mcol||'#111111',acc=F.acc||'#C8102E';
   c.fillStyle=F.bg2||'#111';c.fillRect(0,0,W,H);
-  const barH=H*.12,lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,isDark(mc));
+  const barH=H*.12,lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,isDark(mc));
   objDraw(c,'obj:Masthead',0,0,W,barH,()=>{
     const p=ST.textEase(prog(t,0,.5*ST.durMul));c.save();c.globalAlpha=p;c.fillStyle=mc;c.fillRect(0,0,W,barH);c.restore();
-    pop(c,M+lw/2-lw*.046,barH/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6});
+    pop(c,M+lw/2-lw*.046,barH/2,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6});
     /* eyebrow centred in the room left between logo and badge */
     const side=Math.max(lw,F.maple!=='no'?MB.w:0),kw=W-2*(M+side+W*.03),kMax=W*.03,kb=evTracked(c,evTrk(kMax),()=>evFitM(c,String(F.kicker||'').toUpperCase(),800,FM,kw,kMax,1.08,W*.022));
     if(kb.h)evTracked(c,evTrk(kb.size),()=>evLines(c,kb,W/2,barH/2-kb.h/2,{wt:800,fill:lum(acc)>.3&&contrast(acc,mc)>=4.5?acc:inkOn(mc),al:'center',t,at:.3,maxW:kw}));
@@ -337,8 +336,8 @@ function layoutPoster(c,W,H,t,D,F,I){
   objDraw(c,'obj:Masthead',0,0,W,H,()=>{drawImg(c,I.p,0,0,W,H,{label:'Background photo',fit:'cover'})});
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(.5,'rgba(0,0,0,.42)');g.addColorStop(1,'rgba(0,0,0,.82)');
   c.save();c.fillStyle=g;c.fillRect(0,0,W,H);c.restore();
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),hasM=F.maple!=='no';
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,lh,()=>{pop(c,W/2,ds.top+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),hasM=F.maple!=='no';
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,lh,()=>{pop(c,W/2,ds.top+lh/2,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
   if(hasM)evMade(c,W/2,ds.top+lh+H*.02+MB.h/2,micS,t,.3,true,'center');
   const headerBottom=ds.top+lh+(hasM?H*.02+MB.h:0);
   const hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,hasN=!!F.num,base=Math.min(W*.14,H*.105)*ds.k;
@@ -374,8 +373,8 @@ function layoutCard(c,W,H,t,D,F,I){
   objDraw(c,'obj:Masthead',0,0,W,cardTop+overlap,()=>{drawImg(c,I.p,0,0,W,cardTop+overlap,{label:'Background photo',fit:'cover'})});
   const gt=c.createLinearGradient(0,0,0,H*.2);gt.addColorStop(0,'rgba(0,0,0,.5)');gt.addColorStop(1,'rgba(0,0,0,0)');
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.2);c.restore();
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
   objDraw(c,'obj:Footer',0,cardTop,W,H-cardTop,()=>{
     const p=ST.textEase(prog(t,.15,.6*ST.durMul));c.save();c.globalAlpha=p;c.translate(0,(1-p)*H*.05);
@@ -399,8 +398,8 @@ function layoutBadge(c,W,H,t,D,F,I){
   c.save();c.fillStyle=gt;c.fillRect(0,0,W,H*.62);c.restore();
   const gb=c.createLinearGradient(0,H*.6,0,H);gb.addColorStop(0,'rgba(0,0,0,0)');gb.addColorStop(1,'rgba(0,0,0,.6)');
   c.save();c.fillStyle=gb;c.fillRect(0,H*.6,W,H*.4);c.restore();
-  const lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
-  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh),{from:.7,dur:.6})});
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,true),rowH=Math.max(lh,MB.h),rowCy=ds.top+rowH/2;
+  objDraw(c,'obj:Logo bar',M,ds.top,W-2*M,rowH,()=>{pop(c,M+lw/2-lw*.046,rowCy,t,.1,()=>logo(c,I,0,0,lw,lh,2.6),{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,rowCy,micS,t,.3,true,'right');
   const r=W*.215,hasP=!!F.flab,pw2=ds.pw,ph2=pw2*.355,sw=W-2*M,base=Math.min(W*.14,H*.105)*ds.k,gap=W*.03;
   const hb=evFit(c,F.head,900,FM,sw,base,1.08,base*.7);
@@ -431,10 +430,12 @@ function layoutBadge(c,W,H,t,D,F,I){
    They use the same grid, measured text and type hierarchy as the layouts above. ---------- */
 const evSinceDefault='PROUDLY CANADIAN · SINCE 1909';
 function evTopRow(c,W,yT,t,I,F,o){
-  o=o||{};const M=evM(W),lw=evLogoW(W),lh=lw/2,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
+  o=o||{};const M=evM(W),lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
   objDraw(c,'obj:Logo bar',M,yT,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
-    if(o.ring){c.save();c.strokeStyle='#111';c.lineWidth=Math.max(2,W*.0025);c.beginPath();c.ellipse(lw*.02,0,lw*.5,lh*.5,0,0,TAU);c.stroke();c.restore()}
-    logo(c,I,0,0,lw,lh)},{from:.7,dur:.6})});
+    /* a small accent ring over just the oval mark, not the whole lockup — a wide
+       "logo + tagline" variant would otherwise stretch this into a flat line */
+    if(o.ring){const r=lh*.62;c.save();c.strokeStyle='#111';c.lineWidth=Math.max(2,W*.0025);c.beginPath();c.ellipse(-(lw/2)+r*1.05,0,r,r,0,0,TAU);c.stroke();c.restore()}
+    logo(c,I,0,0,lw,lh,2.6)},{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,cy,micS,t,.3,!!o.chip,'right');
   return yT+rowH;
 }
@@ -551,7 +552,7 @@ function layoutSunray(c,W,H,t,D,F,I){
   const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,compact=H<W*1.25,inRibbon=compact&&hasP,wR=inRibbon?sw-pw-W*.03:sw*.9;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw:sw*.96,wO:wR,bw:.115,bh:.082});
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.4:0,padR=W*.022,rb=Math.max(ob.h+(sb.h?gS+sb.h:0)+2*padR,inRibbon?ph+2*padR*.8:0);
-  const lw=evLogoW(W),lh=lw/2,MB=evMadeBox(W*.019,dark),topB=ds.top+Math.max(lh,MB.h);
+  const lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,MB=evMadeBox(W*.019,dark),topB=ds.top+Math.max(lh,MB.h);
   const yK=topB+H*.026,yH=yK+kb.h+gK,cT=yH+hb.h+(hb.h?gH:0)+H*.02;
   const cB=H-ds.bot-sinceH-H*.014,pBelow=false;const dMax=W*(ds.story?.86:.7);let d=Math.min(dMax,cB-cT);
   /* the ribbon hangs off the lower part of the circle and the price tag sits under the ribbon: reserve both, so nothing is ever painted over the sub line */
@@ -607,7 +608,7 @@ const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sun
 /* ---------- field schema shared by every event-category template, so switching the
    Layout dropdown never loses or breaks any of the person's content ---------- */
 function evFields(def){
-  const base={num:'',head:'HEADLINE\nHERE',tag:'That\'s comfortable.',kicker:'FOR A LIMITED TIME',
+  const base={num:'',head:'HEADLINE\nHERE',kicker:'FOR A LIMITED TIME',
     pre:'UP TO',off:'50% OFF',osub:'SELECT ITEMS',flab:'STARTING FROM',fprice:'$599',seal:'',
     mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',boxStyle:'rounded',maple:'yes',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
   const v=Object.assign({},base,def);
@@ -616,7 +617,6 @@ function evFields(def){
     {k:'kicker',l:'Eyebrow / kicker',t:'text',v:v.kicker},
     {k:'num',l:'Big number (circle, split, full-bleed & poster layouts)',t:'text',v:v.num},
     {k:'head',l:'Headline',t:'area',v:v.head},
-    {k:'tag',l:'Tagline',t:'text',v:v.tag},
     {k:'pre',l:'Offer prefix',t:'text',v:v.pre},
     {k:'off',l:'Offer',t:'text',v:v.off},
     {k:'osub',l:'Offer sub line',t:'text',v:v.osub},

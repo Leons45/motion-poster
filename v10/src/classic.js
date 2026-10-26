@@ -14,7 +14,7 @@ const T_CLASSIC=[
   fx(c,W,H,t,D,F.fx,1);
  }},
 {id:'versus',name:'This vs That',sub:'Two-up comparison with sliding titles and a logo card',
- fields:[{k:'l',l:'Left title',t:'text',v:'If you love this emoji'},{k:'r',l:'Right title',t:'text',v:'You should try'},{k:'tag',l:'Card tagline',t:'text',v:"That's comfortable."},{k:'url',l:'Card web address',t:'text',v:'leons.ca'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
+ fields:[{k:'l',l:'Left title',t:'text',v:'If you love this emoji'},{k:'r',l:'Right title',t:'text',v:'You should try'},{k:'url',l:'Card web address',t:'text',v:'leons.ca'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
  images:[{k:'a',l:'Left image'},{k:'b',l:'Right image'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W/2,H*.4,W*.1,W/2,H*.4,H*.8);g.addColorStop(0,F.bg);g.addColorStop(1,shade(F.bg,-.1));c.fillStyle=g;c.fillRect(0,0,W,H);
@@ -27,7 +27,6 @@ const T_CLASSIC=[
   const cp=eOut(prog(t,1.1,.8)),ct=H-310+(1-cp)*340;
   objDraw(c,'obj:Card',W/2-240,ct,480,420,()=>{rr(c,W/2-240,ct,480,420,56);c.fillStyle='#0A0A0A';c.fill()});
   logo(c,I,W/2,ct+100,250,125);
-  text(c,{s:F.tag,x:W/2,y:ct+190,size:38,fill:'#FFE81A',maxW:440});
   text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
  }},
 {id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
@@ -43,7 +42,7 @@ const T_CLASSIC=[
   c.fillStyle=mg;c.fillRect(0,0,W,70);c.fillStyle='rgba(0,0,0,.25)';c.fillRect(0,70,W,4);c.restore();
   pop(c,W/2,90,t,.2,()=>{objDraw(c,'obj:Badge',-250,-54,500,108,()=>{
     rr(c,-250,-54,500,108,18);c.fillStyle='#0A1636';c.fill();c.strokeStyle='#3C6BFF';c.lineWidth=5;c.stroke();
-    logo(c,I,-135,0,150,75);c.textAlign='left';c.textBaseline='middle';c.fillStyle='#fff';font(c,900,44,FM);c.fillText(F.badge,-45,-14,270);
+    logo(c,I,-135,0,150,75,1);c.textAlign='left';c.textBaseline='middle';c.fillStyle='#fff';font(c,900,44,FM);c.fillText(F.badge,-45,-14,270);
     c.fillStyle='#B9C3D6';font(c,600,22,FM);c.fillText(F.url,-45,28,270)})},{from:.8});
   text(c,{s:F.headline,x:W/2,y:170,size:46,fill:'#fff',maxW:W*.9,up:true,t,at:.5});
   const px=W*.07,pw=W*.86,py=300,pb=H-70,ph0=pb-py,wp=eOut(prog(t,.6,.9)),chh=ph0*wp,cy0=py+(ph0-chh)/2;
@@ -68,13 +67,12 @@ const T_CLASSIC=[
   }
  }},
 {id:'sale',name:'Sale Banner',sub:'Black header, offer count-up, two products on a yellow arc',
- fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'title',l:'Title',t:'text',v:'SUPER SOFA SALE!'},{k:'tag',l:'Tagline under logo',t:'text',v:"That's comfortable."},{k:'pre',l:'Small prefix',t:'area',v:'UP\nTO'},{k:'big',l:'Big offer',t:'text',v:'50% OFF'},{k:'sub',l:'Sub line',t:'text',v:'SELECT SOFAS'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
+ fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'title',l:'Title',t:'text',v:'SUPER SOFA SALE!'},{k:'pre',l:'Small prefix',t:'area',v:'UP\nTO'},{k:'big',l:'Big offer',t:'text',v:'50% OFF'},{k:'sub',l:'Sub line',t:'text',v:'SELECT SOFAS'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
  images:[{k:'a',l:'Product A'},{k:'b',l:'Product B'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const oy=(H-1080)*.14;
   const ap=eOut(prog(t,.2,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W/2,H*1.2+(1-ap)*H*.5,W*1.0,H*.6,0,0,7);c.fill();
   pop(c,W/2,100,t,0,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
-  text(c,{s:F.tag,x:W/2,y:166,size:26,wt:700,fill:'#fff',t,at:.3});
   const hp=prog(t,.45,.6);c.save();c.globalAlpha=hp;c.translate(0,(1-eOut(hp))*40);mixed(c,[[F.lead+' ','#fff'],[F.title,F.acc]],W/2,258,84,900,FN,W*.92);c.restore();
   const pre=F.pre.split('\n'),pz=44;font(c,900,pz,FN);const preW=Math.max(...pre.map(s=>c.measureText(s).width));
   const bigSz=fitSize(c,F.big,900,FN,W*.92-preW-30,210);font(c,900,bigSz,FN);const tot=preW+30+c.measureText(F.big).width;
@@ -86,13 +84,12 @@ const T_CLASSIC=[
   c.save();c.translate((1-r)*W*.7,wave(t,D,2,.25)*5);drawImg(c,I.b,W*.46,top,W*.6,bh,{ay:1,label:'Product B'});c.restore();
  }},
 {id:'price',name:'Product Price Card',sub:'Single product with badge, promo seal and price tag',
- fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'l1',l:'Headline line 1',t:'text',v:'SUPER'},{k:'l2',l:'Headline line 2',t:'text',v:'SOFA SALE!'},{k:'tag',l:'Tagline under logo',t:'text',v:"That's comfortable."},{k:'badge',l:'Round badge',t:'area',v:'50%\nOFF'},{k:'promo',l:'Promo seal',t:'area',v:'SAVE\nTHE\nTAX\nON SELECT TVs'},{k:'price',l:'Price',t:'text',v:'$649'},{k:'save',l:'Savings strip',t:'text',v:'SAVE $650'},{k:'name',l:'Product name',t:'area',v:'Avery\nSofa'},{k:'legal',l:'Legal line',t:'text',v:'Valid at participating locations.'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
+ fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'l1',l:'Headline line 1',t:'text',v:'SUPER'},{k:'l2',l:'Headline line 2',t:'text',v:'SOFA SALE!'},{k:'badge',l:'Round badge',t:'area',v:'50%\nOFF'},{k:'promo',l:'Promo seal',t:'area',v:'SAVE\nTHE\nTAX\nON SELECT TVs'},{k:'price',l:'Price',t:'text',v:'$649'},{k:'save',l:'Savings strip',t:'text',v:'SAVE $650'},{k:'name',l:'Product name',t:'area',v:'Avery\nSofa'},{k:'legal',l:'Legal line',t:'text',v:'Valid at participating locations.'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
  images:[{k:'prod',l:'Product image'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   const ap=eOut(prog(t,.1,.9));c.fillStyle=F.acc;c.beginPath();c.ellipse(W*.78,H*1.16+(1-ap)*H*.5,W*1.0,H*.62,-.06,0,7);c.fill();
   pop(c,W/2,92,t,0,()=>logo(c,I,0,0,210,105),{from:.8,dur:.6});
-  text(c,{s:F.tag,x:W/2,y:150,size:24,wt:700,fill:'#fff',t,at:.2});
   const h1=prog(t,.4,.6),h2=prog(t,.55,.6);
   c.save();c.globalAlpha=h1;c.translate(0,(1-eOut(h1))*40);mixed(c,[[F.lead+' ','#fff'],[F.l1,F.acc]],W/2,235,104,900,FN,W*.92);c.restore();
   c.save();c.globalAlpha=h2;c.translate(0,(1-eOut(h2))*40);mixed(c,[[F.l2,F.acc]],W/2,335,104,900,FN,W*.92);c.restore();
@@ -113,7 +110,7 @@ const T_CLASSIC=[
   text(c,{s:F.legal,x:W/2,y:H-52,size:22,wt:600,fill:'#111',t,at:2.0,maxW:W*.9});
  }},
 {id:'number',name:'Big Number Hit',sub:'Counting hero stat, curved header, tilted flyer',
- fields:[{k:'num',l:'Big number',t:'text',v:'100'},{k:'label',l:'Label',t:'area',v:'SUPER SOFA\nSALE!'},{k:'cta',l:'Call to action',t:'area',v:'STARTS\nTODAY!'},{k:'tag',l:'Tagline under logo',t:'text',v:"That's comfortable."},{k:'bg',l:'Top colour',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
+ fields:[{k:'num',l:'Big number',t:'text',v:'100'},{k:'label',l:'Label',t:'area',v:'SUPER SOFA\nSALE!'},{k:'cta',l:'Call to action',t:'area',v:'STARTS\nTODAY!'},{k:'bg',l:'Top colour',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
  images:[{k:'flyer',l:'Flyer or product shot'}],
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W/2,H,50,W/2,H,H*.8);g.addColorStop(0,shade(F.acc,.25));g.addColorStop(1,F.acc);c.fillStyle=g;c.fillRect(0,0,W,H);
@@ -123,7 +120,6 @@ const T_CLASSIC=[
   });
   const lcy=Math.max(100,H*.085);
   pop(c,W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
-  text(c,{s:F.tag,x:W/2,y:lcy+58,size:26,wt:700,fill:'#fff',t,at:.4});
   const ns=fitSize(c,F.num,900,FN,W*.62,520),ncy=H*.32;
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});

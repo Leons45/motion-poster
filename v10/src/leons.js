@@ -2,23 +2,24 @@
 const LY='#FFE81A';
 function yellowField(c,W,H,c1,c2){/* two very different colours (e.g. yellow to black) blend into mud: use a gentle shade of the first instead */if(typeof lum==='function'&&Math.abs(lum(c1)-lum(c2))>.3){const m=/^#?([0-9a-f]{6})$/i.exec(c1||'');if(m){const n=parseInt(m[1],16),f=sh=>Math.round(((n>>sh)&255)*(lum(c1)>.5?.9:1.18));c2='#'+[16,8,0].map(sh=>Math.min(255,f(sh)).toString(16).padStart(2,'0')).join('')}}
   const g=c.createRadialGradient(W*.5,H*.42,W*.08,W*.5,H*.42,W*.85);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,W,H)}
-function mastCircle(c,W,H,t,I,tag,fill,bf){
+function mastCircle(c,W,H,t,I,fill,bf){
   const ST=postStyle();
   const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=ST.textEase(prog(t,0,.7*ST.durMul));
   c.save();c.globalAlpha=p;c.fillStyle=fill;c.beginPath();c.arc(W/2,cy-(1-p)*70,R,0,TAU);c.fill();c.restore();
   const ly=H*.055;
-  pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65),{from:.7,dur:.6});
-  let top=ly+H*.045;
-  if(tag){c.save();c.globalAlpha=clamp(prog(t,.35*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(22,W*.021),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,top);c.restore();top+=H*.022}
+  pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65,2.6),{from:.7,dur:.6});
+  /* the logo image itself carries the "That's comfortable." tagline when that
+     variant is selected, so this just keeps the gap the old separate tagline
+     line used to occupy, for consistent spacing whichever logo is active. */
+  const top=ly+H*.045+H*.022;
   return {bottom:bot,top:top+H*.012,band:bot-H*.03-(top+H*.012),cy:cy,R:R};
 }
-function mastCard(c,W,H,t,I,tag,fill,boxStyle){
+function mastCard(c,W,H,t,I,fill,boxStyle){
   const ST=postStyle();
   const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;boxPath(c,boxStyle,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
-  pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58),{from:.7,dur:.6});
-  if(tag){c.save();c.globalAlpha=clamp(prog(t,.3*ST.stagger,.4*ST.durMul));c.fillStyle='#fff';font(c,700,Math.min(20,W*.019),FM);c.textAlign='center';c.textBaseline='middle';c.fillText(tag,W/2,ly+ch*.3);c.restore()}
+  pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58,2.6),{from:.7,dur:.6});
   return {bottom:ch,top:ch+H*.03,band:0};
 }
 /* lay a number + headline lines inside the masthead band so nothing clips */
@@ -72,14 +73,14 @@ const MCOL_FIELD={k:'mcol',l:'Masthead colour',t:'color',v:'#111111'};
 const BOX_FIELD={k:'boxStyle',l:'Box style (cards, pills, badges)',t:'select',v:'rounded',o:Object.keys(BOX_STYLES).map(k=>[k,BOX_STYLES[k].name])};
 const T_LEONS=[
 {id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   let m;
   objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
-    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.355);
+    m=mastCircle(c,W,H,t,I,F.mcol||'#111111',.355);
     mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
   });
   const fh=F.flab?H*.085:0;
@@ -107,13 +108,13 @@ const T_LEONS=[
   if(F.maple!=='no')madeInCanada(c,W*.9,arcTop-H*.035,Math.min(24,W*.022),t,1.3);
  }},
 {id:'lclean',name:'Clean Offer',sub:'Logo card, one product, black arc with the offer — the everyday Leon\'s post',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'off',l:'Offer',t:'text',v:'15% OFF'},{k:'l1',l:'Condition line 1',t:'text',v:'ANY BLACK TAG COFFEE TABLE'},{k:'l2',l:'Condition line 2',t:'text',v:'WITH ANY UPHOLSTERY PURCHASE'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle)});
+  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.mcol||'#111111',F.boxStyle)});
   let arcTop;
   objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
     arcTop=bottomArc(c,W,H,H*.68,F.mcol||'#111111',t,.5);
@@ -128,14 +129,14 @@ const T_LEONS=[
   pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
  }},
 {id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
- fields:[STYLE_FIELD,MCOL_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
  images:[{k:'p',l:'Appliance photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
   let m;
   objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
-    m=mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.36);
+    m=mastCircle(c,W,H,t,I,F.mcol||'#111111',.36);
     mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
   });
   let arcTop;
@@ -159,14 +160,14 @@ const T_LEONS=[
   },{from:.2,dur:.8,rot:.6});
  }},
 {id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   yellowField(c,W,H,F.bg1,F.bg2);
   let m;
   objDraw(c,'obj:Masthead',0,0,W,F.mast==='card'?H*.22:H*.4,()=>{
-    m=F.mast==='card'?mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle):mastCircle(c,W,H,t,I,F.tag,F.mcol||'#111111',.34);
+    m=F.mast==='card'?mastCard(c,W,H,t,I,F.mcol||'#111111',F.boxStyle):mastCircle(c,W,H,t,I,F.mcol||'#111111',.34);
     if(F.mast!=='card')mastText(c,W,m,t,F.num,F.head.split('\n'),'#fff',LY,.4,.75);
   });
   let arcTop;
@@ -198,13 +199,13 @@ const T_LEONS=[
   },{from:.4,dur:.7});
  }},
 {id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'tag',l:'Tagline',t:'text',v:'That\'s comfortable.'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
  images:[{k:'card',l:'Card image (optional)'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
   let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.tag,F.mcol||'#111111',F.boxStyle)});
+  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.mcol||'#111111',F.boxStyle)});
   const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
   hl.forEach((l,i)=>{
     const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
