@@ -473,6 +473,21 @@ function drawImg(c,img,x,y,w,h,o={}){
      handler knows it's safe to try mapping it back to an upload slot and open the file
      picker, instead of guessing for every object on the canvas. */
   if(typeof FR!=='undefined'&&FR)(FR.imgKeys=FR.imgKeys||new Set()).add('obj:'+lab);
+  /* A plain contain-fit placeholder is sized for the old sample art, so an upload with a
+     very different aspect ratio (a tall narrow cutout in a short wide box, say) used to sit
+     letterboxed inside that fixed box — leaving a selection/drag rectangle much bigger than
+     the photo actually drawn inside it. When a real image is loaded, shrink the registered
+     box down to the size the image is actually drawn at (same anchor point), so clicking,
+     dragging and the selection outline all hug the real picture instead of empty padding.
+     Left untouched for cover/cover-safe, which are meant to fill their box edge to edge. */
+  const fit=o.fit||'contain';
+  if(img&&fit==='contain'&&img.naturalWidth&&img.naturalHeight){
+    const ax=o.ax==null?.5:o.ax,ay=o.ay==null?.5:o.ay;
+    const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s;
+    const bx=x+(w-dw)*ax,by=y+(h-dh)*ay;
+    objDraw(c,'obj:'+lab,bx,by,dw,dh,()=>drawImgRaw(c,img,bx,by,dw,dh,o));
+    return;
+  }
   objDraw(c,'obj:'+lab,x,y,w,h,()=>drawImgRaw(c,img,x,y,w,h,o))
 }
 function drawImgRaw(c,img,x,y,w,h,o={}){
