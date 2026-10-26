@@ -280,6 +280,7 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
     <h3>Brand logo</h3>
     <div id="logoLib"></div>
     <div id="logoFxBox"></div>
+    <h3>Background animation</h3><p class="note">Floating leaves, snow, confetti and more, layered behind and in front of the post. Works on every template, not just the ones built with it in.</p><div id="ambientBox"></div>
     <h3>Film effects</h3><p class="note">These stack on top of any template.</p><div id="filmBox"></div>
     <h3>Fonts</h3>
     <label class="fld"><span>Default typeface</span><select id="fontSel"><option value="default">Template default (Nova + Soft)</option><option value="nova">Proxima Nova everywhere</option><option value="soft">Proxima Soft everywhere</option></select></label>
@@ -625,13 +626,28 @@ const partCache={};
 function parts(kind,n){const key=kind+n;if(partCache[key])return partCache[key];const r=rng(kind.length*977+n),a=[];
   for(let i=0;i<n;i++)a.push({x:r(),y:r(),sz:r(),k:1+Math.floor(r()*2),rt:(r()<.5?-1:1)*(1+Math.floor(r()*2)),ph:r(),c:Math.floor(r()*5),k2:1+Math.floor(r()*3)});
   return partCache[key]=a}
-const LEAFC=['#E8501C','#F28C1B','#D63A1E','#F5B21A','#C8391A'],CONF=['#FFFFFF','#111111','#E4262C','#FFFFFF','#111111'];
+const LEAFC=['#E8501C','#F28C1B','#D63A1E','#F5B21A','#C8391A'],CONF=['#FFFFFF','#111111','#E4262C','#FFFFFF','#111111'],HEARTC=['#E4262C','#FF6B81','#C8102E','#FF8FA3','#FF4D6D'];
+/* unit heart, centred roughly on its own visual middle so rotate/scale behave like the other shapes */
+function heartPath(c){c.beginPath();c.moveTo(0,.32);
+  c.bezierCurveTo(0,.12,-.55,-.28,-.95,-.08);c.bezierCurveTo(-1.35,.16,-.6,.62,0,.95);
+  c.bezierCurveTo(.6,.62,1.35,.16,.95,-.08);c.bezierCurveTo(.55,-.28,0,.12,0,.32);c.closePath()}
+const AMBIENT_KINDS=[['none','None'],['leaves','Falling leaves'],['snow','Falling snow'],['confetti','Confetti'],['sparkle','Sparkle'],['bubbles','Rising bubbles'],['hearts','Rising hearts']];
 function fx(c,W,H,t,D,kind,layer){
   if(!kind||kind==='none')return;
-  const n={leaves:24,snow:70,confetti:60,sparkle:30}[kind];const all=parts(kind,n),span=H+240;
+  const n={leaves:24,snow:70,confetti:60,sparkle:30,bubbles:26,hearts:20}[kind];if(!n)return;
+  const all=parts(kind,n),span=H+240;
   all.forEach((q,i)=>{
     if(layer!==undefined&&(i%2)!==layer)return;
     if(kind==='sparkle'){const a=.5+.5*Math.sin(TAU*(t/D*q.k+q.ph));c.save();c.globalAlpha=a*.9;c.translate(q.x*W,q.y*H);c.rotate(q.ph*3);const s=a*.6+.4;c.scale(s,s);c.fillStyle='#fff';star(c,10+q.sz*26);c.restore();return}
+    if(kind==='bubbles'){
+      const y=H-(((q.y*span+q.k*span*t/D)%span)-120),x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*22,r=6+q.sz*22;
+      c.save();c.translate(x,y);c.globalAlpha=.3+.25*q.sz;
+      const g=c.createRadialGradient(-r*.3,-r*.3,0,0,0,r);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,.08)');
+      c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
+      c.globalAlpha=.5;c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=1.4;c.stroke();c.restore();return}
+    if(kind==='hearts'){
+      const y=H-(((q.y*span+q.k*span*t/D)%span)-120),x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*26,s=12+q.sz*20;
+      c.save();c.translate(x,y);c.globalAlpha=.85;c.rotate(Math.sin(TAU*(t/D*q.k2+q.ph))*.22);c.scale(s,s);c.fillStyle=HEARTC[q.c];heartPath(c);c.fill();c.restore();return}
     const y=((q.y*span+q.k*span*t/D)%span)-120,x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*28;
     c.save();c.translate(x,y);
     if(kind==='leaves'){const s=26+q.sz*40;c.rotate(TAU*(q.ph+q.rt*t/D));c.scale(s*(.55+.45*Math.cos(TAU*(t/D*q.k2+q.ph))),s);c.fillStyle=LEAFC[q.c];leafPath(c);c.fill()}
@@ -2828,7 +2844,7 @@ const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({gr
 const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},style:{},logo:null,rec:null,sel:null,
   logoId:null,logoAlign:'center',
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
-  film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
+  film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off',ambient:'none'},
   quick:{},quickNextId:1,
   };
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
@@ -3007,6 +3023,11 @@ function render(){
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
   {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
+  /* Background animation (leaves/snow/confetti/bubbles/hearts/sparkle): a universal layer
+     on top of every template, the same way film grain or a vignette already stack on top
+     of any post - so it works everywhere, not just the few templates that happen to build
+     their own particles in (those keep working unchanged; this is a separate layer). */
+  fx(ctx,W,H,state.t,state.D,state.film&&state.film.ambient);
   filmPost(ctx,W,H,state.t,state.D,state.film);
   drawOverlay();
 }
@@ -3393,6 +3414,10 @@ function buildLogoFx(){
   const r=row2(box);ctl(r,'Start (s)','number',S,'at',{step:.05,min:0,max:8});ctl(r,'Length (s)','number',S,'dur',{step:.05,min:.2,max:5});
   if(S.fx==='strokeDraw')ctl(box,'Frame colour','color',S,'col');
 }
+function buildAmbient(){
+  const box=$('#ambientBox');if(!box)return;box.innerHTML='';const F=state.film;
+  ctl(box,'Animation','select',F,'ambient',{o:AMBIENT_KINDS,on:()=>dirty()});
+}
 function buildFilm(){
   const box=$('#filmBox');if(!box)return;box.innerHTML='';const F=state.film;
   const r=row2(box);
@@ -3485,7 +3510,7 @@ function buildBgBar(){
 function buildFields0(){buildFields();if(state.sel)buildSelPanel()}
 function buildInspector(){
   const tp=cur();
-  buildLogoFx();buildFilm();
+  buildLogoFx();buildAmbient();buildFilm();
   $('#sectContent').hidden=!tp.fields.length;$('#sectImages').hidden=!tp.images.length;
   buildFields();buildBgBar();
   buildQuick();

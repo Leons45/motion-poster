@@ -284,13 +284,28 @@ const partCache={};
 function parts(kind,n){const key=kind+n;if(partCache[key])return partCache[key];const r=rng(kind.length*977+n),a=[];
   for(let i=0;i<n;i++)a.push({x:r(),y:r(),sz:r(),k:1+Math.floor(r()*2),rt:(r()<.5?-1:1)*(1+Math.floor(r()*2)),ph:r(),c:Math.floor(r()*5),k2:1+Math.floor(r()*3)});
   return partCache[key]=a}
-const LEAFC=['#E8501C','#F28C1B','#D63A1E','#F5B21A','#C8391A'],CONF=['#FFFFFF','#111111','#E4262C','#FFFFFF','#111111'];
+const LEAFC=['#E8501C','#F28C1B','#D63A1E','#F5B21A','#C8391A'],CONF=['#FFFFFF','#111111','#E4262C','#FFFFFF','#111111'],HEARTC=['#E4262C','#FF6B81','#C8102E','#FF8FA3','#FF4D6D'];
+/* unit heart, centred roughly on its own visual middle so rotate/scale behave like the other shapes */
+function heartPath(c){c.beginPath();c.moveTo(0,.32);
+  c.bezierCurveTo(0,.12,-.55,-.28,-.95,-.08);c.bezierCurveTo(-1.35,.16,-.6,.62,0,.95);
+  c.bezierCurveTo(.6,.62,1.35,.16,.95,-.08);c.bezierCurveTo(.55,-.28,0,.12,0,.32);c.closePath()}
+const AMBIENT_KINDS=[['none','None'],['leaves','Falling leaves'],['snow','Falling snow'],['confetti','Confetti'],['sparkle','Sparkle'],['bubbles','Rising bubbles'],['hearts','Rising hearts']];
 function fx(c,W,H,t,D,kind,layer){
   if(!kind||kind==='none')return;
-  const n={leaves:24,snow:70,confetti:60,sparkle:30}[kind];const all=parts(kind,n),span=H+240;
+  const n={leaves:24,snow:70,confetti:60,sparkle:30,bubbles:26,hearts:20}[kind];if(!n)return;
+  const all=parts(kind,n),span=H+240;
   all.forEach((q,i)=>{
     if(layer!==undefined&&(i%2)!==layer)return;
     if(kind==='sparkle'){const a=.5+.5*Math.sin(TAU*(t/D*q.k+q.ph));c.save();c.globalAlpha=a*.9;c.translate(q.x*W,q.y*H);c.rotate(q.ph*3);const s=a*.6+.4;c.scale(s,s);c.fillStyle='#fff';star(c,10+q.sz*26);c.restore();return}
+    if(kind==='bubbles'){
+      const y=H-(((q.y*span+q.k*span*t/D)%span)-120),x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*22,r=6+q.sz*22;
+      c.save();c.translate(x,y);c.globalAlpha=.3+.25*q.sz;
+      const g=c.createRadialGradient(-r*.3,-r*.3,0,0,0,r);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,.08)');
+      c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
+      c.globalAlpha=.5;c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=1.4;c.stroke();c.restore();return}
+    if(kind==='hearts'){
+      const y=H-(((q.y*span+q.k*span*t/D)%span)-120),x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*26,s=12+q.sz*20;
+      c.save();c.translate(x,y);c.globalAlpha=.85;c.rotate(Math.sin(TAU*(t/D*q.k2+q.ph))*.22);c.scale(s,s);c.fillStyle=HEARTC[q.c];heartPath(c);c.fill();c.restore();return}
     const y=((q.y*span+q.k*span*t/D)%span)-120,x=q.x*W+Math.sin(TAU*(t/D*q.k2+q.ph))*28;
     c.save();c.translate(x,y);
     if(kind==='leaves'){const s=26+q.sz*40;c.rotate(TAU*(q.ph+q.rt*t/D));c.scale(s*(.55+.45*Math.cos(TAU*(t/D*q.k2+q.ph))),s);c.fillStyle=LEAFC[q.c];leafPath(c);c.fill()}

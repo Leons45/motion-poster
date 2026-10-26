@@ -17,6 +17,11 @@ function render(){
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
   {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
+  /* Background animation (leaves/snow/confetti/bubbles/hearts/sparkle): a universal layer
+     on top of every template, the same way film grain or a vignette already stack on top
+     of any post - so it works everywhere, not just the few templates that happen to build
+     their own particles in (those keep working unchanged; this is a separate layer). */
+  fx(ctx,W,H,state.t,state.D,state.film&&state.film.ambient);
   filmPost(ctx,W,H,state.t,state.D,state.film);
   drawOverlay();
 }
@@ -403,6 +408,10 @@ function buildLogoFx(){
   const r=row2(box);ctl(r,'Start (s)','number',S,'at',{step:.05,min:0,max:8});ctl(r,'Length (s)','number',S,'dur',{step:.05,min:.2,max:5});
   if(S.fx==='strokeDraw')ctl(box,'Frame colour','color',S,'col');
 }
+function buildAmbient(){
+  const box=$('#ambientBox');if(!box)return;box.innerHTML='';const F=state.film;
+  ctl(box,'Animation','select',F,'ambient',{o:AMBIENT_KINDS,on:()=>dirty()});
+}
 function buildFilm(){
   const box=$('#filmBox');if(!box)return;box.innerHTML='';const F=state.film;
   const r=row2(box);
@@ -495,7 +504,7 @@ function buildBgBar(){
 function buildFields0(){buildFields();if(state.sel)buildSelPanel()}
 function buildInspector(){
   const tp=cur();
-  buildLogoFx();buildFilm();
+  buildLogoFx();buildAmbient();buildFilm();
   $('#sectContent').hidden=!tp.fields.length;$('#sectImages').hidden=!tp.images.length;
   buildFields();buildBgBar();
   buildQuick();
