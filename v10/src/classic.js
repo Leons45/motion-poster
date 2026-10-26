@@ -60,7 +60,7 @@ const T_CLASSIC=[
     if(dp>0){c.save();c.globalAlpha=clamp(dp*3);drawImg(c,I.prod,px+pw*.1,pcy-bh/2+yo+fl,pw*.8,bh,{label:'Hero product'});c.restore()}
     text(c,{s:F.kicker,key:'kicker',x:W/2,y:pb-282,size:38,fill:'#111',wt:800,t,at:1.6,maxW:pw-40});
     const big=F.big.toUpperCase(),bs=fitSize(c,big,900,FM,pw-70,170);
-    pop(c,W/2,pb-170,t,1.75,()=>{font(c,900,bs,FM);c.fillStyle='#0b0b0b';c.textAlign='center';c.textBaseline='middle';c.fillText(big,0,0)},{from:.7});
+    pop(c,W/2,pb-170,t,1.75,()=>{font(c,900,bs,FM);c.fillStyle='#0b0b0b';const A=alignFor('big',0,pw-70);c.textAlign=A.align;c.textBaseline='middle';c.fillText(big,A.x,0)},{from:.7});
     const sp=eOut(prog(t,2.1,.7));
     if(sp>0){font(c,700,30,FM);const s=F.sub.toUpperCase(),sw=c.measureText(s).width;c.fillStyle='#111';c.textAlign='center';c.globalAlpha=sp;c.fillText(s,W/2,pb-52);
       const half=Math.max(0,(pw-80)/2-sw/2-24);c.fillRect(px+40,pb-53,half*sp,3);c.fillRect(px+pw-40-half*sp,pb-53,half*sp,3);c.globalAlpha=1}
@@ -106,8 +106,8 @@ const T_CLASSIC=[
   c.save();c.translate(0,(1-pt)*260);c.globalAlpha=clamp(pt*2);
   objDraw(c,'obj:Price tag',tx,ty,tw,th,()=>{
     rr(c,tx,ty,tw,th,26);c.fillStyle='#000';c.fill();
-    const ps=fitSize(c,F.price,900,FN,tw-50,104);font(c,900,ps,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.price,prog(t,1.5,.8)),tx+tw/2,ty+62);
-    rr(c,tx+28,ty+110,tw-56,34,4);c.fillStyle=F.acc;c.fill();font(c,900,26,FN);c.fillStyle='#000';c.fillText(F.save,tx+tw/2,ty+128,tw-70);
+    const ps=fitSize(c,F.price,900,FN,tw-50,104);font(c,900,ps,FN);c.fillStyle='#fff';{const A=alignFor('price',tx+tw/2,tw-50);c.textAlign=A.align;c.textBaseline='middle';c.fillText(countText(F.price,prog(t,1.5,.8)),A.x,ty+62)}
+    rr(c,tx+28,ty+110,tw-56,34,4);c.fillStyle=F.acc;c.fill();font(c,900,26,FN);c.fillStyle='#000';{const A=alignFor('save',tx+tw/2,tw-70);c.textAlign=A.align;c.fillText(F.save,A.x,ty+128,tw-70)}
   });
   c.restore();
   pop(c,tx+tw,ty+4,t,1.8,()=>{objDraw(c,'obj:Tag corner',-36,-36,72,72,()=>{c.fillStyle='#000';c.beginPath();c.arc(0,0,36,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=6;c.stroke();c.fillRect(-16,-3,32,6);c.fillRect(-3,-16,6,32)})},{from:.2});
@@ -126,15 +126,15 @@ const T_CLASSIC=[
   const lcy=Math.max(100,H*.085);
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const ns=fitSize(c,F.num,900,FN,W*.62,520),ncy=H*.32;
-  pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
+  pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';const A=alignFor('num',0,W*.62);c.textAlign=A.align;c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),A.x,0)},{from:1.5,ease:eOut,dur:.8});
   text(c,{s:F.label,key:'label',x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
   const fe=eOut(prog(t,.9,.9));
   /* anchored + sized so the tilted flyer's bottom edge lands inside the artboard with a
      real margin, not H*.69+H*.42 = 1.11H, which ran 11-21% of the canvas height off the
      bottom edge on every ratio. */
   c.save();c.translate(W*.33,H*.58+(1-fe)*H*.5);c.rotate(-.13+wave(t,D,1)*.02);drawImg(c,I.flyer,-W*.19,0,W*.38,H*.37,{ay:0,label:'Flyer'});c.restore();
-  pop(c,W*.76,H*.85,t,1.3,()=>{const s=1+.03*wave(t,D,2);c.scale(s,s);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';
-    const L=F.cta.split('\n');font(c,900,100,FN);L.forEach((l,i)=>c.fillText(l,0,(i-(L.length-1)/2)*95,W*.42))},{from:.6});
+  pop(c,W*.76,H*.85,t,1.3,()=>{const s=1+.03*wave(t,D,2);c.scale(s,s);c.fillStyle='#111';const A=alignFor('cta',0,W*.42);c.textAlign=A.align;c.textBaseline='middle';
+    const L=F.cta.split('\n');font(c,900,100,FN);L.forEach((l,i)=>c.fillText(l,A.x,(i-(L.length-1)/2)*95,W*.42))},{from:.6});
  }},
 {id:'maple',name:'Maple Announcement',sub:'Bilingual-ready sale card on a spinning sunburst',
  fields:[{k:'l1',l:'Line 1',t:'text',v:'SUPER'},{k:'l2',l:'Line 2',t:'text',v:'SOLDE'},{k:'sub',l:'Sub line',t:'text',v:'VRAI NORD'},{k:'cta',l:'Call to action',t:'text',v:'EN COURS!'},{k:'col',l:'Headline colour',t:'color',v:'#C8102E'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -151,10 +151,10 @@ const T_CLASSIC=[
   })}
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,cy-300,t,.7,()=>logo(c,I,0,0,230,115),{from:.7,dur:.6});
   const sz=Math.min(fitSize(c,F.l1,900,FN,W*.6,190),fitSize(c,F.l2,900,FN,W*.6,190));
-  pop(c,W/2,cy-135,t,.9,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l1,0,0)},{from:.6});
-  pop(c,W/2,cy+35,t,1.05,()=>{font(c,900,sz,FN);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.l2,0,0)},{from:.6});
-  pop(c,W/2,cy+150,t,1.25,()=>{font(c,800,50,FM);c.fillStyle=F.col;c.textAlign='center';c.textBaseline='middle';c.fillText(F.sub,0,0,W*.5)},{from:.7});
-  pop(c,W/2,cy+265,t,1.45,()=>{const s=1+.04*wave(t,D,2);c.scale(s,s);font(c,800,60,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,0,W*.6)},{from:.7});
+  pop(c,W/2,cy-135,t,.9,()=>{font(c,900,sz,FN);c.fillStyle=F.col;const A=alignFor('l1',0,W*.6);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.l1,A.x,0)},{from:.6});
+  pop(c,W/2,cy+35,t,1.05,()=>{font(c,900,sz,FN);c.fillStyle=F.col;const A=alignFor('l2',0,W*.6);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.l2,A.x,0)},{from:.6});
+  pop(c,W/2,cy+150,t,1.25,()=>{font(c,800,50,FM);c.fillStyle=F.col;const A=alignFor('sub',0,W*.5);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.sub,A.x,0,W*.5)},{from:.7});
+  pop(c,W/2,cy+265,t,1.45,()=>{const s=1+.04*wave(t,D,2);c.scale(s,s);font(c,800,60,FM);c.fillStyle='#111';const A=alignFor('cta',0,W*.6);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.cta,A.x,0,W*.6)},{from:.7});
  }},
 {id:'mascot',name:'Mascot Feature',sub:'Character beside a product with text reveal',
  fields:[{k:'a',l:'Line 1',t:'text',v:'Now'},{k:'b',l:'Big word',t:'text',v:"THAT'S"},{k:'c',l:'Line 3',t:'text',v:'Comfortable!'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -182,7 +182,7 @@ const T_CLASSIC=[
      toward the font-size cap) still leaves real breathing room above it instead of
      nearly touching the top edge */
   const hs=fitSize(c,F.head,900,FM,W*.7,Math.min(330,H*.3));
-  pop(c,W/2,H*.19,t,.15,()=>{font(c,900,hs,FM);c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(F.head,0,0)},{from:.5});
+  pop(c,W/2,H*.19,t,.15,()=>{font(c,900,hs,FM);c.fillStyle='#000';const A=alignFor('head',0,W*.7);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.head,A.x,0)},{from:.5});
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.30,size:54,wt:800,fill:'#111',maxW:W*.88,lh:1.12,t,at:.7,gap:.15});
   const bh=H*.4,pk=eBack(prog(t,1.0,1.1));
   if(prog(t,1.0,1.1)>0){c.save();c.translate(W/2,H);c.translate(0,(1-pk)*bh*.95);c.rotate(wave(t,D,1)*.014);c.translate(0,wave(t,D,2)*-5);

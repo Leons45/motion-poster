@@ -94,6 +94,19 @@ function text(c,o){
     c.save();c.globalAlpha*=p;c.fillText(ln,ax,y+i*size*lh+size*lh/2+(1-e)*rise);c.restore()});
   return lines.length*size*lh;
 }
+/* Same per-field alignment override that text() applies, exposed for the many template call
+   sites that draw a field's value with their own hand-written c.textAlign/c.fillText instead
+   of going through text() (animated pop()-wrapped text, countdown numerals, etc). Call it right
+   before setting c.textAlign, passing the column's centre x and width exactly as the site
+   already computes them for a centred fillText call; it returns the alignment and x to actually
+   use. Like text(), this only has a well-defined answer when the call's own default is centre
+   alignment with x already at the column's centre - a call written left- or right-anchored on
+   purpose keeps that, unchanged, same as text()'s own rule. */
+function alignFor(key,x,maxW){
+  const tp=typeof cur==='function'?cur():null,ov=tp&&key?styleFor(tp.id,key):null;
+  if(ov&&ov.al&&ov.al!=='center')return{align:ov.al,x:ov.al==='left'?x-maxW/2:x+maxW/2};
+  return{align:'center',x};
+}
 function mixed(c,parts,cx,cy,size,wt,fam,maxW){
   font(c,wt,size,fam);let tot=parts.reduce((a,p)=>a+c.measureText(p[0]).width,0);let s=size;
   if(maxW&&tot>maxW){s=size*maxW/tot;font(c,wt,s,fam);tot=parts.reduce((a,p)=>a+c.measureText(p[0]).width,0)}

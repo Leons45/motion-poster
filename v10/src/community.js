@@ -18,9 +18,9 @@ const T_COMM=[
   c.save();c.globalAlpha=qo;c.fillStyle=F.acc;font(c,900,260,'Georgia,serif');c.textAlign='center';c.textBaseline='alphabetic';
   c.fillText('“',W/2,H*.28);c.restore();
   c.save();c.globalAlpha=to;font(c,700,Math.min(64,H*.047),FM);
-  const ls=wrap(c,F.q,W*.78),lh=Math.min(64,H*.047)*1.42;c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
-  ls.forEach((l,i)=>c.fillText(l,W/2,H*.5+(i-(ls.length-1)/2)*lh));c.restore();
-  c.save();c.globalAlpha=ao;font(c,800,40,FM);c.fillStyle=F.acc;c.textAlign='center';c.fillText(F.by,W/2+ax,H*.78);c.restore();
+  const ls=wrap(c,F.q,W*.78),lh=Math.min(64,H*.047)*1.42;c.fillStyle='#fff';const Aq=alignFor('q',W/2,W*.78);c.textAlign=Aq.align;c.textBaseline='middle';
+  ls.forEach((l,i)=>c.fillText(l,Aq.x,H*.5+(i-(ls.length-1)/2)*lh));c.restore();
+  c.save();c.globalAlpha=ao;font(c,800,40,FM);c.fillStyle=F.acc;const Aby=alignFor('by',W/2+ax,W*.8);c.textAlign=Aby.align;c.fillText(F.by,Aby.x,H*.78);c.restore();
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'photostack',name:'Photo Stack',sub:CRED_RVE+' — three bordered photos spring into a fanned stack',
@@ -37,7 +37,7 @@ const T_COMM=[
       c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=36;c.shadowOffsetY=14;
       rr(c,-pw/2,-phh/2,pw,phh,10);c.fillStyle='#fff';c.fill();c.shadowColor='transparent';
       c.save();rr(c,-pw/2+14,-phh/2+14,pw-28,phh-28-54,6);c.clip();drawImg(c,q[0],-pw/2+14,-phh/2+14,pw-28,phh-82,{fit:'contain',label:'Photo '+(i+1)});c.restore();
-      font(c,800,30,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(q[1],0,phh/2-32);
+      font(c,800,30,FM);c.fillStyle='#111';{const A=alignFor('c'+(i+1),0,pw-60);c.textAlign=A.align;c.textBaseline='middle';c.fillText(q[1],A.x,phh/2-32)}
     });
     c.restore();
   });
@@ -59,7 +59,7 @@ const T_COMM=[
     c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=60;c.shadowOffsetY=24;
     rr(c,-pw/2-18,-ph/2-18,pw+36,ph+36+78,6);c.fillStyle='#fff';c.fill();c.shadowColor='transparent';
     c.save();c.beginPath();c.rect(-pw/2,-ph/2,pw,ph);c.clip();drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{fit:'contain',label:'Photo'});c.restore();
-    font(c,800,40,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cap,0,ph/2+44,pw);
+    font(c,800,40,FM);c.fillStyle='#111';{const A=alignFor('cap',0,pw);c.textAlign=A.align;c.textBaseline='middle';c.fillText(F.cap,A.x,ph/2+44,pw)}
   });
   c.restore();
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.85,size:44,wt:800,fill:'#fff',t,at:1.2,maxW:W*.8});
@@ -71,13 +71,13 @@ const T_COMM=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle='#111827';c.fillRect(0,0,W,H);
   const l=eBack(prog(t,0,.9)),r=eBack(prog(t,.17,.9)),dv=prog(t,.6,.3);
-  [[0,-1,l,F.ca,I.a,F.ha,F.sa,'Left photo','#fff'],[1,1,r,F.cb,I.b,F.hb,F.sb,'Right photo','#111']].forEach(q=>{
+  [[0,-1,l,F.ca,I.a,F.ha,F.sa,'Left photo','#fff','ha','sa'],[1,1,r,F.cb,I.b,F.hb,F.sb,'Right photo','#111','hb','sb']].forEach(q=>{
     const x=q[0]*W/2+q[1]*(1-q[2])*W/2;
     c.save();c.beginPath();c.rect(x,0,W/2,H);c.clip();
     c.fillStyle=q[3];c.fillRect(x,0,W/2,H);
     if(q[4])drawImg(c,q[4],x,H*.22,W/2,H*.5,{fit:'contain',label:q[7]});else ph(c,x+30,H*.22,W/2-60,H*.5,q[7],q[8]==='#fff');
-    font(c,900,58,FM);c.fillStyle=q[8];c.textAlign='center';c.textBaseline='middle';c.fillText(q[5],x+W/4,H*.14,W/2-50);
-    font(c,700,34,FM);c.fillText(q[6],x+W/4,H*.8,W/2-50);c.restore();
+    font(c,900,58,FM);c.fillStyle=q[8];{const A=alignFor(q[9],x+W/4,W/2-50);c.textAlign=A.align;c.textBaseline='middle';c.fillText(q[5],A.x,H*.14,W/2-50)}
+    font(c,700,34,FM);{const A=alignFor(q[10],x+W/4,W/2-50);c.textAlign=A.align;c.fillText(q[6],A.x,H*.8,W/2-50)}c.restore();
   });
   c.save();c.globalAlpha=dv;c.fillStyle='#fff';c.fillRect(W/2-3,0,6,H);c.restore();
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.1,()=>logo(c,I,0,0,200,100),{from:.8});
@@ -100,8 +100,8 @@ const T_COMM=[
   c.globalAlpha=1;
   const ls=F.head.split('\n'),sz=Math.min(210,H*.16);
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.86,sz));
-    pop(c,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.02,t,.3+i*.18,()=>{font(c,900,s,FM);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
-      c.save();c.shadowColor=F.acc;c.shadowBlur=40;c.fillText(l,0,0);c.restore()},{from:.6,dur:.7})});
+    pop(c,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.02,t,.3+i*.18,()=>{font(c,900,s,FM);c.fillStyle='#fff';const A=alignFor('head',0,W*.86);c.textAlign=A.align;c.textBaseline='middle';
+      c.save();c.shadowColor=F.acc;c.shadowBlur=40;c.fillText(l,A.x,0);c.restore()},{from:.6,dur:.7})});
   text(c,{s:F.sub,key:'sub',x:W/2,y:H*.68,size:42,wt:700,fill:'#fff',t,at:1,maxW:W*.84});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
@@ -195,6 +195,10 @@ const T_COMM=[
   for(let i=0;i<n;i++){
     const p=eEnter(prog(t,.15+i*.055,.5));if(p<=0)continue;
     const y0=cy-sz*.62+i*(sz*1.24/n);
+    /* the reveal band is clipped to this centred text's own measured bounding box (tw,
+       centred on W/2) - an alignment override would move the text out from under its
+       clip band, so this one stays centre-only by design, like a few other effects whose
+       visuals are built around one fixed anchor point. */
     c.save();c.beginPath();c.rect(W/2-tw/2-10,y0,(tw+20)*p,sz*1.24/n+1);c.clip();
     c.fillStyle=F.ink;c.textAlign='center';c.textBaseline='middle';c.fillText(F.title,W/2,cy);c.restore();
   }
@@ -232,10 +236,9 @@ const T_COMM=[
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.18,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const fr=Math.floor(t*30);
   const hs=Math.min(140,fitSize(c,F.head,900,FM,W*.88,140));
-  font(c,900,hs,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
-  c.save();c.shadowColor=F.acc;c.shadowBlur=26;c.fillText(scramble(F.head,eEnter(prog(t,.3,1.4)),fr),W/2,H*.44);c.restore();
-  font(c,800,52,FM);c.fillStyle='#fff';
-  c.fillText(scramble(F.sub,eEnter(prog(t,1.1,1.4)),fr+11),W/2,H*.56);
+  font(c,900,hs,FM);c.fillStyle=F.acc;{const A=alignFor('head',W/2,W*.88);c.textAlign=A.align;c.textBaseline='middle';
+  c.save();c.shadowColor=F.acc;c.shadowBlur=26;c.fillText(scramble(F.head,eEnter(prog(t,.3,1.4)),fr),A.x,H*.44);c.restore()}
+  font(c,800,52,FM);c.fillStyle='#fff';{const A=alignFor('sub',W/2,W*.8);c.textAlign=A.align;c.fillText(scramble(F.sub,eEnter(prog(t,1.1,1.4)),fr+11),A.x,H*.56)}
   pop(c,W/2,H*.74,t,2.3,()=>{
     font(c,800,42,FM);const bw=c.measureText(F.cta).width+96,bh=42*1.9;
     objDraw(c,'obj:Button',-bw/2,-bh/2,bw,bh,()=>pill(c,0,0,F.cta,42,'#fff','#111',48));

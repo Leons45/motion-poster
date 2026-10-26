@@ -39,8 +39,9 @@ function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt,o){
   let y=m.top;
   if(num){
     const ns=Math.min(nh*.98,fitSize(c,num,900,FN,W*.52,nh*.98));
-    c.save();c.globalAlpha=clamp(prog(t,numAt*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=numFill;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(countText(num,prog(t,(numAt+.05)*ST.stagger,.9*ST.durMul)),W/2,y+nh/2);c.restore();y+=nh;
+    c.save();c.globalAlpha=clamp(prog(t,numAt*ST.stagger,.5*ST.durMul));font(c,900,ns,FN);c.fillStyle=numFill;
+    const An=alignFor(O.numKey||'num',W/2,W*.52);c.textAlign=An.align;c.textBaseline='middle';
+    c.fillText(countText(num,prog(t,(numAt+.05)*ST.stagger,.9*ST.durMul)),An.x,y+nh/2);c.restore();y+=nh;
   }
   const hs0=Math.min(hh/n*.92,O.cap||W*.062),hw=O.width||W*.64;let used=0,hs=hs0;
   /* O.chord = {cy,R} of the masthead circle: its lower edge curves UP toward the sides, so the width a
@@ -62,7 +63,7 @@ function mastText(c,W,m,t,num,headLines,numFill,headFill,numAt,headAt,o){
   /* text() adds half a line again on top of blockY, so legacy callers sit ~.54 line low; chord mode (event
      circle layout) lifts by that amount so the block really is centred and clears the arc */
   const lineGap=hs*1.08, blockH=lineGap*n, blockY=y+Math.max(0,(hh-blockH)/2)+lineGap/2-(O.chord?lineGap*(num?.3:.54):0);
-  headLines.forEach((l,i)=>{const sz=Math.min(hs,fitSize(c,l,900,FM,hw,hs));used=Math.max(used,sz);text(c,{s:l,x:W/2,y:blockY+i*lineGap,size:sz,wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:hw*1.04})});
+  headLines.forEach((l,i)=>{const sz=Math.min(hs,fitSize(c,l,900,FM,hw,hs));used=Math.max(used,sz);text(c,{s:l,key:O.key||'head',x:W/2,y:blockY+i*lineGap,size:sz,wt:900,fill:typeof headFill==='function'?headFill(i):headFill,t,at:headAt+i*.07,maxW:hw*1.04})});
   return used;
 }
 function bottomArc(c,W,H,topY,fill,t,at){
@@ -129,7 +130,7 @@ const T_LEONS=[
   objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
     arcTop=bottomArc(c,W,H,H*.68,F.mcol||'#111111',t,.5);
     const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
-    c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+    c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;{const Ao=alignFor('off',W/2,W*.72);c.textAlign=Ao.align;c.textBaseline='middle';c.fillText(F.off,Ao.x,oy)}c.restore();
     const ss=Math.min(band*.13,W*.032);
     text(c,{s:F.l1,key:'l1',x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
     text(c,{s:F.l2,key:'l2',x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
@@ -153,8 +154,8 @@ const T_LEONS=[
   objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
     arcTop=bottomArc(c,W,H,H*.66,F.mcol||'#111111',t,.7);
     const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
-    c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),W/2,sy);c.restore();
+    c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;const As=alignFor('save',W/2,W*.84);c.textAlign=As.align;c.textBaseline='middle';
+    c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),As.x,sy);c.restore();
     text(c,{s:F.cond,key:'cond',x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
   });
   const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
@@ -184,7 +185,7 @@ const T_LEONS=[
   objDraw(c,'obj:Footer',0,H*.55,W,H*.45,()=>{
     arcTop=bottomArc(c,W,H,H*.70,F.mcol||'#111111',t,.75);
     const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
-    c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
+    c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;{const Ao=alignFor('off',W/2,W*.84);c.textAlign=Ao.align;c.textBaseline='middle';c.fillText(F.off,Ao.x,oy)}c.restore();
     text(c,{s:F.osub,key:'osub',x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
   });
   const zoneTop=m.bottom, zoneH=arcTop-zoneTop;
@@ -202,9 +203,9 @@ const T_LEONS=[
     objDraw(c,'obj:Price card',-cw/2,-chh/2,cw,chh,()=>{
       c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=24;c.shadowOffsetY=8;boxPath(c,F.boxStyle,-cw/2,-chh/2,cw,chh,10);c.fillStyle='#fff';c.fill();c.restore();
       let y=-chh/2+chh*.22;
-      font(c,900,Math.min(chh*.3,54),FN);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.ctitle,0,y,cw-28);y+=chh*.2;
-      if(F.cstrip){c.fillStyle='#111';boxPath(c,F.boxStyle,-cw/2+14,y-chh*.08,cw-28,chh*.17,4);c.fill();font(c,900,Math.min(chh*.12,22),FM);c.fillStyle=LY;c.fillText(F.cstrip,0,y,cw-40);y+=chh*.2}
-      if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,0,y+chh*.1+i*chh*.14))}
+      font(c,900,Math.min(chh*.3,54),FN);c.fillStyle='#111';c.textBaseline='middle';{const A=alignFor('ctitle',0,cw-28);c.textAlign=A.align;c.fillText(F.ctitle,A.x,y,cw-28)}y+=chh*.2;
+      if(F.cstrip){c.fillStyle='#111';boxPath(c,F.boxStyle,-cw/2+14,y-chh*.08,cw-28,chh*.17,4);c.fill();font(c,900,Math.min(chh*.12,22),FM);c.fillStyle=LY;{const A=alignFor('cstrip',0,cw-40);c.textAlign=A.align;c.fillText(F.cstrip,A.x,y,cw-40)}y+=chh*.2}
+      if(F.cname){font(c,800,Math.min(chh*.12,22),FM);c.fillStyle='#111';const A=alignFor('cname',0,cw-32);c.textAlign=A.align;wrap(c,F.cname,cw-32).slice(0,3).forEach((l,i)=>c.fillText(l,A.x,y+chh*.1+i*chh*.14))}
     });
   },{from:.4,dur:.7});
  }},
@@ -220,8 +221,8 @@ const T_LEONS=[
   hl.forEach((l,i)=>{
     const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
     const e=ST.textEase(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
-    font(c,900,s,FM);c.fillStyle=F.acc;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(l,W/2,m.top+hs*.72+i*hs*1.0);c.restore();
+    font(c,900,s,FM);c.fillStyle=F.acc;const A=alignFor('head',W/2,W*.86);c.textAlign=A.align;c.textBaseline='middle';
+    c.fillText(l,A.x,m.top+hs*.72+i*hs*1.0);c.restore();
   });
   const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
   [[F.a1,F.a2,1.05],[F.b1,F.b2,1.25]].forEach((q,i)=>{
@@ -229,8 +230,8 @@ const T_LEONS=[
     mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88);c.restore();
   });
   const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
-  c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';c.textAlign='center';c.textBaseline='middle';
-  let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,W/2,fy+fi*flh);fi++}));c.restore();
+  c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';const Af=alignFor('fine',W/2,W*.84);c.textAlign=Af.align;c.textBaseline='middle';
+  let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,Af.x,fy+fi*flh);fi++}));c.restore();
   const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
   pop(c,W/2,cardY,t,1.9,()=>{
     objDraw(c,'obj:Card',-110,-70,220,140,()=>{
