@@ -115,6 +115,10 @@ function ctl(parent,label,type,obj,key,o){
   if(type==='check')inp.checked=!!obj[key];else inp.value=obj[key]===''&&type==='color'?'#000000':obj[key];
   show();
   inp.addEventListener('input',()=>{let v=type==='check'?inp.checked:inp.value;if(type==='number'||type==='range'){v=parseFloat(v);if(isNaN(v))return}obj[key]=v;show();if(o.on)o.on(v);dirty()});
+  /* 'change' (not 'input') fires once a field is committed - on blur for text/number,
+     on release for range/color, immediately for select/check - so this confirms what
+     just changed without spamming a toast on every keystroke while typing. */
+  if(!o.quiet)inp.addEventListener('change',()=>{if(typeof toast==='function')toast('Updated: '+label)});
   if(o.focus)inp.addEventListener('focus',o.focus);
   if(type==='check'){wrap.className='fld chk';wrap.prepend(inp)}else wrap.append(inp);
   if(type==='color'&&!o.noSwatches){
@@ -181,6 +185,66 @@ document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',
   if(b.dataset.tab==='content'||b.dataset.tab==='object')buildFields();   /* both show the template colours: keep them in step */
   setTab(b.dataset.tab);if(b.dataset.tab==='object')buildSelPanel();
 }));
+/* ----- search across every settings tab -----
+   Typing a word here hides anything in the panel that doesn't match it, auto-opens
+   any collapsed card that does, and jumps to whichever tab has the first match - so
+   the person doesn't have to already know which of the 6 tabs a control lives in. */
+(function(){
+  const inp=$('#panelSearch');if(!inp)return;
+  const note=$('#panelSearchNote');
+  let openBefore=null;
+  /* Only the section's own title plus its actual control labels count as a match -
+     not instructional/placeholder prose (e.g. "Click any text, photo, badge or logo
+     on the canvas..."), or an incidental word would send the person to an empty tab
+     instead of the setting they're actually after. */
+  function controlText(n){
+    const parts=[];
+    n.querySelectorAll&&n.querySelectorAll('.fld>span').forEach(s=>parts.push(s.textContent));
+    n.querySelectorAll&&n.querySelectorAll('[title]').forEach(s=>parts.push(s.getAttribute('title')||''));
+    n.querySelectorAll&&n.querySelectorAll('.laynm,option').forEach(s=>parts.push(s.textContent));
+    return parts.join(' ');
+  }
+  function sections(){
+    const out=[];
+    document.querySelectorAll('#tabBody .pane').forEach(pane=>{
+      pane.querySelectorAll('.card').forEach(c=>{
+        out.push({pane,root:c,text:(c.querySelector('summary')?.textContent||'')+' '+controlText(c)});
+      });
+      [...pane.querySelectorAll('h3')].forEach(h=>{
+        if(h.closest('.card'))return;
+        const sibs=[h];let n=h.nextElementSibling;
+        while(n&&n.tagName!=='H3'&&!n.classList.contains('card')){sibs.push(n);n=n.nextElementSibling}
+        out.push({pane,root:sibs,text:h.textContent+' '+sibs.map(controlText).join(' ')});
+      });
+    });
+    return out;
+  }
+  function show(root,on){(Array.isArray(root)?root:[root]).forEach(n=>n.classList.toggle('search-hide',!on))}
+  function clearFilter(){
+    sections().forEach(s=>show(s.root,true));
+    if(openBefore){openBefore.forEach((was,c)=>{c.open=was});openBefore=null}
+    if(note)note.hidden=true;
+  }
+  function applyFilter(q){
+    q=q.trim().toLowerCase();
+    if(!q){clearFilter();return}
+    if(!openBefore){openBefore=new Map();document.querySelectorAll('#tabBody .card').forEach(c=>openBefore.set(c,c.open))}
+    let firstPane=null,anyHit=false;
+    sections().forEach(s=>{
+      const hit=s.text.toLowerCase().includes(q);
+      show(s.root,hit);
+      if(hit){
+        anyHit=true;if(!firstPane)firstPane=s.pane.dataset.pane;
+        const root=Array.isArray(s.root)?s.root[0]:s.root;
+        if(root.tagName==='DETAILS')root.open=true;
+      }
+    });
+    if(note)note.hidden=anyHit;
+    if(firstPane&&firstPane!==curTab)setTab(firstPane);
+  }
+  inp.addEventListener('input',()=>applyFilter(inp.value));
+  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{if(inp.value)applyFilter(inp.value)}));
+})();
 /* ----- delete / restore ----- */
 let toastT=null;
 function toast(msg){setStatus(msg,'ok');clearTimeout(toastT);toastT=setTimeout(refreshStatus,5000)}
