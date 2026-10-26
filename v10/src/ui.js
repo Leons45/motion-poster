@@ -4,7 +4,7 @@ const PC=wrapCtx(ctx);
 let hover=null,drag=null,GUIDE={x:false,y:false};
 
 function fitStage(){
-  const st=$('#stage'),H=Hnow(),aw=Math.max(180,st.clientWidth-32),ah=Math.min(innerHeight*.74,880),s=Math.min(aw/W,ah/H);
+  const st=$('#stage'),H=Hnow(),aw=Math.max(180,st.clientWidth-32),ah=Math.max(340,Math.min(innerHeight-330,880)),s=Math.min(aw/W,ah/H);
   const wr=$('#cvwrap');wr.style.width=Math.round(W*s)+'px';wr.style.height=Math.round(H*s)+'px';
 }
 addEventListener('resize',fitStage);

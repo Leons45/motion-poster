@@ -4,11 +4,23 @@
   <section style="min-width:0">
     <div class="stage" id="stage"><div class="cvwrap" id="cvwrap"><canvas id="cv" width="1080" height="1350"></canvas><canvas id="ov" width="1080" height="1350"></canvas></div></div>
     <div class="bar">
-      <button class="btn" id="playBtn" type="button">Pause</button>
-      <button class="btn" id="restartBtn" type="button">Restart</button>
-      <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button><button class="btn" id="saveDefBtn" type="button">Save as my default</button><button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button><button class="btn" id="safeBtn" type="button" aria-pressed="false" title="Show the margin and (for 9:16) the app-UI safe zones">Safe zones</button><button class="btn chk" id="checkBtn" type="button" title="Measure type size, hierarchy, spacing and overlaps on this post"><i id="checkDot"></i><span id="checkTxt">Design check</span></button><button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
-      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
-      <span class="time" id="time">0.0s / 6s</span>
+      <div class="barrow play">
+        <button class="btn" id="playBtn" type="button">Pause</button>
+        <button class="btn" id="restartBtn" type="button">Restart</button>
+        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+        <span class="time" id="time">0.0s / 6s</span>
+      </div>
+      <div class="barrow tools">
+        <button class="btn" id="editBtn" type="button" title="Pause on the finished pose so you can position things">Edit view</button>
+        <span class="pair"><button class="btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" disabled>Undo</button><button class="btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button></span>
+        <span class="sep" aria-hidden="true"></span>
+        <button class="btn" id="saveDefBtn" type="button">Save as my default</button>
+        <button class="btn" id="resetPostBtn" type="button" title="Put this template back to its original layout">Reset this post</button>
+        <button class="btn sm" id="clearDefBtn" type="button" hidden title="Forget your saved default for this post (Reset goes back to the original design)">Clear my default</button>
+        <span class="grow"></span>
+        <button class="btn" id="safeBtn" type="button" aria-pressed="false" title="Show the margin and (for 9:16) the app-UI safe zones">Safe zones</button>
+        <button class="btn chk" id="checkBtn" type="button" title="Measure type size, hierarchy, spacing and overlaps on this post"><i id="checkDot"></i><span id="checkTxt">Design check</span></button>
+      </div>
     </div>
     <div class="chkpop" id="checkPop" hidden role="dialog" aria-label="Design check"></div>
     <p id="status"></p>
