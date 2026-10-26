@@ -124,15 +124,13 @@ function ph(c,x,y,w,h,label,dark){
 /* wrappers that only group other objects (the logo row) must not be clickable themselves: clicking the
    empty space between the logo and the badge used to grab an invisible full-width box */
 const OBJ_NOHIT=new Set(['obj:Logo bar']);
-/* The actual positioning/hit-test/draw work objDraw does for one object. Takes the
-   ambient transform (m) and alpha (ga) that were in effect when objDraw was ORIGINALLY
-   called, so a call replayed later by flushObjQueue (for a reordered layer stack)
-   still lands and anchors exactly where it would have drawn immediately. */
-function objDrawBody(c,key,x,y,w,h,fn,m,ga){
-  const ov=FR.ov[key],nohit=OBJ_NOHIT.has(key);let a=FR.anch[key];
+function objDraw(c,key,x,y,w,h,fn){
+  if(typeof FR==='undefined'||!FR){fn();return}
+  const m=c.getTransform(),ov=FR.ov[key],nohit=OBJ_NOHIT.has(key);let a=FR.anch[key];
   if(!a){const p=m.transformPoint(new DOMPoint(x+w/2,y+h/2));a=FR.anch[key]={x:p.x,y:p.y}}
+  if(!nohit){(FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key)}
   if(ov&&ov.hide)return;   /* deleted by the person: not drawn, not clickable (kept in the list so it can be restored) */
-  let M=m;c.save();c.setTransform(m);c.globalAlpha=ga;
+  let M=m;c.save();
   if(ov){const k=ov.sc||1,sx=k*(ov.sx||1)*(ov.flip?-1:1),sy=k*(ov.sy||1);
     M=new DOMMatrix().translateSelf(ov.dx,ov.dy).translateSelf(a.x,a.y).rotateSelf(ov.rot).scaleSelf(sx,sy).translateSelf(-a.x,-a.y).multiplySelf(m);
     c.setTransform(M);if(ov.op!==1&&ov.op!==undefined)c.globalAlpha*=ov.op}
@@ -141,17 +139,6 @@ function objDrawBody(c,key,x,y,w,h,fn,m,ga){
      (a sticker saying "OFF" was being fused with the "OFF STOREWIDE" line into one giant selection box) */
   const own=key.startsWith('obj:Quick');if(own)FR.noMatch=(FR.noMatch||0)+1;
   try{fn()}finally{if(own)FR.noMatch--;c.restore()}
-}
-function objDraw(c,key,x,y,w,h,fn){
-  if(typeof FR==='undefined'||!FR){fn();return}
-  const nohit=OBJ_NOHIT.has(key);
-  if(!nohit){(FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key)}
-  const m=c.getTransform(),ga=c.globalAlpha;
-  /* while the person has reordered this post's layers, hold every object back and
-     replay them (flushObjQueue, engine.js) in their chosen order just before the next
-     bit of text draws - everywhere else this is a plain, immediate draw as before */
-  if(FR.deferObjs){(FR.queue=FR.queue||[]).push({key,x,y,w,h,fn,m,ga});return}
-  objDrawBody(c,key,x,y,w,h,fn,m,ga);
 }
 function drawImg(c,img,x,y,w,h,o={}){
   const lab=o.label||'Image';

@@ -465,15 +465,13 @@ function ph(c,x,y,w,h,label,dark){
 /* wrappers that only group other objects (the logo row) must not be clickable themselves: clicking the
    empty space between the logo and the badge used to grab an invisible full-width box */
 const OBJ_NOHIT=new Set(['obj:Logo bar']);
-/* The actual positioning/hit-test/draw work objDraw does for one object. Takes the
-   ambient transform (m) and alpha (ga) that were in effect when objDraw was ORIGINALLY
-   called, so a call replayed later by flushObjQueue (for a reordered layer stack)
-   still lands and anchors exactly where it would have drawn immediately. */
-function objDrawBody(c,key,x,y,w,h,fn,m,ga){
-  const ov=FR.ov[key],nohit=OBJ_NOHIT.has(key);let a=FR.anch[key];
+function objDraw(c,key,x,y,w,h,fn){
+  if(typeof FR==='undefined'||!FR){fn();return}
+  const m=c.getTransform(),ov=FR.ov[key],nohit=OBJ_NOHIT.has(key);let a=FR.anch[key];
   if(!a){const p=m.transformPoint(new DOMPoint(x+w/2,y+h/2));a=FR.anch[key]={x:p.x,y:p.y}}
+  if(!nohit){(FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key)}
   if(ov&&ov.hide)return;   /* deleted by the person: not drawn, not clickable (kept in the list so it can be restored) */
-  let M=m;c.save();c.setTransform(m);c.globalAlpha=ga;
+  let M=m;c.save();
   if(ov){const k=ov.sc||1,sx=k*(ov.sx||1)*(ov.flip?-1:1),sy=k*(ov.sy||1);
     M=new DOMMatrix().translateSelf(ov.dx,ov.dy).translateSelf(a.x,a.y).rotateSelf(ov.rot).scaleSelf(sx,sy).translateSelf(-a.x,-a.y).multiplySelf(m);
     c.setTransform(M);if(ov.op!==1&&ov.op!==undefined)c.globalAlpha*=ov.op}
@@ -482,17 +480,6 @@ function objDrawBody(c,key,x,y,w,h,fn,m,ga){
      (a sticker saying "OFF" was being fused with the "OFF STOREWIDE" line into one giant selection box) */
   const own=key.startsWith('obj:Quick');if(own)FR.noMatch=(FR.noMatch||0)+1;
   try{fn()}finally{if(own)FR.noMatch--;c.restore()}
-}
-function objDraw(c,key,x,y,w,h,fn){
-  if(typeof FR==='undefined'||!FR){fn();return}
-  const nohit=OBJ_NOHIT.has(key);
-  if(!nohit){(FR.objs=FR.objs||[]);if(!FR.objs.includes(key))FR.objs.push(key)}
-  const m=c.getTransform(),ga=c.globalAlpha;
-  /* while the person has reordered this post's layers, hold every object back and
-     replay them (flushObjQueue, engine.js) in their chosen order just before the next
-     bit of text draws - everywhere else this is a plain, immediate draw as before */
-  if(FR.deferObjs){(FR.queue=FR.queue||[]).push({key,x,y,w,h,fn,m,ga});return}
-  objDrawBody(c,key,x,y,w,h,fn,m,ga);
 }
 function drawImg(c,img,x,y,w,h,o={}){
   const lab=o.label||'Image';
@@ -2874,10 +2861,6 @@ const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   quick:{},quickNextId:1,
-  /* explicit front-to-back-override for the objects of one (template, ratio); absent
-     for every post until the person opens the Layers panel and reorders something, so
-     drawing is untouched everywhere else (see flushObjQueue/objDraw in helpers.js). */
-  zorder:{},
   };
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
 const cur=()=>T.find(x=>x.id===state.tid);
@@ -2946,21 +2929,7 @@ let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  const zo=state.zorder[ovKey(tp.id)];
-  return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{},queue:[],deferObjs:!!(zo&&zo.length)};
-}
-/* Objects queued by objDraw (only while FR.deferObjs is on) are flushed, in the
-   person's chosen front-to-back order, right before the next piece of text draws (and
-   once more at the very end of the frame for any that follow nothing) - so reordering
-   stays limited to objects that already sat next to each other with no text between
-   them, instead of risking a layer jumping across unrelated copy. See helpers.js's
-   objDraw/objDrawBody for the actual draw-replay logic. */
-function flushObjQueue(c){
-  if(typeof FR==='undefined'||!FR||!FR.queue||!FR.queue.length)return;
-  const order=state.zorder[ovKey(FR.tid)]||[];
-  const rank=k=>{const i=order.indexOf(k);return i<0?1e9:i};
-  const q=FR.queue;FR.queue=[];
-  q.map((e,i)=>({e,i})).sort((p,r)=>{const a=rank(p.e.key),b=rank(r.e.key);return a!==b?a-b:p.i-r.i}).forEach(({e})=>objDrawBody(c,e.key,e.x,e.y,e.w,e.h,e.fn,e.m,e.ga));
+  return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{}};
 }
 function matchKey(s){
   if(FR&&FR.noMatch>0)return null;
@@ -2992,9 +2961,6 @@ function drawMultiline(s,x,y,mw){
   c.restore();
 }
 function fillTextHook(s,x,y,mw){
-  /* drain any objects a reordered layer stack is holding back before this text draws,
-     so an object never silently jumps past copy it was never moved across */
-  if(typeof FR!=='undefined'&&FR&&FR.deferObjs)flushObjQueue(realCtx);
   s=String(s);
   if(s.indexOf('\n')>=0){drawMultiline(s,x,y,mw);return}
   const c=realCtx;
@@ -3029,13 +2995,6 @@ function fillTextHook(s,x,y,mw){
   mw===undefined?c.fillText(s,x,yy):c.fillText(s,x,yy,mw);
   c.restore();
 }
-/* Paint calls that actually commit pixels, besides fillText (already routed through
-   fillTextHook, which does the same flush). Any decorative shape drawn straight onto
-   the canvas - a ribbon band, a card background - that isn't wrapped in its own
-   objDraw call still has to drain a reordered layer stack first, or a queued object
-   could slide past it into the wrong stacking position. Path-building calls (moveTo,
-   arc, rect, beginPath...) don't paint anything by themselves, so they're left alone. */
-const PAINT_FLUSH=new Set(['fill','stroke','fillRect','strokeRect','strokeText','drawImage']);
 function wrapCtx(real){
   realCtx=real;
   return new Proxy(real,{
@@ -3043,7 +3002,6 @@ function wrapCtx(real){
       if(k==='measureText')return s=>{s=String(s);if(s.indexOf('\n')<0)return t.measureText(s);
         /* canvas treats \n as a space, so measure a multi-line value by its widest line */
         let m=null;s.split('\n').forEach(l=>{const r=t.measureText(l);if(!m||r.width>m.width)m=r});return m};
-      if(typeof v==='function'&&PAINT_FLUSH.has(k))return (...a)=>{if(typeof FR!=='undefined'&&FR&&FR.deferObjs&&FR.queue&&FR.queue.length)flushObjQueue(t);return v.apply(t,a)};
       return typeof v==='function'?(k==='fillText'?fillTextHook:v.bind(t)):v},
     set(t,k,v){t[k]=v;return true}
   });
@@ -3078,7 +3036,7 @@ function render(){
   ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,W,H);ctx.save();
   NT=state.t;ND=state.D;
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
-  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);flushObjQueue(PC);LAST=FR;FR=null}
+  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
   filmPost(ctx,W,H,state.t,state.D,state.film);
   drawOverlay();
@@ -3112,7 +3070,7 @@ function drawOverlay(){
 const HIST={past:[],future:[],last:null};let REPLAY=false;
 function snapState(){
   return JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,loops:state.loops,fps:state.fps,
-    vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,zorder:state.zorder,
+    vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
     });
 }
 function histPush(){
@@ -3126,7 +3084,7 @@ function histApply(s){
   state.ratio=d.ratio;state.D=d.D;state.loops=d.loops;state.fps=d.fps;
   Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.assign(state.vals[id],d.vals[id])});
   state.ovr=d.ovr||{};state.style=d.style||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
-  state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;state.zorder=d.zorder||{};
+  state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
   const sameTpl=state.tid===d.tid;state.tid=d.tid;
   document.querySelectorAll('.tpl-item').forEach(b=>b.classList.toggle('active',b.dataset.id===d.tid));
   if(!sameTpl)state.sel=null;
@@ -3147,7 +3105,7 @@ function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(ty
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
-    quick:state.quick,quickNextId:state.quickNextId,zorder:state.zorder}))}catch(e){}
+    quick:state.quick,quickNextId:state.quickNextId}))}catch(e){}
 }
 function restore(){
   try{const d=JSON.parse(localStorage.getItem('mps_state')||'null');if(!d)return;
@@ -3155,7 +3113,6 @@ function restore(){
     Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.keys(d.vals[id]).forEach(k=>{if(k in state.vals[id])state.vals[id][k]=d.vals[id][k]})});
     state.ovr=d.ovr||{};state.style=d.style||{};
     state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
-    state.zorder=d.zorder||{};
     if(d.logo2)Object.assign(state.logo2,d.logo2);if(d.film)Object.assign(state.film,d.film);
   }catch(e){}
 }
@@ -3355,7 +3312,7 @@ function objColours(box,tp,sel,isObj){
 function buildSelPanel(){
   const box=$('#selPanel');box.innerHTML='';const tp=cur(),sel=state.sel;
   objDot(!!(sel&&sel.type==='text'));
-  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));removedList(box,tp);buildLayersPanel(box,tp);objPicker(box);return}
+  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));removedList(box,tp);objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
   /* Typography (weight/typeface/colour/spacing/opacity) is stored per template, shared
      across every ratio, so it's only created, and only read, for text selections. */
@@ -3381,13 +3338,12 @@ function buildSelPanel(){
   }
   objColours(box,tp,sel,isObj);
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);if(sov)Object.assign(sov,STD);buildSelPanel();dirty()});
-  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};delete state.zorder[ovKey(tp.id)];buildSelPanel();dirty()});
+  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};buildSelPanel();dirty()});
   if(sel.key.startsWith('obj:Quick')){
     const qid=+sel.key.slice(9);
     btn(b,'Remove element',()=>{delQuick(tp.id,qid);select(null);buildQuick();dirty()});
   }
   box.append(b);
-  buildLayersPanel(box,tp);
   objPicker(box);
 }
 const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge',
@@ -3399,44 +3355,6 @@ function objLabel(k){
     if(e&&QUICK_KINDS[e.kind])return QUICK_KINDS[e.kind].name;
   }
   return k.slice(4);
-}
-/* ----- layers: who draws on top of whom, independent of selection -----
-   state.zorder[tid@ratio] is an explicit front-to-back list of object keys, created
-   the first time the person moves anything in this panel (a snapshot of the natural
-   draw order at that moment) and left absent everywhere else - see buildFR/flushObjQueue
-   in engine.js and objDraw in helpers.js for how it's actually applied at draw time. */
-function effectiveOrder(tp){
-  const ks=((LAST&&LAST.objs)||[]).filter(k=>!((ovFor(tp.id,k)||{}).hide));
-  const stored=state.zorder[ovKey(tp.id)];
-  if(!stored||!stored.length)return ks;
-  const rank=k=>{const i=stored.indexOf(k);return i<0?1e9:i};
-  return ks.map((k,i)=>({k,i})).sort((a,b)=>{const ra=rank(a.k),rb=rank(b.k);return ra!==rb?ra-rb:a.i-b.i}).map(x=>x.k);
-}
-function moveLayer(tp,key,dir){
-  const order=effectiveOrder(tp),i=order.indexOf(key);if(i<0)return;
-  const j=i+dir;if(j<0||j>=order.length)return;
-  [order[i],order[j]]=[order[j],order[i]];
-  state.zorder[ovKey(tp.id)]=order;dirty();buildSelPanel();
-}
-function buildLayersPanel(box,tp){
-  const order=effectiveOrder(tp);if(order.length<2)return;
-  const g=card(box,'Layers',false,'layers');
-  g.append(el('p','note','Top sits in front. The arrows only move an object past others that sit right next to it on the canvas, so it never jumps across unrelated copy elsewhere in the post.'));
-  order.slice().reverse().forEach((k,ri)=>{
-    const i=order.length-1-ri;
-    const row=el('div');row.style.display='flex';row.style.alignItems='center';row.style.gap='6px';row.style.padding='4px 2px';row.style.borderRadius='6px';row.style.cursor='pointer';
-    if(state.sel&&state.sel.type==='text'&&state.sel.key===k)row.style.background='rgba(99,102,241,.14)';
-    const nm=el('span','',objLabel(k));nm.style.flex='1';nm.style.overflow='hidden';nm.style.textOverflow='ellipsis';nm.style.whiteSpace='nowrap';
-    row.append(nm);
-    const up=el('button','btn sm','▲');up.type='button';up.title='Bring forward';up.disabled=i===order.length-1;
-    up.addEventListener('click',e=>{e.stopPropagation();moveLayer(tp,k,1)});
-    const dn=el('button','btn sm','▼');dn.type='button';dn.title='Send backward';dn.disabled=i===0;
-    dn.addEventListener('click',e=>{e.stopPropagation();moveLayer(tp,k,-1)});
-    row.append(up,dn);
-    row.addEventListener('click',()=>select({type:'text',key:k}));
-    g.append(row);
-  });
-  if(state.zorder[ovKey(tp.id)])btn(g,'Reset layer order',()=>{delete state.zorder[ovKey(tp.id)];dirty();buildSelPanel()});
 }
 function objPicker(box){
   const tp0=cur(),ks=((LAST&&LAST.objs)||[]).filter(k=>!((ovFor(tp0.id,k)||{}).hide));if(!ks.length)return;
@@ -3718,8 +3636,8 @@ function defLocal(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||
 function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},REMOTE_DEF,defLocal())}
 function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function defSnapshot(tp){
-  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{},zorder:{}};
-  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k]);if(state.zorder[k])s.zorder[r]=jclone(state.zorder[k])});
+  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
+  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k])});
   return s;
 }
 function defApply(tp,s){
@@ -3729,8 +3647,7 @@ function defApply(tp,s){
   state.style[id]=jclone(s.style||{});
   Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;
     if(s.ovr&&s.ovr[r])state.ovr[k]=jclone(s.ovr[r]);else delete state.ovr[k];
-    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k];
-    if(s.zorder&&s.zorder[r]&&s.zorder[r].length)state.zorder[k]=jclone(s.zorder[r]);else delete state.zorder[k]});
+    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k]});
 }
 function refreshDefBtn(){
   const D=defLoad(),has=!!D[state.tid],b=$('#saveDefBtn'),rb=$('#resetPostBtn'),cb=$('#clearDefBtn'),fb=$('#forgetDefBtn');

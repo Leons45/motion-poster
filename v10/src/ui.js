@@ -15,7 +15,7 @@ function render(){
   ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,W,H);ctx.save();
   NT=state.t;ND=state.D;
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
-  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);flushObjQueue(PC);LAST=FR;FR=null}
+  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
   filmPost(ctx,W,H,state.t,state.D,state.film);
   drawOverlay();
@@ -49,7 +49,7 @@ function drawOverlay(){
 const HIST={past:[],future:[],last:null};let REPLAY=false;
 function snapState(){
   return JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,loops:state.loops,fps:state.fps,
-    vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,zorder:state.zorder,
+    vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
     });
 }
 function histPush(){
@@ -63,7 +63,7 @@ function histApply(s){
   state.ratio=d.ratio;state.D=d.D;state.loops=d.loops;state.fps=d.fps;
   Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.assign(state.vals[id],d.vals[id])});
   state.ovr=d.ovr||{};state.style=d.style||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
-  state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;state.zorder=d.zorder||{};
+  state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
   const sameTpl=state.tid===d.tid;state.tid=d.tid;
   document.querySelectorAll('.tpl-item').forEach(b=>b.classList.toggle('active',b.dataset.id===d.tid));
   if(!sameTpl)state.sel=null;
@@ -84,7 +84,7 @@ function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(ty
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
-    quick:state.quick,quickNextId:state.quickNextId,zorder:state.zorder}))}catch(e){}
+    quick:state.quick,quickNextId:state.quickNextId}))}catch(e){}
 }
 function restore(){
   try{const d=JSON.parse(localStorage.getItem('mps_state')||'null');if(!d)return;
@@ -92,7 +92,6 @@ function restore(){
     Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.keys(d.vals[id]).forEach(k=>{if(k in state.vals[id])state.vals[id][k]=d.vals[id][k]})});
     state.ovr=d.ovr||{};state.style=d.style||{};
     state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
-    state.zorder=d.zorder||{};
     if(d.logo2)Object.assign(state.logo2,d.logo2);if(d.film)Object.assign(state.film,d.film);
   }catch(e){}
 }
@@ -292,7 +291,7 @@ function objColours(box,tp,sel,isObj){
 function buildSelPanel(){
   const box=$('#selPanel');box.innerHTML='';const tp=cur(),sel=state.sel;
   objDot(!!(sel&&sel.type==='text'));
-  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));removedList(box,tp);buildLayersPanel(box,tp);objPicker(box);return}
+  if(!sel||sel.type!=='text'){box.append(el('p','note','Click any text, photo, badge or logo on the canvas to edit it here: position, size, colours, typeface and more.'));removedList(box,tp);objPicker(box);return}
   const isObj=sel.key.startsWith('obj:'),f=tp.fields.find(x=>x.k===sel.key),ov=ovFor(tp.id,sel.key,true);
   /* Typography (weight/typeface/colour/spacing/opacity) is stored per template, shared
      across every ratio, so it's only created, and only read, for text selections. */
@@ -318,13 +317,12 @@ function buildSelPanel(){
   }
   objColours(box,tp,sel,isObj);
   const b=el('div','btnrow');btn(b,isObj?'Reset this object':'Reset this text',()=>{Object.assign(ov,OVD);if(sov)Object.assign(sov,STD);buildSelPanel();dirty()});
-  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};delete state.zorder[ovKey(tp.id)];buildSelPanel();dirty()});
+  btn(b,'Reset everything',()=>{state.ovr[ovKey(tp.id)]={};state.style[tp.id]={};buildSelPanel();dirty()});
   if(sel.key.startsWith('obj:Quick')){
     const qid=+sel.key.slice(9);
     btn(b,'Remove element',()=>{delQuick(tp.id,qid);select(null);buildQuick();dirty()});
   }
   box.append(b);
-  buildLayersPanel(box,tp);
   objPicker(box);
 }
 const OBJ_NAMES={'obj:Logo':'Logo','obj:Seal':'Best Seller badge','obj:Canada':'Made in Canada badge',
@@ -336,44 +334,6 @@ function objLabel(k){
     if(e&&QUICK_KINDS[e.kind])return QUICK_KINDS[e.kind].name;
   }
   return k.slice(4);
-}
-/* ----- layers: who draws on top of whom, independent of selection -----
-   state.zorder[tid@ratio] is an explicit front-to-back list of object keys, created
-   the first time the person moves anything in this panel (a snapshot of the natural
-   draw order at that moment) and left absent everywhere else - see buildFR/flushObjQueue
-   in engine.js and objDraw in helpers.js for how it's actually applied at draw time. */
-function effectiveOrder(tp){
-  const ks=((LAST&&LAST.objs)||[]).filter(k=>!((ovFor(tp.id,k)||{}).hide));
-  const stored=state.zorder[ovKey(tp.id)];
-  if(!stored||!stored.length)return ks;
-  const rank=k=>{const i=stored.indexOf(k);return i<0?1e9:i};
-  return ks.map((k,i)=>({k,i})).sort((a,b)=>{const ra=rank(a.k),rb=rank(b.k);return ra!==rb?ra-rb:a.i-b.i}).map(x=>x.k);
-}
-function moveLayer(tp,key,dir){
-  const order=effectiveOrder(tp),i=order.indexOf(key);if(i<0)return;
-  const j=i+dir;if(j<0||j>=order.length)return;
-  [order[i],order[j]]=[order[j],order[i]];
-  state.zorder[ovKey(tp.id)]=order;dirty();buildSelPanel();
-}
-function buildLayersPanel(box,tp){
-  const order=effectiveOrder(tp);if(order.length<2)return;
-  const g=card(box,'Layers',false,'layers');
-  g.append(el('p','note','Top sits in front. The arrows only move an object past others that sit right next to it on the canvas, so it never jumps across unrelated copy elsewhere in the post.'));
-  order.slice().reverse().forEach((k,ri)=>{
-    const i=order.length-1-ri;
-    const row=el('div');row.style.display='flex';row.style.alignItems='center';row.style.gap='6px';row.style.padding='4px 2px';row.style.borderRadius='6px';row.style.cursor='pointer';
-    if(state.sel&&state.sel.type==='text'&&state.sel.key===k)row.style.background='rgba(99,102,241,.14)';
-    const nm=el('span','',objLabel(k));nm.style.flex='1';nm.style.overflow='hidden';nm.style.textOverflow='ellipsis';nm.style.whiteSpace='nowrap';
-    row.append(nm);
-    const up=el('button','btn sm','▲');up.type='button';up.title='Bring forward';up.disabled=i===order.length-1;
-    up.addEventListener('click',e=>{e.stopPropagation();moveLayer(tp,k,1)});
-    const dn=el('button','btn sm','▼');dn.type='button';dn.title='Send backward';dn.disabled=i===0;
-    dn.addEventListener('click',e=>{e.stopPropagation();moveLayer(tp,k,-1)});
-    row.append(up,dn);
-    row.addEventListener('click',()=>select({type:'text',key:k}));
-    g.append(row);
-  });
-  if(state.zorder[ovKey(tp.id)])btn(g,'Reset layer order',()=>{delete state.zorder[ovKey(tp.id)];dirty();buildSelPanel()});
 }
 function objPicker(box){
   const tp0=cur(),ks=((LAST&&LAST.objs)||[]).filter(k=>!((ovFor(tp0.id,k)||{}).hide));if(!ks.length)return;
@@ -655,8 +615,8 @@ function defLocal(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||
 function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},REMOTE_DEF,defLocal())}
 function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function defSnapshot(tp){
-  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{},zorder:{}};
-  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k]);if(state.zorder[k])s.zorder[r]=jclone(state.zorder[k])});
+  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
+  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k])});
   return s;
 }
 function defApply(tp,s){
@@ -666,8 +626,7 @@ function defApply(tp,s){
   state.style[id]=jclone(s.style||{});
   Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;
     if(s.ovr&&s.ovr[r])state.ovr[k]=jclone(s.ovr[r]);else delete state.ovr[k];
-    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k];
-    if(s.zorder&&s.zorder[r]&&s.zorder[r].length)state.zorder[k]=jclone(s.zorder[r]);else delete state.zorder[k]});
+    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k]});
 }
 function refreshDefBtn(){
   const D=defLoad(),has=!!D[state.tid],b=$('#saveDefBtn'),rb=$('#resetPostBtn'),cb=$('#clearDefBtn'),fb=$('#forgetDefBtn');
