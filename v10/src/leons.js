@@ -7,7 +7,9 @@ function mastCircle(c,W,H,t,I,fill,bf){
   const bot=H*(bf||.36), R=W*.60, cy=bot-R, p=ST.textEase(prog(t,0,.7*ST.durMul));
   c.save();c.globalAlpha=p;c.fillStyle=fill;c.beginPath();c.arc(W/2,cy-(1-p)*70,R,0,TAU);c.fill();c.restore();
   const ly=H*.055;
-  pop(c,W/2,ly,t,.15,()=>logo(c,I,0,0,130,65,2.6),{from:.7,dur:.6});
+  const align=(typeof state!=='undefined'&&state.logoAlign)||'center';
+  const lx=align==='left'?(W*.09+logoBoxSize(65,130,I,2.6).w/2):W/2;
+  pop(c,lx,ly,t,.15,()=>logo(c,I,0,0,130,65,2.6),{from:.7,dur:.6});
   /* the logo image itself carries the "That's comfortable." tagline when that
      variant is selected, so this just keeps the gap the old separate tagline
      line used to occupy, for consistent spacing whichever logo is active. */
@@ -16,10 +18,13 @@ function mastCircle(c,W,H,t,I,fill,bf){
 }
 function mastCard(c,W,H,t,I,fill,boxStyle){
   const ST=postStyle();
-  const cw=Math.max(W*.26,250),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
+  const lw=logoBoxSize(58,115,I,2.6).w;
+  const cw=Math.max(W*.26,250,lw+40),ch=H*.145,x=W/2-cw/2,p=ST.textEase(prog(t,0,.6*ST.durMul));
   c.save();c.globalAlpha=p;c.translate(0,-(1-p)*70);c.fillStyle=fill;boxPath(c,boxStyle,x,-40,cw,ch+40,34);c.fill();c.restore();
   const ly=ch*.40;
-  pop(c,W/2,ly,t,.12,()=>logo(c,I,0,0,115,58,2.6),{from:.7,dur:.6});
+  const align=(typeof state!=='undefined'&&state.logoAlign)||'center';
+  const lx=align==='left'?(x+20+lw/2):W/2;
+  pop(c,lx,ly,t,.12,()=>logo(c,I,0,0,115,58,2.6),{from:.7,dur:.6});
   return {bottom:ch,top:ch+H*.03,band:0};
 }
 /* lay a number + headline lines inside the masthead band so nothing clips */

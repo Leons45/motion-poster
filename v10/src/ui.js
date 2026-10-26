@@ -492,10 +492,15 @@ function buildLogoLib(){
     grid.append(b);
   });
   box.append(el('p','note','Click a logo to use it on every post.'));
+  ctl(box,'Logo layout','select',state,'logoAlign',{o:[['center','Centred'],['left','Left-aligned']],on:()=>persistLogoAlign()});
+  box.append(el('p','note','Applies to the classic Leon’s masthead (Circle/Card) templates and the Event Posts “Circle masthead” layout; other Event Posts layouts already set their own logo position per design.'));
 }
+function persistLogoAlign(){try{localStorage.setItem('mps_logo_align',state.logoAlign||'center')}catch(e){}}
 try{
   const saved=localStorage.getItem('mps_logo_id');
   state.logoId=(saved&&BUILTIN_LOGOS.some(l=>l.id===saved))?saved:BUILTIN_LOGOS[0].id;
+  const savedAlign=localStorage.getItem('mps_logo_align');
+  if(savedAlign==='left'||savedAlign==='center')state.logoAlign=savedAlign;
 }catch(e){state.logoId=BUILTIN_LOGOS[0].id}
 function bootLogo(){
   const L=activeLogo();

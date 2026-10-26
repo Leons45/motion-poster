@@ -432,9 +432,6 @@ const evSinceDefault='PROUDLY CANADIAN · SINCE 1909';
 function evTopRow(c,W,yT,t,I,F,o){
   o=o||{};const M=evM(W),lw=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).w,lh=logoBoxSize(evLogoW(W)/2,evLogoW(W),null,2.6).h,micS=W*.019,MB=evMadeBox(micS,!!o.chip),rowH=Math.max(lh,MB.h),cy=yT+rowH/2,lx=o.centre?W/2:M+lw/2-lw*.046;
   objDraw(c,'obj:Logo bar',M,yT,W-2*M,rowH,()=>{pop(c,lx,cy,t,.1,()=>{
-    /* a small accent ring over just the oval mark, not the whole lockup — a wide
-       "logo + tagline" variant would otherwise stretch this into a flat line */
-    if(o.ring){const r=lh*.62;c.save();c.strokeStyle='#111';c.lineWidth=Math.max(2,W*.0025);c.beginPath();c.ellipse(-(lw/2)+r*1.05,0,r,r,0,0,TAU);c.stroke();c.restore()}
     logo(c,I,0,0,lw,lh,2.6)},{from:.7,dur:.6})});
   if(F.maple!=='no')evMade(c,W-M,cy,micS,t,.3,!!o.chip,'right');
   return yT+rowH;
@@ -477,7 +474,7 @@ function layoutGallery(c,W,H,t,D,F,I){
   const fi=W*.024;c.save();c.strokeStyle=dark?'rgba(255,255,255,.42)':'rgba(17,17,17,.9)';c.lineWidth=Math.max(2,W*.0028);c.strokeRect(fi,fi,W-2*fi,H-2*fi);c.restore();
   const hasP=!!F.flab,pw=ds.pw,ph=pw*.355,gap=W*.03,wO=hasP?sw-pw-gap:sw;
   const {hb,ob,sb,kb}=evBlocks(c,W,H,F,{sw,wO,bw:.115,bh:.082});
-  const top=evTopRow(c,W,ds.top,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  const top=evTopRow(c,W,ds.top,t,I,F,{chip:dark});
   const sinceH=evSinceH(W,F),gK=kb.h?kb.size*.55:0,gH=hb.h?hb.size*.12:0,gS=sb.h?sb.size*.45:0;
   const botH=Math.max(ob.h+(sb.h?gS+sb.h:0),hasP?ph:0);
   let y=top+H*.03;
@@ -562,7 +559,7 @@ function layoutSunray(c,W,H,t,D,F,I){
   c.save();c.fillStyle=dark?'rgba(255,255,255,.055)':'rgba(0,0,0,.065)';const n=24,R=Math.hypot(W,H),rot=t*.035;
   for(let i=0;i<n;i+=2){const a0=rot+i*TAU/n,a1=rot+(i+1)*TAU/n;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a0)*R,cy+Math.sin(a0)*R);c.lineTo(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R);c.closePath();c.fill()}
   c.restore();
-  evTopRow(c,W,ds.top,t,I,F,{chip:dark,ring:contrast(g,LY)<1.5});
+  evTopRow(c,W,ds.top,t,I,F,{chip:dark});
   if(kb.h)evKick(c,kb,W/2,yK,accOn(g,acc),'center',t,sw);
   if(hb.h)evLines(c,hb,W/2,yH,{wt:900,fill:ink,al:'center',t,at:.9,maxW:sw});
   c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=W*.03;c.shadowOffsetY=W*.01;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,d/2+W*.012,0,TAU);c.fill();c.restore();

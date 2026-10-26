@@ -15,7 +15,7 @@ const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({gr
   ...T_COMM.map(x=>({grp:'Community ports',...x})),].map(tp=>({cat:CAT_MAP[tp.id]||'classic',...tp}));
 
 const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:{},imgs:{},ovr:{},style:{},logo:null,rec:null,sel:null,
-  logoId:null,
+  logoId:null,logoAlign:'center',
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   quick:{},quickNextId:1,
