@@ -28,7 +28,7 @@ const T_COMM=[
  images:[{k:'a',l:'Photo 1'},{k:'b',l:'Photo 2'},{k:'c',l:'Photo 3'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  text(c,{s:F.title,x:W/2,y:H*.15,size:62,wt:900,fill:'#fff',t,at:.1,maxW:W*.86});
+  text(c,{s:F.title,key:'title',x:W/2,y:H*.15,size:62,wt:900,fill:'#fff',t,at:.1,maxW:W*.86});
   const pw=W*.44,phh=pw*1.28;
   [[I.a,F.c1,-7,0],[I.b,F.c2,0,.27],[I.c,F.c3,7,.53]].forEach((q,i)=>{
     const p=prog(t,.4+q[3],.8);if(p<=0)return;const s=eBack(p);
@@ -62,7 +62,7 @@ const T_COMM=[
     font(c,800,40,FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cap,0,ph/2+44,pw);
   });
   c.restore();
-  text(c,{s:F.sub,x:W/2,y:H*.85,size:44,wt:800,fill:'#fff',t,at:1.2,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.85,size:44,wt:800,fill:'#fff',t,at:1.2,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,95,190,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,190,95),{from:.8});
  }},
 {id:'splitscreen',name:'Split Screen',sub:CRED_RVE+' — two panels slide in and meet, divider fades up',
@@ -102,7 +102,7 @@ const T_COMM=[
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.86,sz));
     pop(c,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.02,t,.3+i*.18,()=>{font(c,900,s,FM);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
       c.save();c.shadowColor=F.acc;c.shadowBlur=40;c.fillText(l,0,0);c.restore()},{from:.6,dur:.7})});
-  text(c,{s:F.sub,x:W/2,y:H*.68,size:42,wt:700,fill:'#fff',t,at:1,maxW:W*.84});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.68,size:42,wt:700,fill:'#fff',t,at:1,maxW:W*.84});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.88,t,1.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'liquidwave',name:'Liquid Wave',sub:CRED_RVE+' — a soft blurred wave rolls under the message',
@@ -120,7 +120,7 @@ const T_COMM=[
   const ls=F.head.split('\n'),sz=Math.min(150,H*.115);
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
     charRise(c,l,W/2,H*.3+(i-(ls.length-1)/2)*sz*1.05,s,900,FM,'#fff',t,.2+i*.3,.03,50)});
-  text(c,{s:F.sub,x:W/2,y:H*.5,size:42,wt:700,fill:'rgba(255,255,255,.85)',t,at:1.1,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.5,size:42,wt:700,fill:'rgba(255,255,255,.85)',t,at:1.1,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.12,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'starfield',name:'Starfield',sub:CRED_RVE+' — stars stream outward from the centre, golden-angle spread',
@@ -140,7 +140,7 @@ const T_COMM=[
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,H*.16,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
   const hs=Math.min(130,fitSize(c,F.head,900,FM,W*.88,130));
   charRise(c,F.head,W/2,H*.44,hs,900,FM,'#fff',t,.4,.03,60);
-  text(c,{s:F.sub,x:W/2,y:H*.56,size:42,wt:700,fill:'rgba(255,255,255,.82)',t,at:1.1,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.56,size:42,wt:700,fill:'rgba(255,255,255,.82)',t,at:1.1,maxW:W*.8});
   pop(c,W/2,H*.72,t,1.5,()=>{
     font(c,800,42,FM);const bw=c.measureText(F.cta).width+96,bh=42*1.9;
     objDraw(c,'obj:Button',-bw/2,-bh/2,bw,bh,()=>pill(c,0,0,F.cta,42,F.acc,'#111',48));
@@ -160,7 +160,7 @@ const T_COMM=[
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
   const hs=Math.min(110,fitSize(c,F.head,900,FM,W*.86,110));
   charRise(c,F.head,W/2,H*.32,hs,900,FM,'#fff',t,.3,.03,50);
-  text(c,{s:F.sub,x:W/2,y:H*.42,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:.9,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.42,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:.9,maxW:W*.8});
  }},
 {id:'highlight',name:'Marker Highlight',sub:CRED_RVE+' — each word gets a marker sweep as it is spoken',
  fields:[{k:'words',l:'Words (space separated)',t:'area',v:'Built for family dinners and lazy Sundays'},{k:'tag',l:'Tag line',t:'text',v:'LEON\'S'},{k:'bg',l:'Background',t:'color',v:'#111827'},{k:'acc',l:'Highlighter',t:'color',v:'#FFE81A'},{k:'on',l:'Text on highlight',t:'color',v:'#111111'}],
@@ -183,7 +183,7 @@ const T_COMM=[
       x+=q[1]+sp;
     });
   });
-  text(c,{s:F.tag,x:W/2,y:H*.82,size:44,wt:900,fill:F.acc,t,at:.4+idx*per,maxW:W*.8});
+  text(c,{s:F.tag,key:'tag',x:W/2,y:H*.82,size:44,wt:900,fill:F.acc,t,at:.4+idx*per,maxW:W*.8});
  }},
 {id:'brush',name:'Brush Stroke Reveal',sub:CRED_RC+' — the title is painted on in horizontal brush bands',
  fields:[{k:'title',l:'Title',t:'text',v:'FRESH LOOK'},{k:'desc',l:'Description',t:'text',v:'New season collections in store now'},{k:'n',l:'Brush bands',t:'text',v:'7'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Title colour',t:'color',v:'#111111'},{k:'acc',l:'Accent dot',t:'color',v:'#E4262C'}],
@@ -200,7 +200,7 @@ const T_COMM=[
   }
   const dp=eBack(prog(t,.9,.5));
   if(dp>0){c.save();c.translate(W/2,H*.58);c.scale(dp,dp);objDraw(c,'obj:Dot',-22,-22,44,44,()=>{c.fillStyle=F.acc;c.beginPath();c.arc(0,0,22,0,TAU);c.fill()});c.restore()}
-  text(c,{s:F.desc,x:W/2,y:H*.68,size:44,wt:700,fill:F.ink,t,at:1.1,maxW:W*.78});
+  text(c,{s:F.desc,key:'desc',x:W/2,y:H*.68,size:44,wt:700,fill:F.ink,t,at:1.1,maxW:W*.78});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.86,t,1.4,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
 {id:'gridwave',name:'Grid Wave',sub:CRED_RC+' — a dot grid breathing in a diagonal wave, seamless loop',
@@ -219,7 +219,7 @@ const T_COMM=[
   ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.84,sz));
     charRise(c,l,W/2,H*.44+(i-(ls.length-1)/2)*sz*1.04,s,900,FM,'#fff',t,.25+i*.28,.03,50)});
   c.restore();
-  text(c,{s:F.sub,x:W/2,y:H*.64,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:1.1,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.64,size:40,wt:700,fill:'rgba(255,255,255,.8)',t,at:1.1,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,H*.14,t,0,()=>logo(c,I,0,0,210,105),{from:.8});
  }},
 {id:'scramble',name:'Scramble Text',sub:CRED_RC+' — characters resolve out of random noise, left to right',
@@ -263,7 +263,7 @@ const T_COMM=[
   }
   const bs=eBack(prog(t,1.9,.6));
   if(bs>0){c.save();c.translate(W/2,H*.63);c.scale(bs,1);objDraw(c,'obj:Bar',-200,-9,400,18,()=>{c.fillStyle=F.acc;rr(c,-200,-9,400,18,9);c.fill()});c.restore()}
-  text(c,{s:F.sub,x:W/2,y:H*.72,size:46,wt:800,fill:'#fff',t,at:2,maxW:W*.8});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.72,size:46,wt:800,fill:'#fff',t,at:2,maxW:W*.8});
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.87,t,2.3,()=>logo(c,I,0,0,200,100),{from:.8});
  }}
 ];

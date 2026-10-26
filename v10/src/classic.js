@@ -4,7 +4,7 @@ const T_CLASSIC=[
  images:[{k:'hero',l:'Character or cutout (transparent PNG)'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);fx(c,W,H,t,D,F.fx,0);
-  text(c,{s:F.headline,x:W/2,y:H*.055,size:78,fill:'#111',maxW:W*.88,t,at:.1});
+  text(c,{s:F.headline,key:'headline',x:W/2,y:H*.055,size:78,fill:'#111',maxW:W*.88,t,at:.1});
   const p=prog(t,.45,1.1),bw=W*.8,bh=H*.76;
   if(p>0){
     c.save();c.globalAlpha=.16*eOut(clamp(p*2));c.fillStyle='#000';c.beginPath();c.ellipse(W/2,H*.965,bw*.2*(.6+.4*eBack(p)),16,0,0,7);c.fill();c.restore();
@@ -19,8 +19,8 @@ const T_CLASSIC=[
  draw(c,W,H,t,D,F,I){
   const g=c.createRadialGradient(W/2,H*.4,W*.1,W/2,H*.4,H*.8);g.addColorStop(0,F.bg);g.addColorStop(1,shade(F.bg,-.1));c.fillStyle=g;c.fillRect(0,0,W,H);
   const ty=H*.2,cl=W*.27,cr=W*.74,sl=eOut(prog(t,.2,.8)),sr=eOut(prog(t,.4,.8));
-  c.save();c.globalAlpha=prog(t,.2,.5);c.translate(-(1-sl)*220,0);text(c,{s:F.l,x:cl,y:ty,size:64,fill:'#111',maxW:430});c.restore();
-  c.save();c.globalAlpha=prog(t,.4,.5);c.translate((1-sr)*220,0);text(c,{s:F.r,x:cr,y:ty,size:64,fill:'#111',maxW:430});c.restore();
+  c.save();c.globalAlpha=prog(t,.2,.5);c.translate(-(1-sl)*220,0);text(c,{s:F.l,key:'l',x:cl,y:ty,size:64,fill:'#111',maxW:430});c.restore();
+  c.save();c.globalAlpha=prog(t,.4,.5);c.translate((1-sr)*220,0);text(c,{s:F.r,key:'r',x:cr,y:ty,size:64,fill:'#111',maxW:430});c.restore();
   const top=ty+170,bot=H-350,bh=Math.min(560,bot-top),cy=(top+bot)/2;
   pop(c,cl,cy,t,.6,()=>{c.translate(0,wave(t,D,2)*8);drawImg(c,I.a,-210,-bh/2,420,bh,{label:'Left image'})},{from:.5});
   pop(c,cr,cy,t,.9,()=>{c.translate(0,wave(t,D,2,.3)*8);drawImg(c,I.b,-250,-bh/2,500,bh,{label:'Right image'})},{from:.5});
@@ -32,7 +32,7 @@ const T_CLASSIC=[
   /* this logo lives inside the fixed 480-wide card, not the full canvas, so "left" means
      the card's own left edge (with a little padding), not the artboard's edge. */
   logo(c,I,evLogoAlign()==='left'?logoAnchorX(W/2-240+25,125,250,I,1.6):W/2,ct+100,250,125);
-  text(c,{s:F.url,x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
+  text(c,{s:F.url,key:'url',x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
  }},
 {id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
  fields:[{k:'badge',l:'Badge title',t:'text',v:'DRAFT 2026'},{k:'url',l:'Badge address',t:'text',v:'LEONS.CA'},{k:'headline',l:'Headline',t:'area',v:'DRAFT LOTTERY WINNER &\nNO. 1 PICK IN 2026 HOME DRAFT'},{k:'kicker',l:'Kicker',t:'text',v:'THE NO.1 PICK IN'},{k:'big',l:'Big word',t:'text',v:'COMFORT'},{k:'sub',l:'Bottom line',t:'text',v:'UP YOUR HOME GAME'},{k:'bg',l:'Frame colour',t:'color',v:'#0B1F4D'},{k:'panel',l:'Panel colour',t:'color',v:'#FFE81A'}],
@@ -49,7 +49,7 @@ const T_CLASSIC=[
     rr(c,-250,-54,500,108,18);c.fillStyle='#0A1636';c.fill();c.strokeStyle='#3C6BFF';c.lineWidth=5;c.stroke();
     logo(c,I,-135,0,150,75,1);c.textAlign='left';c.textBaseline='middle';c.fillStyle='#fff';font(c,900,44,FM);c.fillText(F.badge,-45,-14,270);
     c.fillStyle='#B9C3D6';font(c,600,22,FM);c.fillText(F.url,-45,28,270)})},{from:.8});
-  text(c,{s:F.headline,x:W/2,y:170,size:46,fill:'#fff',maxW:W*.9,up:true,t,at:.5});
+  text(c,{s:F.headline,key:'headline',x:W/2,y:170,size:46,fill:'#fff',maxW:W*.9,up:true,t,at:.5});
   const px=W*.07,pw=W*.86,py=300,pb=H-70,ph0=pb-py,wp=eOut(prog(t,.6,.9)),chh=ph0*wp,cy0=py+(ph0-chh)/2;
   if(wp>0){
     objDraw(c,'obj:Panel',px,cy0,pw,chh,()=>{
@@ -58,7 +58,7 @@ const T_CLASSIC=[
     const top=py+24,bot=pb-300,bh=Math.min(bot-top,W*.78),pcy=(top+bot)/2,dp=prog(t,1.1,.9),yo=-(1-eBack(dp))*320,fl=wave(t,D,2)*8;
     c.save();c.globalAlpha=.22*clamp(dp*2);c.fillStyle='#000';c.beginPath();c.ellipse(W/2,pcy+bh/2-8,pw*.26,16,0,0,7);c.fill();c.restore();
     if(dp>0){c.save();c.globalAlpha=clamp(dp*3);drawImg(c,I.prod,px+pw*.1,pcy-bh/2+yo+fl,pw*.8,bh,{label:'Hero product'});c.restore()}
-    text(c,{s:F.kicker,x:W/2,y:pb-282,size:38,fill:'#111',wt:800,t,at:1.6,maxW:pw-40});
+    text(c,{s:F.kicker,key:'kicker',x:W/2,y:pb-282,size:38,fill:'#111',wt:800,t,at:1.6,maxW:pw-40});
     const big=F.big.toUpperCase(),bs=fitSize(c,big,900,FM,pw-70,170);
     pop(c,W/2,pb-170,t,1.75,()=>{font(c,900,bs,FM);c.fillStyle='#0b0b0b';c.textAlign='center';c.textBaseline='middle';c.fillText(big,0,0)},{from:.7});
     const sp=eOut(prog(t,2.1,.7));
@@ -83,7 +83,7 @@ const T_CLASSIC=[
   const bigSz=fitSize(c,F.big,900,FN,W*.92-preW-30,210);font(c,900,bigSz,FN);const tot=preW+30+c.measureText(F.big).width;
   pop(c,W/2,410+oy,t,.9,()=>{const x0=-tot/2;c.textBaseline='middle';c.textAlign='left';font(c,900,pz,FN);c.fillStyle='#fff';
     pre.forEach((s,i)=>c.fillText(s,x0,(i-(pre.length-1)/2)*pz));font(c,900,bigSz,FN);c.fillStyle=F.acc;c.fillText(countText(F.big,prog(t,1.0,1.0)),x0+preW+30,0)},{from:.7});
-  text(c,{s:F.sub,x:W/2,y:490+oy,size:52,fill:'#fff',wt:900,fam:FN,t,at:1.3,maxW:W*.9});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:490+oy,size:52,fill:'#fff',wt:900,fam:FN,t,at:1.3,maxW:W*.9});
   const rt=H*.6,top=Math.max(rt-140,560+oy),bh=H-34-top,l=eOut(prog(t,.7,.9)),r=eOut(prog(t,.9,.9));
   c.save();c.translate(-(1-l)*W*.7,wave(t,D,2)*5);drawImg(c,I.a,-W*.04,top,W*.56,bh,{ay:1,label:'Product A'});c.restore();
   c.save();c.translate((1-r)*W*.7,wave(t,D,2,.25)*5);drawImg(c,I.b,W*.46,top,W*.6,bh,{ay:1,label:'Product B'});c.restore();
@@ -111,8 +111,8 @@ const T_CLASSIC=[
   });
   c.restore();
   pop(c,tx+tw,ty+4,t,1.8,()=>{objDraw(c,'obj:Tag corner',-36,-36,72,72,()=>{c.fillStyle='#000';c.beginPath();c.arc(0,0,36,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=6;c.stroke();c.fillRect(-16,-3,32,6);c.fillRect(-3,-16,6,32)})},{from:.2});
-  text(c,{s:F.name,x:tx+tw+64,y:ty+26,size:46,al:'left',fill:'#111',t,at:1.8,maxW:300});
-  text(c,{s:F.legal,x:W/2,y:H-52,size:22,wt:600,fill:'#111',t,at:2.0,maxW:W*.9});
+  text(c,{s:F.name,key:'name',x:tx+tw+64,y:ty+26,size:46,al:'left',fill:'#111',t,at:1.8,maxW:300});
+  text(c,{s:F.legal,key:'legal',x:W/2,y:H-52,size:22,wt:600,fill:'#111',t,at:2.0,maxW:W*.9});
  }},
 {id:'number',name:'Big Number Hit',sub:'Counting hero stat, curved header, tilted flyer',
  fields:[{k:'num',l:'Big number',t:'text',v:'100'},{k:'label',l:'Label',t:'area',v:'SUPER SOFA\nSALE!'},{k:'cta',l:'Call to action',t:'area',v:'STARTS\nTODAY!'},{k:'bg',l:'Top colour',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -127,7 +127,7 @@ const T_CLASSIC=[
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,115,230,I,1.6):W/2,lcy,t,.2,()=>logo(c,I,0,0,230,115),{from:.8,dur:.6});
   const ns=fitSize(c,F.num,900,FN,W*.62,520),ncy=H*.32;
   pop(c,W/2,ncy,t,.35,()=>{font(c,900,ns,FN);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(countText(F.num,prog(t,.4,.9)),0,0)},{from:1.5,ease:eOut,dur:.8});
-  text(c,{s:F.label,x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
+  text(c,{s:F.label,key:'label',x:W/2,y:ncy+ns*.4,size:96,fill:F.acc,fam:FN,wt:900,lh:1,maxW:W*.9,t,at:.9,gap:.15});
   const fe=eOut(prog(t,.9,.9));
   /* anchored + sized so the tilted flyer's bottom edge lands inside the artboard with a
      real margin, not H*.69+H*.42 = 1.11H, which ran 11-21% of the canvas height off the
@@ -168,10 +168,10 @@ const T_CLASSIC=[
   if(hp>0){c.save();c.translate(W*.27,H*.97);const s=.6+.4*eBack(hp);c.scale(s,s);c.rotate(wave(t,D,1)*.012);c.globalAlpha=clamp(hp*2.5);
     drawImg(c,I.hero,-W*.25,-H*.76,W*.5,H*.76,{ay:1,label:'Character cutout'});c.restore()}
   const x=W*.53;
-  text(c,{s:F.a,x,y:H*.255-34,size:62,wt:700,fill:'#111',al:'left',maxW:W*.44,t,at:1.0});
+  text(c,{s:F.a,key:'a',x,y:H*.255-34,size:62,wt:700,fill:'#111',al:'left',maxW:W*.44,t,at:1.0});
   const bs=fitSize(c,F.b,900,FM,W*.42,130);
   pop(c,x,H*.34,t,1.2,()=>{const s=1+.025*wave(t,D,2);c.scale(s,s);font(c,900,bs,FM);c.fillStyle='#000';c.textAlign='left';c.textBaseline='middle';c.fillText(F.b,0,0)},{from:.6});
-  text(c,{s:F.c,x,y:H*.425-29,size:54,wt:700,fill:'#111',al:'left',maxW:W*.44,t,at:1.5});
+  text(c,{s:F.c,key:'c',x,y:H*.425-29,size:54,wt:700,fill:'#111',al:'left',maxW:W*.44,t,at:1.5});
  }},
 {id:'peek',name:'Peek-a-Boo',sub:'Giant headline with a character rising from the bottom',
  fields:[{k:'head',l:'Headline',t:'text',v:'LEO'},{k:'sub',l:'Sub line',t:'area',v:'is one of the most popular\nbaby names of the year!'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
@@ -183,7 +183,7 @@ const T_CLASSIC=[
      nearly touching the top edge */
   const hs=fitSize(c,F.head,900,FM,W*.7,Math.min(330,H*.3));
   pop(c,W/2,H*.19,t,.15,()=>{font(c,900,hs,FM);c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(F.head,0,0)},{from:.5});
-  text(c,{s:F.sub,x:W/2,y:H*.30,size:54,wt:800,fill:'#111',maxW:W*.88,lh:1.12,t,at:.7,gap:.15});
+  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.30,size:54,wt:800,fill:'#111',maxW:W*.88,lh:1.12,t,at:.7,gap:.15});
   const bh=H*.4,pk=eBack(prog(t,1.0,1.1));
   if(prog(t,1.0,1.1)>0){c.save();c.translate(W/2,H);c.translate(0,(1-pk)*bh*.95);c.rotate(wave(t,D,1)*.014);c.translate(0,wave(t,D,2)*-5);
     drawImg(c,I.hero,-W*.45,-bh,W*.9,bh,{ay:1,label:'Peeking character'});c.restore()}

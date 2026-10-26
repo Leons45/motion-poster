@@ -8,7 +8,7 @@ const T_PREM2=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,hh=H*.13;
   c.fillStyle='#000';c.fillRect(0,0,W,hh*eOut(prog(t,0,.5)));
-  text(c,{s:F.title,x:W/2,y:hh*.38,size:56,wt:900,fill:'#fff',t,at:.2,maxW:W*.8});text(c,{s:F.dates,x:W/2,y:hh*.78,size:34,wt:800,fill:'#FFE81A',t,at:.35,maxW:W*.8});
+  text(c,{s:F.title,key:'title',x:W/2,y:hh*.38,size:56,wt:900,fill:'#fff',t,at:.2,maxW:W*.8});text(c,{s:F.dates,key:'dates',x:W/2,y:hh*.78,size:34,wt:800,fill:'#FFE81A',t,at:.35,maxW:W*.8});
   const g=28,tw=(W-g*3)/2,top=hh+g,th=(H-top-g*2-100)/2;
   [[I.a,F.n1,F.p1,'Product 1'],[I.b,F.n2,F.p2,'Product 2'],[I.c,F.n3,F.p3,'Product 3'],[I.d,F.n4,F.p4,'Product 4']].forEach((q,i)=>{
     const x=g+(i%2)*(tw+g),y=top+Math.floor(i/2)*(th+g),p=prog(t,.5+i*.22,.75);if(p<=0)return;
@@ -44,7 +44,7 @@ const T_PREM2=[
   const ay=cy+ch-120,ap=eBack(prog(t,3.2,.6));if(ap>0){c.save();c.translate(cx+60+60,ay);c.scale(ap,ap);
     objDraw(c,'obj:Avatar',-60,-60,120,120,()=>{c.beginPath();c.arc(0,0,60,0,7);c.save();c.clip();drawImg(c,I.av,-60,-60,120,120,{fit:'cover',label:'Customer photo'});c.restore();c.lineWidth=6;c.strokeStyle=F.bg;c.beginPath();c.arc(0,0,60,0,7);c.stroke()});
     c.restore()}
-  text(c,{s:F.name,x:cx+170+110,y:ay-18,size:44,wt:900,fill:'#fff',al:'left',t,at:3.3,maxW:cw-300});text(c,{s:F.place,x:cx+170+110,y:ay+30,size:30,wt:600,fill:'rgba(255,255,255,.65)',al:'left',t,at:3.45,maxW:cw-300});
+  text(c,{s:F.name,key:'name',x:cx+170+110,y:ay-18,size:44,wt:900,fill:'#fff',al:'left',t,at:3.3,maxW:cw-300});text(c,{s:F.place,key:'place',x:cx+170+110,y:ay+30,size:30,wt:600,fill:'rgba(255,255,255,.65)',al:'left',t,at:3.45,maxW:cw-300});
  }},
 {id:'iris',name:'Iris Reveal',sub:'A circular iris opens from one photo to the next',
  fields:[{k:'title',l:'Title',t:'text',v:'Room makeover'},{k:'la',l:'First label',t:'text',v:'BEFORE'},{k:'lb',l:'Second label',t:'text',v:'AFTER'},{k:'bg',l:'Ring colour',t:'color',v:'#FFE81A'}],
@@ -55,7 +55,7 @@ const T_PREM2=[
   c.save();c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.clip();drawImg(c,I.b,0,0,W,H,{fit:'cover',label:'Second photo'});c.restore();
   c.save();c.strokeStyle=F.bg;c.lineWidth=14;c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=26;c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.stroke();c.restore();
   const g=c.createLinearGradient(0,0,0,H*.22);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H*.22);
-  text(c,{s:F.title,x:W/2,y:H*.07,size:60,wt:900,fill:'#fff',t,at:.2,maxW:W*.86});
+  text(c,{s:F.title,key:'title',x:W/2,y:H*.07,size:60,wt:900,fill:'#fff',t,at:.2,maxW:W*.86});
   const lab=k<.5?F.la:F.lb;pop(c,W/2,H*.9,t,.6,()=>{
     font(c,800,40,FM);const pw=c.measureText(lab).width+88,ph=76;
     objDraw(c,'obj:Label',-pw/2,-ph/2,pw,ph,()=>pill(c,0,0,lab,40,'#111','#fff',44));
@@ -87,7 +87,7 @@ const T_PREM2=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
+  text(c,{s:F.title,key:'title',x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
   const y0=H*.33,gap=(H*.5)/2,x=170;
   c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2);c.stroke();
   c.strokeStyle=F.acc;c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2*eInOut(prog(t,.6,2.4)));c.stroke();
@@ -106,7 +106,7 @@ const T_PREM2=[
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;rays(c,W/2,H*.5,t,D,24,'#fff',.07,W*1.2);
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
+  text(c,{s:F.title,key:'title',x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
   const segs=F.segs.split('\n').filter(Boolean),n=Math.max(2,segs.length),arc=TAU/n,R=Math.min(W*.42,H*.27),cy=H*.52,ang=TAU*3*eOut(prog(t,.4,3.4)),land=prog(t,3.8,.5);
   c.save();c.translate(W/2,cy);
   objDraw(c,'obj:Wheel',-R-22,-R-22,(R+22)*2,(R+22)*2,()=>{c.save();c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=40;c.beginPath();c.arc(0,0,R+22,0,7);c.fillStyle='#fff';c.fill();c.restore()});
@@ -145,7 +145,7 @@ const T_PREM2=[
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  text(c,{s:F.title,x:W/2,y:H*.09,size:58,wt:900,fill:'#111',t,at:.2,maxW:W*.88});
+  text(c,{s:F.title,key:'title',x:W/2,y:H*.09,size:58,wt:900,fill:'#111',t,at:.2,maxW:W*.88});
   const px=W/2,py=H*.47,pw=700,ph=H*.34;floorShadow(c,px,py+ph/2+20,560,.35);
   pop(c,px,py+Math.sin(TAU*u)*8,t,.3,()=>drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{label:'Product photo',shadow:40}),{from:.8,dur:.9});
   const pts=[[-.28,-.15,-1,-1],[.28,-.2,1,-1],[-.2,.18,-1,1],[.25,.15,1,1]];

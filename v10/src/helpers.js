@@ -70,13 +70,28 @@ function shade(hex,a){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255
 function fitSize(c,txt,wt,fam,maxW,max){font(c,wt,max,fam);const w=c.measureText(txt).width;return w>maxW?max*maxW/w:max}
 function wrap(c,txt,maxW){const out=[];String(txt).split('\n').forEach(par=>{const words=par.split(' ');let line='';words.forEach(w=>{const test=line?line+' '+w:w;if(c.measureText(test).width>maxW&&line){out.push(line);line=w}else line=test});out.push(line)});return out}
 function text(c,o){
-  const {s,x,y,size,wt=800,fam=FM,fill='#000',al='center',maxW=900,lh=1.08,t=99,at=0,gap=.07,dur=.5,rise=46,up=false}=o;
+  const {s,x,y,size,wt=800,fam=FM,fill='#000',al='center',maxW=900,lh=1.08,t=99,at=0,gap=.07,dur=.5,rise=46,up=false,key}=o;
   const ST=postStyle();
   const str=up?String(s).toUpperCase():String(s);
-  font(c,wt,size,fam);c.textAlign=al;c.textBaseline='middle';c.fillStyle=fill;
+  /* A per-field alignment choice (the Text style panel's Left/Centre/Right control, stored
+     per template on styleFor(tid,key).al) only has an unambiguous meaning when the call's
+     own x already sits at the horizontal CENTRE of its text column (maxW giving the column's
+     width) - which is the convention nearly every call written with al defaulting to
+     'center' already follows. A call that was written left- or right-anchored on purpose
+     (x already *is* that edge, not the centre) keeps its own alignment untouched, since
+     re-deriving an edge from a centre that was never computed would just misplace it. */
+  let align=al,ax=x;
+  if(al==='center'&&key){
+    const tp=typeof cur==='function'?cur():null,ov=tp?styleFor(tp.id,key):null;
+    if(ov&&ov.al&&ov.al!=='center'){
+      align=ov.al;
+      ax=align==='left'?x-maxW/2:x+maxW/2;
+    }
+  }
+  font(c,wt,size,fam);c.textAlign=align;c.textBaseline='middle';c.fillStyle=fill;
   const lines=wrap(c,str,maxW);
   lines.forEach((ln,i)=>{const p=prog(t,(at+i*gap)*ST.stagger,dur*ST.durMul);if(p<=0)return;const e=ST.textEase(p);
-    c.save();c.globalAlpha*=p;c.fillText(ln,x,y+i*size*lh+size*lh/2+(1-e)*rise);c.restore()});
+    c.save();c.globalAlpha*=p;c.fillText(ln,ax,y+i*size*lh+size*lh/2+(1-e)*rise);c.restore()});
   return lines.length*size*lh;
 }
 function mixed(c,parts,cx,cy,size,wt,fam,maxW){

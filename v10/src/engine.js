@@ -33,7 +33,7 @@ const Hnow=()=>RATIOS[state.ratio];
    template only and shared across every ratio of that post — set it once on 1:1 and
    it already applies to 4:5 and 9:16. */
 const OVD={dx:0,dy:0,sc:1,rot:0,col:'',wt:'',fam:'',ls:0,lh:1,op:1,sx:1,sy:1,flip:false,hide:false};
-const STD={col:'',wt:'',fam:'',ls:0,lh:1,op:1};
+const STD={col:'',wt:'',fam:'',ls:0,lh:1,op:1,al:''};
 function ovKey(tid){return tid+'@'+state.ratio}
 function ovFor(tid,key,create){const k=ovKey(tid),o=(state.ovr[k]=state.ovr[k]||{});if(!o[key]&&create)o[key]={...OVD};return o[key]}
 function styleFor(tid,key,create){const o=(state.style[tid]=state.style[tid]||{});if(!o[key]&&create)o[key]={...STD};return o[key]}

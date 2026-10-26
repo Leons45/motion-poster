@@ -307,6 +307,7 @@ function buildSelPanel(){
   if(isObj)ctl(g1,'Flip horizontally','check',ov,'flip');
   if(!isObj){
     const g2=card(box,'Text style',true,'tstyle');
+    ctl(g2,'Alignment','select',sov,'al',{o:[['','Template default'],['left','Left'],['center','Center'],['right','Right']],on:()=>dirty()});
     const r2=row2(g2);ctl(r2,'Weight','select',sov,'wt',{o:WEIGHTS});ctl(r2,'Typeface','select',sov,'fam',{o:[['','Template default'],['nova','Proxima Nova'],['soft','Proxima Soft']]});
     const cr=row2(g2);ctl(cr,'Text colour','color',sov,'col');
     const rb=el('div');rb.style.alignSelf='end';rb.style.paddingBottom='8px';btn(rb,'Default colour',()=>{sov.col='';buildSelPanel();dirty()});cr.append(rb);

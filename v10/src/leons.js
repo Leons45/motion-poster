@@ -102,7 +102,7 @@ const T_LEONS=[
     font(c,900,os,FN);const ow=c.measureText(F.off).width;
     font(c,900,os*.34,FM);c.fillStyle='#fff';c.textAlign='right';c.textBaseline='middle';c.fillText(F.pre,W/2-ow/2-14,oy);
     font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.fillText(F.off,W/2+Math.min(40,ow*.1),oy);c.restore();
-    text(c,{s:F.osub,x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
+    text(c,{s:F.osub,key:'osub',x:W/2,y:oy+os*.76,size:Math.min(band*.17,W*.037),wt:900,fill:'#fff',t,at:1.25,maxW:W*.84});
     if(F.flab){
       const p=ST.textEase(prog(t,1.4*ST.stagger,.6*ST.durMul));c.save();c.translate(0,(1-p)*fh);
       c.fillStyle='#C8102E';c.fillRect(0,H-fh,W,fh);
@@ -131,8 +131,8 @@ const T_LEONS=[
     const band=H-arcTop, os=Math.min(band*.42,fitSize(c,F.off,900,FN,W*.72,band*.42)), oy=arcTop+band*.36;
     c.save();c.globalAlpha=clamp(prog(t,.95*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
     const ss=Math.min(band*.13,W*.032);
-    text(c,{s:F.l1,x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
-    text(c,{s:F.l2,x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
+    text(c,{s:F.l1,key:'l1',x:W/2,y:oy+os*.6,size:ss,wt:900,fill:'#fff',t,at:1.2,maxW:W*.86});
+    text(c,{s:F.l2,key:'l2',x:W/2,y:oy+os*.6+ss*1.3,size:ss,wt:900,fill:'#fff',t,at:1.3,maxW:W*.86});
   });
   const ph=(arcTop-m.bottom)*.84, pcy=m.bottom+(arcTop-m.bottom)*.5;
   floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
@@ -155,7 +155,7 @@ const T_LEONS=[
     const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
     c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';
     c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),W/2,sy);c.restore();
-    text(c,{s:F.cond,x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
+    text(c,{s:F.cond,key:'cond',x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
   });
   const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
   pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
@@ -185,7 +185,7 @@ const T_LEONS=[
     arcTop=bottomArc(c,W,H,H*.70,F.mcol||'#111111',t,.75);
     const band=H-arcTop, os=Math.min(band*.4,fitSize(c,F.off,900,FN,W*.84,band*.4)), oy=arcTop+band*.36;
     c.save();c.globalAlpha=clamp(prog(t,1.3*ST.stagger,.5*ST.durMul));font(c,900,os,FN);c.fillStyle=LY;c.textAlign='center';c.textBaseline='middle';c.fillText(F.off,W/2,oy);c.restore();
-    text(c,{s:F.osub,x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
+    text(c,{s:F.osub,key:'osub',x:W/2,y:oy+os*.62,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.7,maxW:W*.86});
   });
   const zoneTop=m.bottom, zoneH=arcTop-zoneTop;
   const ph=zoneH*.74, pcy=zoneTop+zoneH*.62;
