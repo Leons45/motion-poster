@@ -19,6 +19,10 @@ const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off'},
   quick:{},quickNextId:1,
+  /* explicit front-to-back-override for the objects of one (template, ratio); absent
+     for every post until the person opens the Layers panel and reorders something, so
+     drawing is untouched everywhere else (see flushObjQueue/objDraw in helpers.js). */
+  zorder:{},
   };
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
 const cur=()=>T.find(x=>x.id===state.tid);
@@ -87,7 +91,21 @@ let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){
   const v=state.vals[tp.id];
   const fields=tp.fields.filter(f=>f.t==='text'||f.t==='area').map(f=>({key:f.k,label:f.l,lines:String(v[f.k]).split('\n').map(nz),whole:nz(String(v[f.k]).replace(/\n/g,' '))}));
-  return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{}};
+  const zo=state.zorder[ovKey(tp.id)];
+  return {tid:tp.id,fields,hits:[],anch:{},ov:ovProxy(tp.id),mcache:{},seen:{},counts:{},queue:[],deferObjs:!!(zo&&zo.length)};
+}
+/* Objects queued by objDraw (only while FR.deferObjs is on) are flushed, in the
+   person's chosen front-to-back order, right before the next piece of text draws (and
+   once more at the very end of the frame for any that follow nothing) - so reordering
+   stays limited to objects that already sat next to each other with no text between
+   them, instead of risking a layer jumping across unrelated copy. See helpers.js's
+   objDraw/objDrawBody for the actual draw-replay logic. */
+function flushObjQueue(c){
+  if(typeof FR==='undefined'||!FR||!FR.queue||!FR.queue.length)return;
+  const order=state.zorder[ovKey(FR.tid)]||[];
+  const rank=k=>{const i=order.indexOf(k);return i<0?1e9:i};
+  const q=FR.queue;FR.queue=[];
+  q.map((e,i)=>({e,i})).sort((p,r)=>{const a=rank(p.e.key),b=rank(r.e.key);return a!==b?a-b:p.i-r.i}).forEach(({e})=>objDrawBody(c,e.key,e.x,e.y,e.w,e.h,e.fn,e.m,e.ga));
 }
 function matchKey(s){
   if(FR&&FR.noMatch>0)return null;
@@ -119,6 +137,9 @@ function drawMultiline(s,x,y,mw){
   c.restore();
 }
 function fillTextHook(s,x,y,mw){
+  /* drain any objects a reordered layer stack is holding back before this text draws,
+     so an object never silently jumps past copy it was never moved across */
+  if(typeof FR!=='undefined'&&FR&&FR.deferObjs)flushObjQueue(realCtx);
   s=String(s);
   if(s.indexOf('\n')>=0){drawMultiline(s,x,y,mw);return}
   const c=realCtx;
@@ -153,6 +174,13 @@ function fillTextHook(s,x,y,mw){
   mw===undefined?c.fillText(s,x,yy):c.fillText(s,x,yy,mw);
   c.restore();
 }
+/* Paint calls that actually commit pixels, besides fillText (already routed through
+   fillTextHook, which does the same flush). Any decorative shape drawn straight onto
+   the canvas - a ribbon band, a card background - that isn't wrapped in its own
+   objDraw call still has to drain a reordered layer stack first, or a queued object
+   could slide past it into the wrong stacking position. Path-building calls (moveTo,
+   arc, rect, beginPath...) don't paint anything by themselves, so they're left alone. */
+const PAINT_FLUSH=new Set(['fill','stroke','fillRect','strokeRect','strokeText','drawImage']);
 function wrapCtx(real){
   realCtx=real;
   return new Proxy(real,{
@@ -160,6 +188,7 @@ function wrapCtx(real){
       if(k==='measureText')return s=>{s=String(s);if(s.indexOf('\n')<0)return t.measureText(s);
         /* canvas treats \n as a space, so measure a multi-line value by its widest line */
         let m=null;s.split('\n').forEach(l=>{const r=t.measureText(l);if(!m||r.width>m.width)m=r});return m};
+      if(typeof v==='function'&&PAINT_FLUSH.has(k))return (...a)=>{if(typeof FR!=='undefined'&&FR&&FR.deferObjs&&FR.queue&&FR.queue.length)flushObjQueue(t);return v.apply(t,a)};
       return typeof v==='function'?(k==='fillText'?fillTextHook:v.bind(t)):v},
     set(t,k,v){t[k]=v;return true}
   });
