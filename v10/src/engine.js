@@ -19,6 +19,7 @@ const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:
   logo2:{fx:'none',at:.15,dur:.9,col:'#FFE81A',scale:1},
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off',ambient:'none'},
   quick:{},quickNextId:1,
+  freetext:{},freetextNextId:1,
   };
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
 const cur=()=>T.find(x=>x.id===state.tid);
@@ -81,6 +82,39 @@ function drawQuickElements(c,W,H,t,tid){
     const K=QUICK_KINDS[el.kind];if(!K)return;
     const w=K.w,h=K.h;
     objDraw(c,'obj:Quick'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{c.save();c.translate(el.x,el.y);K.draw(c);c.restore()});
+  });
+}
+/* ----- free text boxes: a person's own text, dropped onto ANY template, with its own
+   content, size, colour and an optional background (a plain colour, or none at all).
+   Scoped per (template, ratio) and rendered through objDraw exactly like quick elements,
+   so they get the same drag/resize/rotate/select handling as every other object. ----- */
+function freetextFor(tid){return state.freetext[ovKey(tid)]||[]}
+function addFreetext(tid){
+  const k=ovKey(tid),list=state.freetext[k]=state.freetext[k]||[],id=state.freetextNextId++,n=list.length;
+  const el={id,x:W*.5,y:Hnow()*.5+(n%4)*60,text:'Your text',size:48,color:'#111111',bg:'#FFFFFF',align:'center',w:420};
+  list.push(el);return el;
+}
+function delFreetext(tid,id){
+  const k=ovKey(tid),list=state.freetext[k];if(!list)return;
+  const i=list.findIndex(e=>e.id===id);if(i<0)return;list.splice(i,1);
+  if(!list.length)delete state.freetext[k];
+}
+function drawFreetextElements(c,W,H,t,tid){
+  const list=state.freetext[ovKey(tid)];if(!list||!list.length)return;
+  list.forEach(el=>{
+    const size=Math.max(8,+el.size||48),pad=Math.max(14,size*.32),w=Math.max(60,+el.w||420);
+    font(c,800,size,FM);
+    const lines=wrap(c,String(el.text==null?'':el.text),Math.max(20,w-pad*2));
+    const lh=size*1.2,h=lines.length*lh+pad*1.5;
+    objDraw(c,'obj:Freetext'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{
+      c.save();c.translate(el.x,el.y);
+      if(el.bg){c.fillStyle=el.bg;rr(c,-w/2,-h/2,w,h,14);c.fill()}
+      c.fillStyle=el.color||'#111111';const al=el.align||'center';c.textAlign=al;c.textBaseline='middle';
+      font(c,800,size,FM);
+      const tx=al==='left'?-w/2+pad:al==='right'?w/2-pad:0,y0=-((lines.length-1)*lh)/2;
+      lines.forEach((l,i)=>c.fillText(l,tx,y0+i*lh,w-pad*2));
+      c.restore();
+    });
   });
 }
 let FR=null,LAST=null,realCtx=null;

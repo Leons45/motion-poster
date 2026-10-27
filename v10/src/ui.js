@@ -15,7 +15,7 @@ function render(){
   ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,W,H);ctx.save();
   NT=state.t;ND=state.D;
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
-  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
+  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);drawFreetextElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
   /* Background animation (leaves/snow/confetti/bubbles/hearts/sparkle): a universal layer
      on top of every template, the same way film grain or a vignette already stack on top
@@ -67,6 +67,7 @@ const HIST={past:[],future:[],last:null};let REPLAY=false;
 function snapState(){
   return JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,loops:state.loops,fps:state.fps,
     vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,quick:state.quick,quickNextId:state.quickNextId,
+    freetext:state.freetext,freetextNextId:state.freetextNextId,
     });
 }
 function histPush(){
@@ -81,6 +82,7 @@ function histApply(s){
   Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.assign(state.vals[id],d.vals[id])});
   state.ovr=d.ovr||{};state.style=d.style||{};Object.assign(state.logo2,d.logo2||{});Object.assign(state.film,d.film||{});
   state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
+  state.freetext=d.freetext||{};state.freetextNextId=d.freetextNextId||1;
   const sameTpl=state.tid===d.tid;state.tid=d.tid;
   document.querySelectorAll('.tpl-item').forEach(b=>b.classList.toggle('active',b.dataset.id===d.tid));
   if(!sameTpl)state.sel=null;
@@ -101,7 +103,7 @@ function dirty(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,700);if(ty
 function persist(){
   saveTimer=null;histPush();
   try{localStorage.setItem('mps_state',JSON.stringify({tid:state.tid,ratio:state.ratio,D:state.D,vals:state.vals,ovr:state.ovr,style:state.style,logo2:state.logo2,film:state.film,
-    quick:state.quick,quickNextId:state.quickNextId}))}catch(e){}
+    quick:state.quick,quickNextId:state.quickNextId,freetext:state.freetext,freetextNextId:state.freetextNextId}))}catch(e){}
 }
 function restore(){
   try{const d=JSON.parse(localStorage.getItem('mps_state')||'null');if(!d)return;
@@ -109,6 +111,7 @@ function restore(){
     Object.keys(d.vals||{}).forEach(id=>{if(state.vals[id])Object.keys(d.vals[id]).forEach(k=>{if(k in state.vals[id])state.vals[id][k]=d.vals[id][k]})});
     state.ovr=d.ovr||{};state.style=d.style||{};
     state.quick=d.quick||{};state.quickNextId=d.quickNextId||1;
+    state.freetext=d.freetext||{};state.freetextNextId=d.freetextNextId||1;
     if(d.logo2)Object.assign(state.logo2,d.logo2);if(d.film)Object.assign(state.film,d.film);
   }catch(e){}
 }
@@ -273,6 +276,7 @@ function deleteSelected(){
   if(state.rec)return;const tp=cur(),nm=selLabel();
   const s=state.sel;if(!s||s.type!=='text')return;
   if(s.key.startsWith('obj:Quick')){delQuick(tp.id,+s.key.slice(9));select(null);buildQuick();dirty();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
+  if(s.key.startsWith('obj:Freetext')){delFreetext(tp.id,+s.key.slice(12));select(null);buildFreetext();dirty();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
   ovFor(tp.id,s.key,true).hide=true;select(null);dirty();buildSelPanel();
   toast('Removed \u201c'+nm+'\u201d. Press Undo, or Restore in the Object tab, to bring it back.');
 }
@@ -322,6 +326,20 @@ function buildSelPanel(){
   if(isObj){const r3=row2(g1);ctl(r3,'Stretch W %','range',proxy,'wp',{min:20,max:300,step:1});ctl(r3,'Stretch H %','range',proxy,'hp',{min:20,max:300,step:1})}
   ctl(g1,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
   if(isObj)ctl(g1,'Flip horizontally','check',ov,'flip');
+  if(sel.key.startsWith('obj:Freetext')){
+    const fid=+sel.key.slice(12),flist=state.freetext[ovKey(tp.id)]||[],fe=flist.find(x=>x.id===fid);
+    if(fe){
+      const g3=card(box,'Text box',true,'freetext');
+      ctl(g3,'Text','area',fe,'text',{auto:true});
+      const r4=row2(g3);ctl(r4,'Font size','number',fe,'size',{min:10,max:300,step:1});
+      ctl(r4,'Alignment','select',fe,'align',{o:[['left','Left'],['center','Center'],['right','Right']]});
+      const cr2=row2(g3);ctl(cr2,'Text colour','color',fe,'color');
+      const bgr=row2(g3);ctl(bgr,'Background colour','color',fe,'bg');
+      const bgb=el('div');bgb.style.alignSelf='end';bgb.style.paddingBottom='8px';
+      btn(bgb,'No background',()=>{fe.bg='';buildSelPanel();dirty()});bgr.append(bgb);
+      g3.append(el('p','note',fe.bg?'Has a background fill. Click "No background" for a transparent box.':'No background — just the text sits on the post. Pick a colour above to give it a fill.'));
+    }
+  }
   if(!isObj){
     const g2=card(box,'Text style',true,'tstyle');
     ctl(g2,'Alignment','select',sov,'al',{o:[['','Template default'],['left','Left'],['center','Center'],['right','Right']],on:()=>dirty()});
@@ -339,6 +357,10 @@ function buildSelPanel(){
     const qid=+sel.key.slice(9);
     btn(b,'Remove element',()=>{delQuick(tp.id,qid);select(null);buildQuick();dirty()});
   }
+  if(sel.key.startsWith('obj:Freetext')){
+    const fid2=+sel.key.slice(12);
+    btn(b,'Remove element',()=>{delFreetext(tp.id,fid2);select(null);buildFreetext();dirty()});
+  }
   box.append(b);
   objPicker(box);
 }
@@ -349,6 +371,11 @@ function objLabel(k){
   if(k.startsWith('obj:Quick')){
     const id=+k.slice(9),tp=cur(),list=state.quick[ovKey(tp.id)]||[],e=list.find(x=>x.id===id);
     if(e&&QUICK_KINDS[e.kind])return QUICK_KINDS[e.kind].name;
+  }
+  if(k.startsWith('obj:Freetext')){
+    const id=+k.slice(12),tp=cur(),list=state.freetext[ovKey(tp.id)]||[],e=list.find(x=>x.id===id);
+    if(e){const s=String(e.text||'').trim();return 'Text box'+(s?': “'+(s.length>24?s.slice(0,24)+'…':s)+'”':'')}
+    return 'Text box';
   }
   return k.slice(4);
 }
@@ -452,6 +479,21 @@ function buildQuick(){
   add.append(sel);btn(add,'Add',()=>{const e=addQuick(tp.id,sel.value);select({type:'text',key:'obj:Quick'+e.id});buildQuick();dirty()},'primary');
   box.append(add);
 }
+function buildFreetext(){
+  const sect=$('#sectFreetext');if(!sect)return;
+  const tp=cur();
+  sect.hidden=false;
+  const box=$('#freetextBox');box.innerHTML='';
+  const list=freetextFor(tp.id);
+  if(list.length){
+    const w=el('div','btnrow');
+    list.forEach(e=>{const s=String(e.text||'').trim();btn(w,s?(s.length>22?s.slice(0,22)+'…':s):'Text box',()=>select({type:'text',key:'obj:Freetext'+e.id}));});
+    box.append(w);
+  }else box.append(el('p','note','Add a text box for a product name, price or any other note, then drag it into place on this post. Give it any background colour, or none at all.'));
+  const add=el('div','addrow');
+  btn(add,'Add text box',()=>{const e=addFreetext(tp.id);select({type:'text',key:'obj:Freetext'+e.id});buildFreetext();dirty()},'primary');
+  box.append(add);
+}
 const LAYOUT_ORDER=['sunray','gallery','ticket','diagonal','arch','circle','split','fullbleed','corner','poster','card','badge'];
 const SIGNATURE=new Set(['gallery','arch','diagonal','sunray','ticket']);
 function buildLayoutGallery(box,tp){
@@ -519,7 +561,7 @@ function buildInspector(){
   buildLogoFx();buildAmbient();buildFilm();
   $('#sectContent').hidden=!tp.fields.length;$('#sectImages').hidden=!tp.images.length;
   buildFields();buildBgBar();
-  buildQuick();
+  buildFreetext();buildQuick();
   buildImages();buildSelPanel();refreshStatus();refreshDefBtn();
 }
 function loadImageFile(file,cb){
@@ -636,8 +678,8 @@ function defLocal(){try{return JSON.parse(localStorage.getItem(DEF_KEY)||'{}')||
 function defLoad(){return Object.assign({},typeof BAKED_DEFAULTS==='object'&&BAKED_DEFAULTS||{},REMOTE_DEF,defLocal())}
 function defStore(o){try{localStorage.setItem(DEF_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function defSnapshot(tp){
-  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{}};
-  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k])});
+  const id=tp.id,s={vals:jclone(state.vals[id]),style:jclone(state.style[id]||{}),ovr:{},quick:{},freetext:{}};
+  Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;if(state.ovr[k])s.ovr[r]=jclone(state.ovr[k]);if(state.quick[k])s.quick[r]=jclone(state.quick[k]);if(state.freetext[k])s.freetext[r]=jclone(state.freetext[k])});
   return s;
 }
 function defApply(tp,s){
@@ -647,7 +689,8 @@ function defApply(tp,s){
   state.style[id]=jclone(s.style||{});
   Object.keys(RATIOS).forEach(r=>{const k=id+'@'+r;
     if(s.ovr&&s.ovr[r])state.ovr[k]=jclone(s.ovr[r]);else delete state.ovr[k];
-    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k]});
+    if(s.quick&&s.quick[r]&&s.quick[r].length){state.quick[k]=jclone(s.quick[r]);state.quickNextId=Math.max(state.quickNextId,...state.quick[k].map(e=>e.id+1))}else delete state.quick[k];
+    if(s.freetext&&s.freetext[r]&&s.freetext[r].length){state.freetext[k]=jclone(s.freetext[r]);state.freetextNextId=Math.max(state.freetextNextId,...state.freetext[k].map(e=>e.id+1))}else delete state.freetext[k]});
 }
 function refreshDefBtn(){
   const D=defLoad(),has=!!D[state.tid],b=$('#saveDefBtn'),rb=$('#resetPostBtn'),cb=$('#clearDefBtn'),fb=$('#forgetDefBtn');

@@ -181,7 +181,7 @@ function objDraw(c,key,x,y,w,h,fn){
   if(!nohit&&!(w>=W*.95&&h>=cv.height*.9)&&c.globalAlpha>.05)FR.hits.push({key,poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]].map(p=>{const q=M.transformPoint(new DOMPoint(p[0],p[1]));return [q.x,q.y]})});
   /* text inside a sticker / quick element belongs to that element, never to a template field with similar words
      (a sticker saying "OFF" was being fused with the "OFF STOREWIDE" line into one giant selection box) */
-  const own=key.startsWith('obj:Quick');if(own)FR.noMatch=(FR.noMatch||0)+1;
+  const own=key.startsWith('obj:Quick')||key.startsWith('obj:Freetext');if(own)FR.noMatch=(FR.noMatch||0)+1;
   try{fn()}finally{if(own)FR.noMatch--;c.restore()}
 }
 function drawImg(c,img,x,y,w,h,o={}){
