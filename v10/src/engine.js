@@ -99,13 +99,23 @@ function delFreetext(tid,id){
   const i=list.findIndex(e=>e.id===id);if(i<0)return;list.splice(i,1);
   if(!list.length)delete state.freetext[k];
 }
+/* Shared by the renderer and the on-canvas resize handle, so both agree on exactly
+   what "the box" measures. el.w/el.h are the box's own stored size (what dragging the
+   resize handle changes); el.h is only ever a MINIMUM - the box still grows to fit the
+   wrapped text at its own font size if that needs more room, so the text is never
+   clipped, but it never shrinks the type to fit a smaller box either. Resizing the box
+   this way never touches `size`, so the glyphs themselves stay exactly as set. */
+function freetextBoxSize(c,el){
+  const size=Math.max(8,+el.size||48),pad=Math.max(14,size*.32),w=Math.max(60,+el.w||420);
+  font(c,800,size,FM);
+  const lines=wrap(c,String(el.text==null?'':el.text),Math.max(20,w-pad*2));
+  const lh=size*1.2,autoH=lines.length*lh+pad*1.5,h=Math.max(autoH,+el.h||0);
+  return {size,pad,w,h,lines,lh};
+}
 function drawFreetextElements(c,W,H,t,tid){
   const list=state.freetext[ovKey(tid)];if(!list||!list.length)return;
   list.forEach(el=>{
-    const size=Math.max(8,+el.size||48),pad=Math.max(14,size*.32),w=Math.max(60,+el.w||420);
-    font(c,800,size,FM);
-    const lines=wrap(c,String(el.text==null?'':el.text),Math.max(20,w-pad*2));
-    const lh=size*1.2,h=lines.length*lh+pad*1.5;
+    const {size,pad,w,h,lines,lh}=freetextBoxSize(c,el);
     objDraw(c,'obj:Freetext'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{
       c.save();c.translate(el.x,el.y);
       if(el.bg){c.fillStyle=el.bg;rr(c,-w/2,-h/2,w,h,14);c.fill()}

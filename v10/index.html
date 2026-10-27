@@ -3036,13 +3036,23 @@ function delFreetext(tid,id){
   const i=list.findIndex(e=>e.id===id);if(i<0)return;list.splice(i,1);
   if(!list.length)delete state.freetext[k];
 }
+/* Shared by the renderer and the on-canvas resize handle, so both agree on exactly
+   what "the box" measures. el.w/el.h are the box's own stored size (what dragging the
+   resize handle changes); el.h is only ever a MINIMUM - the box still grows to fit the
+   wrapped text at its own font size if that needs more room, so the text is never
+   clipped, but it never shrinks the type to fit a smaller box either. Resizing the box
+   this way never touches `size`, so the glyphs themselves stay exactly as set. */
+function freetextBoxSize(c,el){
+  const size=Math.max(8,+el.size||48),pad=Math.max(14,size*.32),w=Math.max(60,+el.w||420);
+  font(c,800,size,FM);
+  const lines=wrap(c,String(el.text==null?'':el.text),Math.max(20,w-pad*2));
+  const lh=size*1.2,autoH=lines.length*lh+pad*1.5,h=Math.max(autoH,+el.h||0);
+  return {size,pad,w,h,lines,lh};
+}
 function drawFreetextElements(c,W,H,t,tid){
   const list=state.freetext[ovKey(tid)];if(!list||!list.length)return;
   list.forEach(el=>{
-    const size=Math.max(8,+el.size||48),pad=Math.max(14,size*.32),w=Math.max(60,+el.w||420);
-    font(c,800,size,FM);
-    const lines=wrap(c,String(el.text==null?'':el.text),Math.max(20,w-pad*2));
-    const lh=size*1.2,h=lines.length*lh+pad*1.5;
+    const {size,pad,w,h,lines,lh}=freetextBoxSize(c,el);
     objDraw(c,'obj:Freetext'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{
       c.save();c.translate(el.x,el.y);
       if(el.bg){c.fillStyle=el.bg;rr(c,-w/2,-h/2,w,h,14);c.fill()}
@@ -3152,6 +3162,11 @@ const BAKED_DEFAULTS={};
 const cv=$('#cv'),ovc=$('#ov'),ctx=cv.getContext('2d'),octx=ovc.getContext('2d');
 const PC=wrapCtx(ctx);
 let hover=null,drag=null,GUIDE={x:false,y:false};
+/* in-app clipboard for Cmd/Ctrl+C / Cmd/Ctrl+V - a copy of a Quick element or a Text box,
+   kept in memory (not localStorage: it's a this-session clipboard, same as the OS one is
+   gone on restart). It carries no template id, so it pastes onto whichever post is open
+   when you paste - including a different one from where you copied it. */
+let CLIP=null;
 
 function fitStage(){
   const st=$('#stage'),H=Hnow(),aw=Math.max(180,st.clientWidth-32),ah=Math.max(340,Math.min(innerHeight-330,880)),s=Math.min(aw/W,ah/H);
@@ -3206,7 +3221,7 @@ function drawOverlay(){
       octx.beginPath();octx.rect(hd.resize[0]-15,hd.resize[1]-15,30,30);octx.fill();octx.stroke();
       octx.beginPath();octx.moveTo((sb.x0+sb.x1)/2,sb.y0-10);octx.lineTo(hd.rotate[0],hd.rotate[1]);octx.stroke();
       octx.beginPath();octx.arc(hd.rotate[0],hd.rotate[1],16,0,TAU);octx.fill();octx.stroke();octx.restore();drawDel(hd.del);
-      if(state.sel.key.startsWith('obj:'))drawFlip(hd.flip)}
+      if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext'))drawFlip(hd.flip)}
   if(GUIDE.x||GUIDE.y){octx.save();octx.strokeStyle='#E4262C';octx.lineWidth=3;octx.setLineDash([12,8]);
     if(GUIDE.x){octx.beginPath();octx.moveTo(W/2,0);octx.lineTo(W/2,H);octx.stroke()}
     if(GUIDE.y){octx.beginPath();octx.moveTo(0,H/2);octx.lineTo(W,H/2);octx.stroke()}octx.restore()}
@@ -3470,12 +3485,19 @@ function buildSelPanel(){
   selHead(box,isObj?objLabel(sel.key):(f?f.l:sel.key));
   const proxy={get pct(){return Math.round(ov.sc*100)},set pct(v){ov.sc=v/100},get opp(){return Math.round((isObj?ov:sov).op*100)},set opp(v){(isObj?ov:sov).op=v/100},
     get wp(){return Math.round((ov.sx||1)*100)},set wp(v){ov.sx=v/100},get hp(){return Math.round((ov.sy||1)*100)},set hp(v){ov.sy=v/100}};
+  const isFT=sel.key.startsWith('obj:Freetext');
   const g1=card(box,'Position & size',true,'pos');
   const r=row2(g1);ctl(r,'Move X','number',ov,'dx',{step:1});ctl(r,'Move Y','number',ov,'dy',{step:1});
-  const r1=row2(g1);ctl(r1,'Size %','range',proxy,'pct',{min:10,max:500,step:1});ctl(r1,'Rotation','range',ov,'rot',{min:-180,max:180,step:1});
-  if(isObj){const r3=row2(g1);ctl(r3,'Stretch W %','range',proxy,'wp',{min:20,max:300,step:1});ctl(r3,'Stretch H %','range',proxy,'hp',{min:20,max:300,step:1})}
+  /* A text box's own size is its box width/height (drag the square handle on canvas, or
+     the Font size below) - it never goes through this generic scale/stretch transform,
+     which would distort the letters themselves rather than just reflowing them. */
+  if(isFT){ctl(g1,'Rotation','range',ov,'rot',{min:-180,max:180,step:1})}
+  else{
+    const r1=row2(g1);ctl(r1,'Size %','range',proxy,'pct',{min:10,max:500,step:1});ctl(r1,'Rotation','range',ov,'rot',{min:-180,max:180,step:1});
+    if(isObj){const r3=row2(g1);ctl(r3,'Stretch W %','range',proxy,'wp',{min:20,max:300,step:1});ctl(r3,'Stretch H %','range',proxy,'hp',{min:20,max:300,step:1})}
+  }
   ctl(g1,'Opacity %','range',proxy,'opp',{min:0,max:100,step:1});
-  if(isObj)ctl(g1,'Flip horizontally','check',ov,'flip');
+  if(isObj&&!isFT)ctl(g1,'Flip horizontally','check',ov,'flip');
   if(sel.key.startsWith('obj:Freetext')){
     const fid=+sel.key.slice(12),flist=state.freetext[ovKey(tp.id)]||[],fe=flist.find(x=>x.id===fid);
     if(fe){
@@ -3488,6 +3510,7 @@ function buildSelPanel(){
       const bgb=el('div');bgb.style.alignSelf='end';bgb.style.paddingBottom='8px';
       btn(bgb,'No background',()=>{fe.bg='';buildSelPanel();dirty()});bgr.append(bgb);
       g3.append(el('p','note',fe.bg?'Has a background fill. Click "No background" for a transparent box.':'No background — just the text sits on the post. Pick a colour above to give it a fill.'));
+      g3.append(el('p','note','Double-click it on the canvas to type directly into it. Drag the square handle to resize the box — the text stays the same size and just reflows; use Font size above to change how big it reads.'));
     }
   }
   if(!isObj){
@@ -3926,8 +3949,17 @@ ovc.addEventListener('pointerdown',e=>{
     const sb0=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
     if(sb0){const hd=sHandles(sb0),an=LAST&&LAST.anch[state.sel.key],o0=ovFor(tp.id,state.sel.key,true),isObj0=state.sel.key.startsWith('obj:');
       if(dist(hd.del,[x,y])<28){deleteSelected();return}
-      if(isObj0&&dist(hd.flip,[x,y])<28){o0.flip=!o0.flip;buildSelPanel();dirty();return}
-      if(an&&dist(hd.resize,[x,y])<40){drag={mode:'sresize',key:state.sel.key,a:an,sc0:o0.sc,d0:Math.max(20,dist(hd.resize,[an.x,an.y]))};ovc.setPointerCapture(e.pointerId);return}
+      if(isObj0&&!state.sel.key.startsWith('obj:Freetext')&&dist(hd.flip,[x,y])<28){o0.flip=!o0.flip;buildSelPanel();dirty();return}
+      if(an&&dist(hd.resize,[x,y])<40){
+        if(state.sel.key.startsWith('obj:Freetext')){
+          const fid=+state.sel.key.slice(12),fe=(state.freetext[ovKey(tp.id)]||[]).find(x=>x.id===fid);
+          /* a text box resizes itself (its own w/h, measured fresh here), never the generic
+             scale/stretch transform - so the drag only ever changes the box, and the letters
+             stay exactly the size Font size says, just reflowing into the new width */
+          if(fe){const sz=freetextBoxSize(ctx,fe);drag={mode:'fresize',key:state.sel.key,fe,a:an,w0:sz.w,h0:sz.h,d0:Math.max(20,dist(hd.resize,[an.x,an.y]))};ovc.setPointerCapture(e.pointerId);return}
+        }
+        drag={mode:'sresize',key:state.sel.key,a:an,sc0:o0.sc,d0:Math.max(20,dist(hd.resize,[an.x,an.y]))};ovc.setPointerCapture(e.pointerId);return;
+      }
       if(an&&dist(hd.rotate,[x,y])<40){drag={mode:'srotate',key:state.sel.key,a:an,r0:o0.rot,g0:Math.atan2(y-an.y,x-an.x)};ovc.setPointerCapture(e.pointerId);return}}
     const k=hitText(x,y);
     if(k){select({type:'text',key:k});const o=ovFor(tp.id,k,true);drag={mode:'move',key:k,ox:o.dx,oy:o.dy,sx:x,sy:y,box:textBox(k)}}else{select(null);const bb=document.getElementById('bgBar');if(bb&&!bb.hidden)flashEl(bb)}
@@ -3938,7 +3970,7 @@ ovc.addEventListener('pointermove',e=>{
   const [x,y]=toCanvas(e),tp=cur(),H=Hnow();
   if(!drag){
     {const k=hitText(x,y);hover=k?{type:'text',key:k}:null;let cu=k?'move':'default';
-      const sb1=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;if(sb1){const hd=sHandles(sb1);if(dist(hd.del,[x,y])<28)cu='pointer';else if(state.sel.key.startsWith('obj:')&&dist(hd.flip,[x,y])<28)cu='pointer';else if(dist(hd.resize,[x,y])<40)cu='nwse-resize';else if(dist(hd.rotate,[x,y])<40)cu='grab'}
+      const sb1=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;if(sb1){const hd=sHandles(sb1);if(dist(hd.del,[x,y])<28)cu='pointer';else if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext')&&dist(hd.flip,[x,y])<28)cu='pointer';else if(dist(hd.resize,[x,y])<40)cu='nwse-resize';else if(dist(hd.rotate,[x,y])<40)cu='grab'}
       ovc.style.cursor=cu;ovc.title=k?('Click to edit: '+(k.startsWith('obj:')?objLabel(k):((cur().fields.find(f=>f.k===k)||{}).l||k))):''}
     return;
   }
@@ -3946,6 +3978,10 @@ ovc.addEventListener('pointermove',e=>{
   {
     const o=ovFor(tp.id,drag.key,true);
     if(drag.mode==='sresize'){o.sc=Math.max(.1,Math.min(5,Math.round(drag.sc0*dist([x,y],[drag.a.x,drag.a.y])/drag.d0*100)/100))}
+    else if(drag.mode==='fresize'){
+      const r=dist([x,y],[drag.a.x,drag.a.y])/drag.d0;
+      drag.fe.w=Math.max(80,Math.round(drag.w0*r));drag.fe.h=Math.max(30,Math.round(drag.h0*r));
+    }
     else if(drag.mode==='srotate'){let r=drag.r0+(Math.atan2(y-drag.a.y,x-drag.a.x)-drag.g0)*180/Math.PI;if(e.shiftKey)r=Math.round(r/15)*15;r=((r+540)%360)-180;o.rot=Math.round(r)}
     else if(drag.mode==='move'){let nx=drag.ox+x-drag.sx,ny=drag.oy+y-drag.sy;
       if(drag.box){const cx=(drag.box.x0+drag.box.x1)/2+(nx-drag.ox);if(Math.abs(cx-W/2)<12){nx+=W/2-cx;GUIDE.x=true}}
@@ -3988,8 +4024,11 @@ function slotForObjKey(tp,key){
 }
 let editBox=null;
 function closeInlineEdit(commit){
-  if(!editBox)return;const {el:ta,key,tid,label}=editBox;
-  if(commit){const v=state.vals[tid];if(v&&key in v&&v[key]!==ta.value){v[key]=ta.value;dirty();buildFields0();if(typeof toast==='function')toast('Updated: '+label)}}
+  if(!editBox)return;const {el:ta,key,tid,label,kind,fe}=editBox;
+  if(commit){
+    if(kind==='freetext'){if(fe&&fe.text!==ta.value){fe.text=ta.value;dirty();if(state.sel&&state.sel.key===key)buildSelPanel();if(typeof toast==='function')toast('Updated: '+label)}}
+    else{const v=state.vals[tid];if(v&&key in v&&v[key]!==ta.value){v[key]=ta.value;dirty();buildFields0();if(typeof toast==='function')toast('Updated: '+label)}}
+  }
   ta.remove();editBox=null;
 }
 function openInlineEdit(key){
@@ -4010,8 +4049,29 @@ function openInlineEdit(key){
     else if(e.key==='Enter'&&!e.shiftKey&&f.t!=='area'){e.preventDefault();closeInlineEdit(true)}
   });
 }
+/* Double-click on a free text box: type straight into it on the canvas, same as any
+   template field. Enter always inserts a new line (it's a free-standing box, not a
+   single-line field) - commit happens on blur or Escape, like a multi-line field does. */
+function openFreetextEdit(key){
+  const tp=cur(),list=state.freetext[ovKey(tp.id)]||[],fe=list.find(x=>'obj:Freetext'+x.id===key);
+  if(editBox)closeInlineEdit(true);
+  if(!fe)return;
+  const box=textBox(key);if(!box)return;
+  const wrap=$('#cvwrap'),r=ovc.getBoundingClientRect(),sx=r.width/W,sy=r.height/Hnow();
+  const ta=document.createElement('textarea');ta.className='inlineEdit';ta.value=fe.text==null?'':fe.text;ta.spellcheck=false;
+  ta.style.left=Math.round((box.x0-8)*sx)+'px';ta.style.top=Math.round((box.y0-8)*sy)+'px';
+  ta.style.width=Math.round((box.x1-box.x0+16)*sx)+'px';ta.style.height=Math.round((box.y1-box.y0+16)*sy)+'px';
+  wrap.append(ta);editBox={el:ta,key,tid:tp.id,label:'Text box',kind:'freetext',fe};ta.focus();ta.select();
+  ta.addEventListener('input',()=>{fe.text=ta.value;dirty()});
+  ta.addEventListener('blur',()=>closeInlineEdit(true));
+  ta.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Escape'){e.preventDefault();ta.value=fe.text==null?'':fe.text;closeInlineEdit(false)}
+  });
+}
 ovc.addEventListener('dblclick',e=>{
   if(state.rec)return;const [x,y]=toCanvas(e),tp=cur(),key=hitText(x,y);if(!key)return;
+  if(key.startsWith('obj:Freetext')){select({type:'text',key});openFreetextEdit(key);return}
   if(key.startsWith('obj:')){
     const slot=slotForObjKey(tp,key);
     if(slot){select({type:'text',key});const I=state.imgs[tp.id];
@@ -4035,6 +4095,31 @@ document.addEventListener('keydown',e=>{
     if(state.sel.type==='text'){const o=ovFor(tp.id,state.sel.key,true);o.dx+=ax*step;o.dy+=ay*step;buildSelPanel();dirty()}
   }
   if((e.key==='Delete'||e.key==='Backspace')&&state.sel){e.preventDefault();deleteSelected();return}
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='c'){
+    if(state.sel&&state.sel.type==='text'&&state.sel.key.startsWith('obj:')){
+      e.preventDefault();const k=state.sel.key,ovSrc=jclone(ovFor(tp.id,k,true));
+      if(k.startsWith('obj:Quick')){
+        const qe=(state.quick[ovKey(tp.id)]||[]).find(x=>'obj:Quick'+x.id===k);
+        if(qe){CLIP={kind:'quick',data:jclone(qe),ov:ovSrc};if(typeof toast==='function')toast('Copied “'+objLabel(k)+'”. Press Cmd/Ctrl+V to paste — on this post or any other.')}
+      }else if(k.startsWith('obj:Freetext')){
+        const fe=(state.freetext[ovKey(tp.id)]||[]).find(x=>'obj:Freetext'+x.id===k);
+        if(fe){CLIP={kind:'freetext',data:jclone(fe),ov:ovSrc};if(typeof toast==='function')toast('Copied the text box. Press Cmd/Ctrl+V to paste — on this post or any other.')}
+      }
+    }
+    return;
+  }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='v'){
+    if(CLIP){
+      e.preventDefault();let newKey=null;
+      if(CLIP.kind==='quick'&&QUICK_KINDS[CLIP.data.kind]){
+        const ne=addQuick(tp.id,CLIP.data.kind);ne.x=CLIP.data.x+28;ne.y=CLIP.data.y+28;newKey='obj:Quick'+ne.id;buildQuick();
+      }else if(CLIP.kind==='freetext'){
+        const ne=addFreetext(tp.id);Object.assign(ne,CLIP.data,{id:ne.id,x:CLIP.data.x+28,y:CLIP.data.y+28});newKey='obj:Freetext'+ne.id;buildFreetext();
+      }
+      if(newKey){Object.assign(ovFor(tp.id,newKey,true),CLIP.ov);select({type:'text',key:newKey});dirty();if(typeof toast==='function')toast('Pasted.')}
+    }
+    return;
+  }
 });
 
 /* ----- export ----- */
