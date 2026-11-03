@@ -6,8 +6,8 @@ const EASE={enter:eEnter,out:eOut,back:eBack,pop:ePop,elastic:eElastic,exit:eExi
 /* Leon's own on-brand templates come first; ported and open-ended tools sit below.
    Every template also carries a campaign category (cat) so the rail can be filtered by
    event type; anything not explicitly tagged below falls back to 'classic'. */
-const CAT_MAP={lcircle:'megasale',lclean:'megasale',lcallout:'megasale',lthresh:'supersale',lfinance:'financing',
-  hero:'megasale',sale:'megasale',price:'megasale',versus:'megasale',compare:'megasale',
+const CAT_MAP={lcircle:'megasale',lclean:'megasale',lcallout:'megasale',
+  sale:'megasale',price:'megasale',versus:'megasale',compare:'megasale',
   number:'supersale',meme:'seasonal',maple:'seasonal',mascot:'seasonal',peek:'seasonal'};
 const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({grp:"Leon's posts",...x})),...T_CLASSIC.map(x=>({grp:"Leon's posts",...x})),
   ...T_PREM.map(x=>({grp:"Leon's campaigns",...x})),...T_PREM2.map(x=>({grp:"Leon's campaigns",...x})),

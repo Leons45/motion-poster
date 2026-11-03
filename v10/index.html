@@ -1066,147 +1066,6 @@ const T_PREM=[
     c.restore();
   });
  }},
-{id:'aurora',name:'Aurora Gradient',sub:'Flowing mesh-gradient blobs with a bold centred message',
- fields:[{k:'head',l:'Headline',t:'area',v:'Home,\nreimagined.'},{k:'sub',l:'Sub line',t:'text',v:'Designed for the way Canada lives.'},{k:'cta',l:'Button',t:'text',v:'Discover more'},{k:'bg',l:'Background',t:'color',v:'#0A0A14'},{k:'c1',l:'Blob 1',t:'color',v:'#FFE81A'},{k:'c2',l:'Blob 2',t:'color',v:'#FF5A36'},{k:'c3',l:'Blob 3',t:'color',v:'#7B5CFF'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,k=eOut(prog(t,0,1.2));
-  c.save();c.globalCompositeOperation='lighter';
-  [[F.c1,1,.3,.28,.9],[F.c2,2,.7,.45,1],[F.c3,1,.45,.72,1.1],[F.c1,2,.8,.8,.7]].forEach((b,i)=>{
-    const ph=i*1.7,x=W*(b[2]+.18*Math.cos(TAU*(u*b[1])+ph)),y=H*(b[3]+.14*Math.sin(TAU*(u*b[1])+ph*1.3)),r=W*b[4]*.62*(.6+.4*k);
-    const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,b[0]+'DD');g.addColorStop(1,b[0]+'00');c.fillStyle=g;c.fillRect(0,0,W,H)});
-  c.restore();c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.2,()=>logo(c,I,0,0,220,110),{from:.8});
-  const ls=F.head.split('\n'),sz=Math.min(210,H*.17),cy=H*.45;
-  ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FM,W*.88,sz));charRise(c,l,W/2,cy+(i-(ls.length-1)/2)*sz*1.02,s,900,FM,'#fff',t,.5+i*.28,.03,60,'head',W*.88)});
-  text(c,{s:F.sub,key:'sub',x:W/2,y:cy+ls.length*sz*.55+40,size:40,wt:600,fill:'rgba(255,255,255,.9)',t,at:1.6,maxW:W*.8});
-  font(c,800,40,FM);const ctaW0=c.measureText(F.cta).width+110;
-  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.82,t,2.0,()=>{
-    font(c,800,40,FM);const w=c.measureText(F.cta).width+110;
-    objDraw(c,'obj:Button',-w/2,-48,w,96,()=>{rr(c,-w/2,-48,w,96,48);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3);shimmer(c,-w/2,-48,w,96,48,(u*2)%1,'rgba(255,232,26,.55)')});
-  },{from:.7});
- }},
-{id:'lookbook',name:'Lookbook Triptych',sub:'Three editorial panels that wipe in with captions and prices',
- fields:[{k:'title',l:'Title',t:'text',v:'THE NEW ARRIVALS'},{k:'c1',l:'Caption 1',t:'text',v:'Lounge'},{k:'p1',l:'Price 1',t:'text',v:'$899'},{k:'c2',l:'Caption 2',t:'text',v:'Dine'},{k:'p2',l:'Price 2',t:'text',v:'$649'},{k:'c3',l:'Caption 3',t:'text',v:'Rest'},{k:'p3',l:'Price 3',t:'text',v:'$1,199'},{k:'bg',l:'Background',t:'color',v:'#F4F0E8'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
- images:[{k:'a',l:'Panel 1'},{k:'b',l:'Panel 2'},{k:'c',l:'Panel 3'}],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,g=24,pw=(W-g*4)/3,py=H*.2,ph=H*.62;
-  const bar=eOut(prog(t,0,.8));c.fillStyle='#111';c.fillRect(0,0,W*bar,16);
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.1,size:60,wt:900,fill:'#111',t,at:.2,maxW:W*.9});
-  [[I.a,F.c1,F.p1,'Panel 1'],[I.b,F.c2,F.p2,'Panel 2'],[I.c,F.c3,F.p3,'Panel 3']].forEach((q,i)=>{
-    const x=g+i*(pw+g),p=eOut(prog(t,.5+i*.25,.9));if(p<=0)return;
-    c.save();c.beginPath();c.rect(x,py+ph*(1-p),pw,ph*p);c.clip();
-    const z=1.06+.03*Math.sin(TAU*(u+i/3));c.translate(x+pw/2,py+ph/2);c.scale(z,z);c.translate(-pw/2,-ph/2);
-    drawImg(c,q[0],0,0,pw,ph,{fit:'cover-safe',label:q[3]});c.restore();
-    c.save();c.beginPath();c.rect(x,py,pw,ph);c.clip();
-    const cp=eOut(prog(t,1.2+i*.25,.6));c.globalAlpha=cp;c.translate(0,(1-cp)*30);
-    font(c,800,34,FM);const pw2=c.measureText(q[2]).width+52,ph2=34*1.9,pcx=anchorX('p'+(i+1),x+pw/2,x+14+pw2/2,x+pw-14-pw2/2);
-    objDraw(c,'obj:Price '+(i+1),pcx-pw2/2,py+ph-70-ph2/2,pw2,ph2,()=>{pill(c,pcx,py+ph-70,q[2],34,F.acc,'#111',26)});
-    c.restore();
-    text(c,{s:q[1].toUpperCase(),key:'c'+(i+1),x:x+pw/2,y:py+ph+50,size:38,wt:800,fill:'#111',t,at:1.1+i*.25,maxW:pw});
-  });
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H-80,t,1.9,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
-{id:'glass',name:'Glass Countdown',sub:'Slow-zoom photo with a frosted card and a live ticking timer',
- fields:[{k:'head',l:'Headline',t:'text',v:'Black Friday starts in'},{k:'sub',l:'Sub line',t:'text',v:'Early access for members'},{k:'cta',l:'Button',t:'text',v:'Set a reminder'},{k:'d',l:'Days',t:'text',v:'02'},{k:'h',l:'Hours',t:'text',v:'14'},{k:'m',l:'Minutes',t:'text',v:'37'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
- images:[{k:'bg',l:'Background photo'}],
- draw(c,W,H,t,D,F,I){
-  const u=t/D,z=1.06+.04*(.5-.5*Math.cos(TAU*u));
-  if(I.bg){c.save();c.translate(W/2,H/2);c.scale(z,z);c.translate(-W/2,-H/2);drawImg(c,I.bg,0,0,W,H,{fit:'cover',label:'Background photo'});c.restore()}
-  else{const g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#2B2B35');g.addColorStop(1,'#0B0B10');c.fillStyle=g;c.fillRect(0,0,W,H);
-    c.fillStyle='rgba(255,255,255,.4)';c.textAlign='center';font(c,700,34,FM);c.fillText('+ Add a background photo',W/2,H*.3)}
-  const sh=c.createLinearGradient(0,H*.3,0,H);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.65)');c.fillStyle=sh;c.fillRect(0,0,W,H);
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
-  const cw=W-120,chh=H*.46,cy=H-chh-70,p=eOut(prog(t,.5,.9));
-  c.save();c.translate(0,(1-p)*200);c.globalAlpha=p;
-  objDraw(c,'obj:Card',60,cy,cw,chh,()=>{
-    rr(c,60,cy,cw,chh,56);c.fillStyle='rgba(255,255,255,.16)';c.fill();c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=2;c.stroke();
-    const hl=c.createLinearGradient(0,cy,0,cy+chh);hl.addColorStop(0,'rgba(255,255,255,.18)');hl.addColorStop(.4,'rgba(255,255,255,0)');rr(c,60,cy,cw,chh,56);c.fillStyle=hl;c.fill();
-  });
-  c.restore();
-  text(c,{s:F.head,key:'head',x:W/2,y:cy+60,size:54,wt:900,fill:'#fff',t,at:.9,maxW:cw-80});
-  const sec=String(59-Math.floor((u*60)%60)).padStart(2,'0'),vals=[[F.d,'DAYS','d'],[F.h,'HOURS','h'],[F.m,'MINS','m'],[sec,'SECS',null]],bw=(cw-80-3*18)/4,bh=chh*.34,by=cy+chh*.34;
-  vals.forEach((q,i)=>{const pp=eBack(prog(t,1.1+i*.15,.6));if(pp<=0)return;const x=100+i*(bw+18);
-    c.save();c.translate(x+bw/2,by+bh/2);c.scale(pp,pp);
-    objDraw(c,'obj:'+q[1]+' box',-bw/2,-bh/2,bw,bh,()=>{
-      rr(c,-bw/2,-bh/2,bw,bh,28);c.fillStyle=i===3?F.acc:'rgba(0,0,0,.45)';c.fill();
-      c.fillStyle=i===3?'#111':'#fff';c.textBaseline='middle';font(c,900,bh*.5,FN);const A=q[2]?alignFor(q[2],0,bw-24):{align:'center',x:0};c.textAlign=A.align;c.fillText(q[0],A.x,-8);c.textAlign='center';font(c,800,24,FM);c.globalAlpha=.75;c.fillText(q[1],0,bh*.34);
-    });
-    c.restore()});
-  font(c,800,36,FM);const ctaW0=c.measureText(F.cta).width+90;
-  pop(c,anchorX('cta',W/2,60+40+ctaW0/2,60+cw-40-ctaW0/2),cy+chh-70,t,1.9,()=>{
-    font(c,800,36,FM);const w=c.measureText(F.cta).width+90;
-    objDraw(c,'obj:Button',-w/2,-42,w,84,()=>{rr(c,-w/2,-42,w,84,42);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)});
-  },{from:.7});
- }},
-{id:'swiss',name:'Swiss Poster',sub:'Bold grid typography with a rotating circular badge',
- fields:[{k:'num',l:'Big number',t:'text',v:'50'},{k:'unit',l:'Unit',t:'text',v:'% OFF'},{k:'title',l:'Title',t:'text',v:'Sofas, sectionals & more'},{k:'ring',l:'Badge text',t:'text',v:'LEON\'S • THE BIG SALE • '},{k:'bg',l:'Background',t:'color',v:'#F2EFE9'},{k:'ink',l:'Ink',t:'color',v:'#111111'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  c.strokeStyle=F.ink;c.globalAlpha=.14;c.lineWidth=2;for(let i=1;i<6;i++){c.beginPath();c.moveTo(i*W/6,0);c.lineTo(i*W/6,H);c.stroke()}c.globalAlpha=1;
-  const bar=eOut(prog(t,0,.8));c.fillStyle=F.ink;c.fillRect(60,70,(W-120)*bar,12);
-  const ns=Math.min(H*.46,fitSize(c,F.num,900,FN,W-110,H*.46));font(c,900,ns,FN);
-  c.save();c.beginPath();c.rect(0,H*.14,W,ns*1.05);c.clip();const np=eOut(prog(t,.3,.9));
-  c.fillStyle=F.ink;c.textBaseline='alphabetic';
-  {const ov=styleFor(cur().id,'num'),nmw=W-96;let align='left',ax=48;
-   if(ov&&ov.al&&ov.al!=='left'){align=ov.al;ax=align==='center'?48+nmw/2:48+nmw}
-   c.textAlign=align;c.fillText(F.num,ax,H*.14+ns*.88+(1-np)*ns)}
-  c.restore();
-  const us=Math.min(170,fitSize(c,F.unit,900,FN,W*.55,170)),up=eBack(prog(t,.9,.6)),uy=H*.14+ns*.88+us*.95;
-  if(up>0){c.save();c.translate(60,uy);c.scale(up,up);font(c,900,us,FN);c.fillStyle=F.acc;c.textBaseline='alphabetic';
-    {const ov=styleFor(cur().id,'unit'),umw=W-120;let align='left',ax=0;
-     if(ov&&ov.al&&ov.al!=='left'){align=ov.al;ax=align==='center'?umw/2:umw}
-     c.textAlign=align;c.fillText(F.unit,ax,0)}
-    c.restore()}
-  pop(c,anchorX('ring',W-220,250,W-250),uy-40,t,1.0,()=>{objDraw(c,'obj:Badge',-160,-160,320,320,()=>{c.beginPath();c.arc(0,0,160,0,7);c.fillStyle=F.acc;c.fill();arcText(c,F.ring,0,0,118,TAU*u,34,'#fff');c.fillStyle='#fff';burstPath(c,0,0,46,46,8,.55,TAU*u*-1);c.fill()})},{from:.2,dur:.9,rot:1.5});
-  const ty=H*.86;c.fillStyle=F.ink;c.fillRect(60,ty-60,(W-120)*eOut(prog(t,1.3,.8)),6);
-  text(c,{s:F.title,key:'title',x:W/2,y:ty,size:56,wt:800,fill:F.ink,t,at:1.5,maxW:W*.8});
-  pop(c,logoAnchorX(45,100,200,I,1.6),H-70,t,1.8,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
-{id:'festive',name:'Festive Greeting',sub:'String lights, rolling waves and falling snow for holiday posts',
- fields:[{k:'head',l:'Greeting',t:'area',v:'Happy\nHolidays'},{k:'sub',l:'Sub line',t:'text',v:'From all of us at Leon\'s'},{k:'cta',l:'Button',t:'text',v:'Shop holiday deals'},{k:'bg1',l:'Sky top',t:'color',v:'#B3122A'},{k:'bg2',l:'Sky bottom',t:'color',v:'#5A0A18'},{k:'wave',l:'Wave colour',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  const u=t/D,g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
-  fx(c,W,H,t,D,'snow',0);
-  const cols=['#FFE81A','#FF4D4D','#5CE08A','#4DB8FF','#fff'];c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=4;c.beginPath();
-  for(let x=0;x<=W;x+=20){const y=60+Math.sin(x/W*Math.PI*4)*26+x*.0;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
-  for(let i=0;i<15;i++){const x=i*(W/14),y=60+Math.sin(x/W*Math.PI*4)*26,tw=.55+.45*Math.sin(TAU*(u*2+i*.13)),dp=eOut(prog(t,.1+i*.05,.5));
-    c.save();c.globalAlpha=dp;c.shadowColor=cols[i%5];c.shadowBlur=30*tw;c.fillStyle=cols[i%5];c.beginPath();c.ellipse(x,y+18,11,17,0,0,7);c.fill();c.restore()}
-  const ls=F.head.split('\n'),sz=Math.min(230,H*.15);
-  ls.forEach((l,i)=>{const s=Math.min(sz,fitSize(c,l,900,FN,W*.9,sz));pop(c,W/2,H*.3+i*sz*.95,t,.5+i*.25,()=>{font(c,900,s,FN);c.fillStyle='#fff';const A=alignFor('head',0,W*.9);c.textAlign=A.align;c.textBaseline='middle';c.save();c.shadowColor='rgba(0,0,0,.35)';c.shadowBlur=24;c.shadowOffsetY=10;c.fillText(l,A.x,0);c.restore()},{from:.3,dur:.8,rot:(i?.1:-.1)})});
-  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.3+ls.length*sz*.95+20,size:42,wt:700,fill:'#fff',t,at:1.5,maxW:W*.8});
-  [[.62,.9,1,F.wave,.35],[.7,1.1,2,F.wave,.6],[.78,1.3,3,'#fff',1]].forEach((w,i)=>{c.save();c.globalAlpha=w[4]<1?1:1;c.fillStyle=i===2?'#FFFFFF':w[3];c.globalAlpha=i===0?.4:i===1?.85:1;
-    c.beginPath();c.moveTo(0,H);for(let x=0;x<=W;x+=12){const y=H*(1-(1-w[0])*.55)+Math.sin(x/W*TAU*w[2]+TAU*u*(i+1)*(i%2?-1:1))*28;c.lineTo(x,y)}c.lineTo(W,H);c.closePath();c.fill();c.restore()});
-  fx(c,W,H,t,D,'snow',1);
-  font(c,800,40,FM);const ctaW0=c.measureText(F.cta).width+100;
-  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.9,t,1.9,()=>{
-    font(c,800,40,FM);const w=c.measureText(F.cta).width+100;
-    objDraw(c,'obj:Button',-w/2,-46,w,92,()=>{rr(c,-w/2,-46,w,92,46);c.fillStyle=F.bg1;c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)});
-  },{from:.7});
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.8,t,1.6,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
-{id:'neon',name:'Neon Night',sub:'Glowing neon sign with a realistic flicker and pulsing frame',
- fields:[{k:'l1',l:'Neon line 1',t:'text',v:'OPEN'},{k:'l2',l:'Neon line 2',t:'text',v:'LATE NIGHT SALE'},{k:'sub',l:'Sub line',t:'text',v:'Fri to Sun • Up to 50% off'},{k:'g1',l:'Glow 1',t:'color',v:'#FF2E9A'},{k:'g2',l:'Glow 2',t:'color',v:'#27E1FF'},{k:'bg',l:'Background',t:'color',v:'#09090F'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  c.fillStyle='rgba(255,255,255,.035)';for(let y=0,r=0;y<H;y+=64,r++)for(let x=-((r%2)*70);x<W;x+=140)c.fillRect(x+4,y+4,132,56);
-  glow(c,W,H,W/2,H*.45,W*.9,F.g1+'33','#00000000');
-  const on=eOut(prog(t,.3,.5)),fl=(Math.sin(TAU*u*37)*Math.sin(TAU*u*11)>.93)?.35:1,pulse=.85+.15*Math.sin(TAU*u*2),a=on*fl;
-  function neon(str,y,size,col,key,maxW){font(c,900,size,FM);const A=key?alignFor(key,W/2,maxW||W*.76):{align:'center',x:W/2};c.textAlign=A.align;c.textBaseline='middle';c.save();c.globalAlpha=a;c.lineJoin='round';
-    c.shadowColor=col;c.shadowBlur=60*pulse;c.strokeStyle=col;c.lineWidth=10;c.strokeText(str,A.x,y);c.shadowBlur=24;c.lineWidth=5;c.strokeText(str,A.x,y);c.shadowBlur=8;c.fillStyle='#fff';c.fillText(str,A.x,y);c.restore()}
-  c.save();c.globalAlpha=a;
-  objDraw(c,'obj:Frame',70,H*.14,W-140,H*.62,()=>{
-    c.shadowColor=F.g2;c.shadowBlur=40*pulse;c.strokeStyle=F.g2;c.lineWidth=8;rr(c,70,H*.14,W-140,H*.62,60);c.stroke();c.shadowBlur=0;c.strokeStyle='#fff';c.lineWidth=2.5;rr(c,70,H*.14,W-140,H*.62,60);c.stroke();
-  });
-  c.restore();
-  const s1=Math.min(300,fitSize(c,F.l1,900,FM,W*.7,300));neon(F.l1,H*.34,s1,F.g1,'l1',W*.7);
-  const s2=Math.min(104,fitSize(c,F.l2,900,FM,W*.76,104));neon(F.l2,H*.34+s1*.8,s2,F.g2,'l2',W*.76);
-  text(c,{s:F.sub,key:'sub',x:W/2,y:H*.84,size:42,wt:700,fill:'#fff',t,at:1.2,maxW:W*.82});
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.93,t,1.5,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
 {id:'doorbuster',name:'Doorbuster Alert',sub:'Hazard-tape banners, slam price and a draining countdown bar',
  fields:[{k:'tag',l:'Tag',t:'text',v:'TODAY ONLY'},{k:'item',l:'Item',t:'text',v:'3-PIECE SECTIONAL'},{k:'price',l:'Price',t:'text',v:'$899'},{k:'was',l:'Was price',t:'text',v:'Was $1,799'},{k:'tape',l:'Tape text',t:'text',v:'DOORBUSTER'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'}],
  images:[{k:'p',l:'Product photo'}],
@@ -1231,20 +1090,6 @@ const T_PREM=[
     c.fillStyle='rgba(0,0,0,.2)';rr(c,120,H*.87,W-240,22,11);c.fill();c.fillStyle='#000';rr(c,120,H*.87,(W-240)*(1-((u*2)%1)),22,11);c.fill();
   });
  }},
-{id:'lyrics',name:'Statement Scroll',sub:'Brand statement where each line lights up in turn, music-app style',
- fields:[{k:'lines',l:'Lines (one per line)',t:'area',v:'Built for family dinners\nLate-night movie marathons\nLazy Sunday mornings\nEvery moment at home'},{k:'sig',l:'Signature',t:'text',v:'Leon\'s. Home is here.'},{k:'bg',l:'Background',t:'color',v:'#0E0E10'},{k:'acc',l:'Highlight',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D,ls=F.lines.split('\n').filter(Boolean),n=Math.max(1,ls.length);
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,110,220,I,1.6):W/2,100,t,.1,()=>logo(c,I,0,0,220,110),{from:.8});
-  const pos=u*n,sz=Math.min(104,H*.075),gap=sz*1.75,cy=H*.46;
-  ls.forEach((l,i)=>{let d=Math.abs(pos-(i+.5));d=Math.min(d,n-d);const w=clamp(1-d/1.1),e=eInOut?eInOut(w):w,p=prog(t,.3+i*.2,.6);
-    if(p<=0)return;const s=Math.min(sz*(1+.08*e),fitSize(c,l,900,FM,W*.86,sz*1.1));
-    c.save();c.globalAlpha=clamp(p*2)*(.22+.78*e);c.translate(0,(1-eOut(p))*50);
-    font(c,900,s,FM);const A=alignFor('lines',W/2,W*.86);c.textAlign=A.align;c.textBaseline='middle';c.fillStyle=w>.5?F.acc:'#fff';
-    c.fillText(l,A.x,cy+(i-(n-1)/2)*gap);c.restore()});
-  text(c,{s:F.sig,key:'sig',x:W/2,y:H*.88,size:44,wt:800,fill:'#fff',t,at:1.5,maxW:W*.8});
- }}
 ];
 
 /* ---------- premium batch 2 ---------- */
@@ -1297,24 +1142,6 @@ const T_PREM2=[
     c.restore()}
   text(c,{s:F.name,key:'name',x:cx+170+110,y:ay-18,size:44,wt:900,fill:'#fff',al:'left',t,at:3.3,maxW:cw-300});text(c,{s:F.place,key:'place',x:cx+170+110,y:ay+30,size:30,wt:600,fill:'rgba(255,255,255,.65)',al:'left',t,at:3.45,maxW:cw-300});
  }},
-{id:'iris',name:'Iris Reveal',sub:'A circular iris opens from one photo to the next',
- fields:[{k:'title',l:'Title',t:'text',v:'Room makeover'},{k:'la',l:'First label',t:'text',v:'BEFORE'},{k:'lb',l:'Second label',t:'text',v:'AFTER'},{k:'bg',l:'Ring colour',t:'color',v:'#FFE81A'}],
- images:[{k:'a',l:'First photo'},{k:'b',l:'Second photo'}],
- draw(c,W,H,t,D,F,I){
-  const u=t/D,R=Math.hypot(W,H)/2+40,k=.5-.5*Math.cos(TAU*u),r=R*eInOut(k);
-  drawImg(c,I.a,0,0,W,H,{fit:'cover',label:'First photo'});
-  c.save();c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.clip();drawImg(c,I.b,0,0,W,H,{fit:'cover',label:'Second photo'});c.restore();
-  c.save();c.strokeStyle=F.bg;c.lineWidth=14;c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=26;c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.stroke();c.restore();
-  const g=c.createLinearGradient(0,0,0,H*.22);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H*.22);
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.07,size:60,wt:900,fill:'#fff',t,at:.2,maxW:W*.86});
-  const lab=k<.5?F.la:F.lb,labKey=k<.5?'la':'lb';
-  font(c,800,40,FM);const pw0=c.measureText(lab).width+88;
-  pop(c,anchorX(labKey,W/2,90+pw0/2,W-90-pw0/2),H*.9,t,.6,()=>{
-    font(c,800,40,FM);const pw=c.measureText(lab).width+88,ph=76;
-    objDraw(c,'obj:Label',-pw/2,-ph/2,pw,ph,()=>pill(c,0,0,lab,40,'#111','#fff',44));
-  },{from:.7});
-  pop(c,logoAnchorRightX(W-55,85,170,I,1.6),H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
- }},
 {id:'bilingual',name:'EN / FR Flip',sub:'Headline flips between English and French, built for Canadian posts',
  fields:[{k:'en',l:'English headline',t:'area',v:'SUPER\nSALE'},{k:'fr',l:'French headline',t:'area',v:'SUPER\nSOLDE'},{k:'sen',l:'English sub',t:'text',v:'Up to 50% off select sofas'},{k:'sfr',l:'French sub',t:'text',v:'Jusqu\'à 50 % de rabais sur sofas'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Ink',t:'color',v:'#111111'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
  images:[],
@@ -1333,44 +1160,6 @@ const T_PREM2=[
       font(c,900,32,FM);c.textAlign='center';c.textBaseline='middle';c.fillStyle=fr?'#fff':'#111';c.fillText('EN',-w/2,2);c.fillStyle=fr?'#111':'#fff';c.fillText('FR',w/2,2);
     });
   },{from:.7});
- }},
-{id:'steps',name:'How It Works',sub:'Three steps connected by a drawing line with popping numbers',
- fields:[{k:'title',l:'Title',t:'text',v:'HOW TO ORDER'},{k:'s1',l:'Step 1',t:'text',v:'Pick your style'},{k:'d1',l:'Detail 1',t:'text',v:'Browse in store or online'},{k:'s2',l:'Step 2',t:'text',v:'Book delivery'},{k:'d2',l:'Detail 2',t:'text',v:'Choose a time that suits you'},{k:'s3',l:'Step 3',t:'text',v:'Enjoy at home'},{k:'d3',l:'Detail 3',t:'text',v:'We set it up for you'},{k:'bg',l:'Background',t:'color',v:'#0C0C0C'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
-  const y0=H*.33,gap=(H*.5)/2,x=170;
-  c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2);c.stroke();
-  c.strokeStyle=F.acc;c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2*eInOut(prog(t,.6,2.4)));c.stroke();
-  [[F.s1,F.d1,'s1','d1'],[F.s2,F.d2,'s2','d2'],[F.s3,F.d3,'s3','d3']].forEach((q,i)=>{const y=y0+i*gap,at=.6+i*1.2,p=eBack(prog(t,at,.55));
-    if(p>0){c.save();c.translate(x,y);c.scale(p,p);
-      objDraw(c,'obj:Step '+(i+1),-72,-72,144,144,()=>{
-        c.beginPath();c.arc(0,0,58,0,7);c.fillStyle=F.acc;c.fill();c.fillStyle='#111';font(c,900,66,FN);c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),0,3);
-        c.globalAlpha=.4*(.5+.5*Math.sin(TAU*(u*3+i/3)));c.strokeStyle=F.acc;c.lineWidth=5;c.beginPath();c.arc(0,0,58+14,0,7);c.stroke();
-      });
-      c.restore()}
-    text(c,{s:q[0],key:q[2],x:x+110,y:y-22,size:56,wt:900,fill:'#fff',al:'left',t,at:at+.15,maxW:W-x-170,rise:30});text(c,{s:q[1],key:q[3],x:x+110,y:y+38,size:36,wt:600,fill:'rgba(255,255,255,.7)',al:'left',t,at:at+.3,maxW:W-x-170,rise:30});});
- }},
-{id:'wheel',name:'Spin to Win',sub:'A prize wheel spins and lands on your top prize',
- fields:[{k:'title',l:'Title',t:'text',v:'SPIN TO WIN'},{k:'segs',l:'Prizes (first one is the winner)',t:'area',v:'$100 OFF\n10% OFF\nFREE DELIVERY\nTRY AGAIN\n$50 OFF\n20% OFF'},{k:'cta',l:'Button',t:'text',v:'Play in store'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'c1',l:'Wheel colour 1',t:'color',v:'#FFE81A'},{k:'c2',l:'Wheel colour 2',t:'color',v:'#111111'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;rays(c,W/2,H*.5,t,D,24,'#fff',.07,W*1.2);
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
-  const segs=F.segs.split('\n').filter(Boolean),n=Math.max(2,segs.length),arc=TAU/n,R=Math.min(W*.42,H*.27),cy=H*.52,ang=TAU*3*eOut(prog(t,.4,3.4)),land=prog(t,3.8,.5);
-  c.save();c.translate(W/2,cy);
-  objDraw(c,'obj:Wheel',-R-22,-R-22,(R+22)*2,(R+22)*2,()=>{c.save();c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=40;c.beginPath();c.arc(0,0,R+22,0,7);c.fillStyle='#fff';c.fill();c.restore()});
-  c.restore();
-  c.save();c.translate(W/2,cy);c.rotate(ang);
-  segs.forEach((s,i)=>{const a0=-Math.PI/2-arc/2+i*arc;c.beginPath();c.moveTo(0,0);c.arc(0,0,R,a0,a0+arc);c.closePath();c.fillStyle=i===0&&land>0?(Math.sin(TAU*u*6)>0?'#fff':F.c1):(i%2?F.c2:F.c1);c.fill();
-    c.save();c.rotate(a0+arc/2);c.fillStyle=i%2?'#fff':'#111';if(i===0)c.fillStyle='#111';c.textAlign='right';c.textBaseline='middle';const fs=Math.min(48,fitSize(c,s,900,FM,R*.66,48));font(c,900,fs,FM);c.fillText(s,R-26,0);c.restore()});
-  c.beginPath();c.arc(0,0,60,0,7);c.fillStyle='#fff';c.fill();c.fillStyle=F.bg;font(c,900,34,FM);c.textAlign='center';c.textBaseline='middle';c.fillText('GO',0,2);c.restore();
-  c.save();c.translate(W/2,cy-R-14);c.fillStyle='#111';c.strokeStyle='#fff';c.lineWidth=6;c.beginPath();c.moveTo(-34,-30);c.lineTo(34,-30);c.lineTo(0,34);c.closePath();c.fill();c.stroke();c.restore();
-  {font(c,800,44,FM);const ctaW0=c.measureText(F.cta).width+100;
-  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.86,t,1.6,()=>{font(c,800,44,FM);const w=c.measureText(F.cta).width+100;rr(c,-w/2,-48,w,96,48);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)},{from:.7})}
  }},
 {id:'ticket',name:'Event Ticket',sub:'A tilted ticket with a perforated stub, shine sweep and barcode',
  fields:[{k:'tag',l:'Tag',t:'text',v:'IN-STORE EVENT'},{k:'title',l:'Title',t:'area',v:'WAREHOUSE\nCLEARANCE'},{k:'date',l:'Date',t:'text',v:'OCT 25 – 27'},{k:'place',l:'Where',t:'text',v:'All Leon\'s locations'},{k:'time',l:'Time',t:'text',v:'9 AM – 9 PM'},{k:'bg',l:'Background',t:'color',v:'#111111'},{k:'acc',l:'Ticket',t:'color',v:'#FFE81A'}],
@@ -1395,49 +1184,6 @@ const T_PREM2=[
   c.restore();
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
-{id:'callouts',name:'Feature Callouts',sub:'Lines draw out from the product to labelled features',
- fields:[{k:'title',l:'Title',t:'text',v:'Why you will love it'},{k:'f1',l:'Feature 1',t:'text',v:'Stain-resistant fabric'},{k:'f2',l:'Feature 2',t:'text',v:'Solid hardwood frame'},{k:'f3',l:'Feature 3',t:'text',v:'Memory foam seats'},{k:'f4',l:'Feature 4',t:'text',v:'10-year warranty'},{k:'bg',l:'Background',t:'color',v:'#F4F0E8'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
- images:[{k:'p',l:'Product photo'}],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.09,size:58,wt:900,fill:'#111',t,at:.2,maxW:W*.88});
-  const px=W/2,py=H*.47,pw=700,ph=H*.34;floorShadow(c,px,py+ph/2+20,560,.35);
-  pop(c,px,py+Math.sin(TAU*u)*8,t,.3,()=>drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{label:'Product photo',shadow:40}),{from:.8,dur:.9});
-  const pts=[[-.28,-.15,-1,-1],[.28,-.2,1,-1],[-.2,.18,-1,1],[.25,.15,1,1]];
-  [F.f1,F.f2,F.f3,F.f4].forEach((f,i)=>{const q=pts[i],at=1.0+i*.45,p=eOut(prog(t,at,.7));if(p<=0)return;
-    const sx=px+q[0]*pw,sy=py+q[1]*ph,ex=px+q[2]*(W*.27),ey=py+q[3]*(ph/2+110)+(q[3]>0?60:-60)*0,mx=ex;
-    c.save();c.strokeStyle=F.acc;c.lineWidth=5;c.lineCap='round';c.beginPath();c.moveTo(sx,sy);c.lineTo(sx+(ex-sx)*p,sy+(ey-sy)*p);c.stroke();
-    c.fillStyle=F.acc;c.beginPath();c.arc(sx,sy,14,0,7);c.fill();c.globalAlpha=.5*(1-((u*3+i/4)%1));c.strokeStyle=F.acc;c.lineWidth=4;c.beginPath();c.arc(sx,sy,14+((u*3+i/4)%1)*34,0,7);c.stroke();c.restore();
-    if(p>.9){const pp=eBack(prog(t,at+.55,.4));if(pp>0){c.save();c.translate(ex,ey);c.scale(pp,pp);font(c,800,34,FM);const w=Math.min(W*.42,c.measureText(f).width+60);
-      objDraw(c,'obj:Feature '+(i+1),-w/2,-40,w,80,()=>{rr(c,-w/2,-40,w,80,40);c.fillStyle='#111';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(f,0,2,w-40)});
-      c.restore()}}
-  });
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
-{id:'coupon',name:'Promo Coupon',sub:'A cut-out coupon with a counting amount and a code that types in',
- fields:[{k:'tag',l:'Tag',t:'text',v:'EXCLUSIVE OFFER'},{k:'amt',l:'Amount',t:'text',v:'$100'},{k:'desc',l:'Description',t:'text',v:'off your next purchase'},{k:'code',l:'Code',t:'text',v:'LEONS100'},{k:'terms',l:'Terms',t:'text',v:'Min. spend $999. Ends Oct 31.'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'acc',l:'Coupon',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  c.save();c.globalAlpha=.12;c.fillStyle='#fff';for(let i=0;i<9;i++)for(let j=0;j<12;j++){const x=(i*140+(j%2)*70+u*140)%1260-90,y=j*130;c.beginPath();c.arc(x,y,12,0,7);c.fill()}c.restore();
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  const cw=W-120,ch=H*.52,p=eBack(prog(t,.3,.8));
-  c.save();c.translate(W/2,H*.5);c.rotate(Math.sin(TAU*u)*.015-.03);c.scale(p,p);c.translate(-cw/2,-ch/2);
-  objDraw(c,'obj:Coupon',0,0,cw,ch,()=>{
-    c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=50;c.shadowOffsetY=24;c.beginPath();c.roundRect(0,0,cw,ch,44);c.fillStyle=F.acc;c.fill();c.restore();
-    c.strokeStyle='#111';c.lineWidth=5;c.setLineDash([22,16]);c.beginPath();c.roundRect(22,22,cw-44,ch-44,30);c.stroke();c.setLineDash([]);
-    c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';
-    {font(c,800,28,FM);const tagW0=c.measureText(F.tag).width+64,tagCx=anchorX('tag',cw/2,tagW0/2,cw-tagW0/2);pill(c,tagCx,ch*.14,F.tag,28,'#111',F.acc,32)}
-    const as=Math.min(300,fitSize(c,F.amt,900,FN,cw*.8,300));font(c,900,as,FN);c.fillStyle='#111';{const Aa=alignFor('amt',cw/2,cw*.8);c.textAlign=Aa.align;c.fillText(countText(F.amt,prog(t,.8,1)),Aa.x,ch*.42)}
-    font(c,800,46,FM);{const Ad=alignFor('desc',cw/2,cw*.8);c.textAlign=Ad.align;c.fillText(F.desc,Ad.x,ch*.65)}
-    const cp=prog(t,1.8,.9),cs=F.code.slice(0,Math.ceil(F.code.length*cp));font(c,900,52,FM);const w=Math.max(c.measureText(F.code).width,10)+90,codeCx=anchorX('code',cw/2,w/2,cw-w/2);
-    objDraw(c,'obj:Code',codeCx-w/2,ch*.74,w,96,()=>{rr(c,codeCx-w/2,ch*.74,w,96,22);c.fillStyle='#111';c.fill();c.fillStyle=F.acc;c.textAlign='left';c.fillText(cs+(cp<1&&Math.sin(TAU*u*20)>0?'|':''),codeCx-w/2+45,ch*.74+50)});
-    font(c,600,28,FM);c.fillStyle='rgba(0,0,0,.65)';{const At=alignFor('terms',cw/2,cw-120);c.textAlign=At.align;c.fillText(F.terms,At.x,ch*.93,cw-120)}
-    shimmer(c,0,0,cw,ch,44,(u*2)%1,'rgba(255,255,255,.4)');
-  });
-  c.restore();
-  confettiBurst(c,W/2,H*.5,t,1.9,40,['#fff','#111',F.acc],11);
- }}
 ];
 
 /* ---------- community ports ----------
@@ -1861,37 +1607,6 @@ const T_LEONS=[
   floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
   pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
  }},
-{id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
- fields:[STYLE_FIELD,MCOL_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
- images:[{k:'p',l:'Appliance photo'}],
- draw(c,W,H,t,D,F,I){
-  const ST=postStyle();
-  const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
-  let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
-    m=mastCircle(c,W,H,t,I,F.mcol||'#111111',.36);
-    mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
-  });
-  let arcTop;
-  objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
-    arcTop=bottomArc(c,W,H,H*.66,F.mcol||'#111111',t,.7);
-    const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
-    c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;const As=alignFor('save',W/2,W*.84);c.textAlign=As.align;c.textBaseline='middle';
-    c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),As.x,sy);c.restore();
-    text(c,{s:F.cond,key:'cond',x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
-  });
-  const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
-  pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
-  const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=anchorX('btxt',W*.2,90+br,W-90-br),by=m.bottom+(arcTop-m.bottom)*.42;
-  pop(c,bx,by,t,.95,()=>{
-    objDraw(c,'obj:Stamp badge',-br,-br,br*2,br*2,()=>{
-      c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
-      const bl=F.btxt.split('\n'),bs=br*.26;
-      bl.forEach((l,i)=>{font(c,900,Math.min(bs,fitSize(c,l,900,FM,br*1.5,bs)),FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,-br*.42+i*bs*1.05)});
-      font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
-    });
-  },{from:.2,dur:.8,rot:.6});
- }},
 {id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
  fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
@@ -1931,46 +1646,14 @@ const T_LEONS=[
     });
   },{from:.4,dur:.7});
  }},
-{id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
- images:[{k:'card',l:'Card image (optional)'}],
- draw(c,W,H,t,D,F,I){
-  const ST=postStyle();
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.mcol||'#111111',F.boxStyle)});
-  const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
-  hl.forEach((l,i)=>{
-    const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
-    const e=ST.textEase(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
-    font(c,900,s,FM);c.fillStyle=F.acc;const A=alignFor('head',W/2,W*.86);c.textAlign=A.align;c.textBaseline='middle';
-    c.fillText(l,A.x,m.top+hs*.72+i*hs*1.0);c.restore();
-  });
-  const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
-  [[F.a1,F.a2,1.05,'a1'],[F.b1,F.b2,1.25,'b1']].forEach((q,i)=>{
-    const p=clamp(prog(t,q[2]*ST.stagger,.5*ST.durMul));if(p<=0)return;c.save();c.globalAlpha=p;
-    mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88,q[3]);c.restore();
-  });
-  const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
-  c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';const Af=alignFor('fine',W/2,W*.84);c.textAlign=Af.align;c.textBaseline='middle';
-  let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,Af.x,fy+fi*flh);fi++}));c.restore();
-  const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
-  pop(c,W/2,cardY,t,1.9,()=>{
-    objDraw(c,'obj:Card',-110,-70,220,140,()=>{
-      if(I.card)drawImgRaw(c,I.card,-110,-70,220,140,{label:'Card'});
-      else{boxPath(c,F.boxStyle,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
-        font(c,700,20,FM);c.fillStyle='rgba(0,0,0,.45)';c.textAlign='center';c.textBaseline='middle';c.fillText('Card image',0,0)}
-    });
-  },{from:.7,dur:.6});
- }}
 ];
 
 /* ---------- Leon's "Event Posts": one template per campaign category, each switchable
    across 5 shared structural layouts so any category can use any composition. ---------- */
 const EVENT_CATS=[
-  ['megasale','Mega Sale'],['financing','Financing'],['appreciation','Appreciation'],
+  ['megasale','Mega Sale'],['appreciation','Appreciation'],
   ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday'],
-  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery'],['canadian','Proudly Canadian']
+  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery']
 ];
 const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
@@ -2611,16 +2294,10 @@ const T_EVENTS=[
  {id:'ev_megasale',name:'Mega Sale',sub:'Big number, bold percent-off — the flagship Leon\'s sale post',cat:'megasale',
   fields:evFields({layout:'sunray',num:'100',head:'MEGA SOFA\nSALE!',kicker:'FIRST EVER',off:'50% OFF',osub:'SELECT FABRIC SOFAS',flab:'STARTING FROM',fprice:'$499',seal:'yes',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_financing',name:'Financing Event',sub:'Pay-nothing / no-interest offers — white layout, oversized accent type',cat:'financing',
-  fields:evFields({layout:'gallery',num:'',head:'PAY NOTHING\n\'TIL 2028*',kicker:'DON\'T PAY A CENT EVENT',off:'0% INTEREST',osub:'O.A.C. ON YOUR FLEXITICARD',flab:'AS LOW AS',fprice:'$0 DOWN',bg1:'#FFFFFF',bg2:'#F2F2F2',mcol:'#111111',acc:'#E5376F'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
+  {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
   fields:evFields({layout:'ticket',head:'CUSTOMER\nAPPRECIATION',kicker:'IT\'S OUR BIGGEST SALE OF THE YEAR',off:'12% BACK',osub:'IN REWARDS ON YOUR PURCHASE',flab:'INSTANT CREDIT',fprice:'$50',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_supersale',name:'Canada-Wide Super Sale',sub:'National super-sale push — red wordmark energy, maple leaf',cat:'supersale',
-  fields:evFields({layout:'diagonal',pre:'',head:'CANADA-WIDE\nSUPER SALE',kicker:'ONE WEEK ONLY',off:'UP TO 50%',osub:'OFF SELECT SOFAS',flab:'SAVE UP TO',fprice:'$1000',bg1:'#FFFFFF',bg2:'#FFE81A',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
+  {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
   fields:evFields({layout:'gallery',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
@@ -2638,10 +2315,7 @@ const T_EVENTS=[
  {id:'ev_delivery',name:'Free Delivery',sub:'Service message — delivery, assembly, easy returns',cat:'delivery',
   fields:evFields({layout:'corner',pre:'',head:'FREE LOCAL\nDELIVERY',kicker:'ORDER TODAY',off:'FREE',osub:'ON ORDERS OVER $499*',flab:'',fprice:'',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_canadian',name:'Proudly Canadian',sub:'Brand message — heritage and Canadian-made',cat:'canadian',
-  fields:evFields({layout:'sunray',pre:'',head:'PROUDLY\nCANADIAN',kicker:'SINCE 1909',off:'MADE IN CANADA',osub:'SHOP CANADIAN-MADE FURNITURE',flab:'',fprice:'',bg1:'#C8102E',bg2:'#8F0B20',mcol:'#111111',acc:'#FFE81A',maple:'yes'}),
-  images:[{k:'p',l:'Lifestyle photo'}].concat(EV_EXTRA),draw:evDraw}
-];
+ ];
 
 /* ---------- Design check (linter) ----------
    Renders the current post once with the canvas calls recorded, then measures what was ACTUALLY drawn:
@@ -2755,44 +2429,6 @@ const T_CLASSIC=[
      the card's own left edge (with a little padding), not the artboard's edge. */
   logo(c,I,evLogoAlign()==='left'?logoAnchorX(W/2-240+25,125,250,I,1.6):W/2,ct+100,250,125);
   text(c,{s:F.url,key:'url',x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
- }},
-{id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
- fields:[{k:'badge',l:'Badge title',t:'text',v:'DRAFT 2026'},{k:'url',l:'Badge address',t:'text',v:'LEONS.CA'},{k:'headline',l:'Headline',t:'area',v:'DRAFT LOTTERY WINNER &\nNO. 1 PICK IN 2026 HOME DRAFT'},{k:'kicker',l:'Kicker',t:'text',v:'THE NO.1 PICK IN'},{k:'big',l:'Big word',t:'text',v:'COMFORT'},{k:'sub',l:'Bottom line',t:'text',v:'UP YOUR HOME GAME'},{k:'bg',l:'Frame colour',t:'color',v:'#0B1F4D'},{k:'panel',l:'Panel colour',t:'color',v:'#FFE81A'}],
- images:[{k:'prod',l:'Hero product (transparent PNG)'}],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  c.save();c.fillStyle='#fff';c.globalAlpha=.05;const sh=(t/D)*180;
-  for(let i=-3;i<9;i++){const x=i*180+sh;c.beginPath();c.moveTo(x,0);c.lineTo(x+70,0);c.lineTo(x-330,H);c.lineTo(x-400,H);c.closePath();c.fill()}c.restore();
-  const vg=c.createRadialGradient(W/2,H*.5,H*.2,W/2,H*.5,H*.85);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.45)');c.fillStyle=vg;c.fillRect(0,0,W,H);
-  const hp=eOut(prog(t,0,.7));c.save();c.translate(0,-(1-hp)*160);
-  const mg=c.createLinearGradient(0,0,W,0);[[0,'#8d96a1'],[.2,'#eef1f4'],[.45,'#a7afb8'],[.7,'#f3f5f7'],[1,'#858e99']].forEach(s=>mg.addColorStop(s[0],s[1]));
-  c.fillStyle=mg;c.fillRect(0,0,W,70);c.fillStyle='rgba(0,0,0,.25)';c.fillRect(0,70,W,4);c.restore();
-  pop(c,anchorX('badge',W/2,90+250,W-90-250),90,t,.2,()=>{objDraw(c,'obj:Badge',-250,-54,500,108,()=>{
-    rr(c,-250,-54,500,108,18);c.fillStyle='#0A1636';c.fill();c.strokeStyle='#3C6BFF';c.lineWidth=5;c.stroke();
-    logo(c,I,-135,0,150,75,1);c.textAlign='left';c.textBaseline='middle';c.fillStyle='#fff';font(c,900,44,FM);c.fillText(F.badge,-45,-14,270);
-    c.fillStyle='#B9C3D6';font(c,600,22,FM);c.fillText(F.url,-45,28,270)})},{from:.8});
-  text(c,{s:F.headline,key:'headline',x:W/2,y:170,size:46,fill:'#fff',maxW:W*.9,up:true,t,at:.5});
-  const px=W*.07,pw=W*.86,py=300,pb=H-70,ph0=pb-py,wp=eOut(prog(t,.6,.9)),chh=ph0*wp,cy0=py+(ph0-chh)/2;
-  if(wp>0){
-    objDraw(c,'obj:Panel',px,cy0,pw,chh,()=>{
-    c.save();rr(c,px,cy0,pw,chh,10);c.clip();
-    const pg=c.createRadialGradient(W/2,py+ph0*.4,40,W/2,py+ph0*.4,pw*.8);pg.addColorStop(0,shade(F.panel,.35));pg.addColorStop(1,F.panel);c.fillStyle=pg;c.fillRect(px,py,pw,ph0);
-    const top=py+24,bot=pb-300,bh=Math.min(bot-top,W*.78),pcy=(top+bot)/2,dp=prog(t,1.1,.9),yo=-(1-eBack(dp))*320,fl=wave(t,D,2)*8;
-    c.save();c.globalAlpha=.22*clamp(dp*2);c.fillStyle='#000';c.beginPath();c.ellipse(W/2,pcy+bh/2-8,pw*.26,16,0,0,7);c.fill();c.restore();
-    if(dp>0){c.save();c.globalAlpha=clamp(dp*3);drawImg(c,I.prod,px+pw*.1,pcy-bh/2+yo+fl,pw*.8,bh,{label:'Hero product'});c.restore()}
-    text(c,{s:F.kicker,key:'kicker',x:W/2,y:pb-282,size:38,fill:'#111',wt:800,t,at:1.6,maxW:pw-40});
-    const big=F.big.toUpperCase(),bs=fitSize(c,big,900,FM,pw-70,170);
-    pop(c,W/2,pb-170,t,1.75,()=>{font(c,900,bs,FM);c.fillStyle='#0b0b0b';const A=alignFor('big',0,pw-70);c.textAlign=A.align;c.textBaseline='middle';c.fillText(big,A.x,0)},{from:.7});
-    const sp=eOut(prog(t,2.1,.7));
-    if(sp>0){font(c,700,30,FM);const s=F.sub.toUpperCase();c.fillStyle='#111';const A=alignFor('sub',W/2,pw-80);c.textAlign=A.align;c.globalAlpha=sp;c.fillText(s,A.x,pb-52);
-      if(A.align==='center'){const sw=c.measureText(s).width,half=Math.max(0,(pw-80)/2-sw/2-24);c.fillRect(px+40,pb-53,half*sp,3);c.fillRect(px+pw-40-half*sp,pb-53,half*sp,3)}
-      c.globalAlpha=1}
-    const u=(t/D)%1,sw2=clamp((u-.55)/.3);
-    if(sw2>0&&sw2<1){const x=px-300+(pw+600)*sw2,lg=c.createLinearGradient(x,0,x+120,0);lg.addColorStop(0,'rgba(255,255,255,0)');lg.addColorStop(.5,'rgba(255,255,255,.4)');lg.addColorStop(1,'rgba(255,255,255,0)');
-      c.fillStyle=lg;c.beginPath();c.moveTo(x,py);c.lineTo(x+120,py);c.lineTo(x-180,pb);c.lineTo(x-300,pb);c.closePath();c.fill()}
-    c.restore();
-    });
-  }
  }},
 {id:'sale',name:'Sale Banner',sub:'Black header, offer count-up, two products on a yellow arc',
  fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'title',l:'Title',t:'text',v:'SUPER SOFA SALE!'},{k:'pre',l:'Small prefix',t:'area',v:'UP\nTO'},{k:'big',l:'Big offer',t:'text',v:'50% OFF'},{k:'sub',l:'Sub line',t:'text',v:'SELECT SOFAS'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
@@ -2943,8 +2579,8 @@ const EASE={enter:eEnter,out:eOut,back:eBack,pop:ePop,elastic:eElastic,exit:eExi
 /* Leon's own on-brand templates come first; ported and open-ended tools sit below.
    Every template also carries a campaign category (cat) so the rail can be filtered by
    event type; anything not explicitly tagged below falls back to 'classic'. */
-const CAT_MAP={lcircle:'megasale',lclean:'megasale',lcallout:'megasale',lthresh:'supersale',lfinance:'financing',
-  hero:'megasale',sale:'megasale',price:'megasale',versus:'megasale',compare:'megasale',
+const CAT_MAP={lcircle:'megasale',lclean:'megasale',lcallout:'megasale',
+  sale:'megasale',price:'megasale',versus:'megasale',compare:'megasale',
   number:'supersale',meme:'seasonal',maple:'seasonal',mascot:'seasonal',peek:'seasonal'};
 const T=[...T_EVENTS.map(x=>({grp:"Leon's events",...x})),...T_LEONS.map(x=>({grp:"Leon's posts",...x})),...T_CLASSIC.map(x=>({grp:"Leon's posts",...x})),
   ...T_PREM.map(x=>({grp:"Leon's campaigns",...x})),...T_PREM2.map(x=>({grp:"Leon's campaigns",...x})),

@@ -1,9 +1,9 @@
 /* ---------- Leon's "Event Posts": one template per campaign category, each switchable
    across 5 shared structural layouts so any category can use any composition. ---------- */
 const EVENT_CATS=[
-  ['megasale','Mega Sale'],['financing','Financing'],['appreciation','Appreciation'],
+  ['megasale','Mega Sale'],['appreciation','Appreciation'],
   ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday'],
-  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery'],['canadian','Proudly Canadian']
+  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery']
 ];
 const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
@@ -644,16 +644,10 @@ const T_EVENTS=[
  {id:'ev_megasale',name:'Mega Sale',sub:'Big number, bold percent-off — the flagship Leon\'s sale post',cat:'megasale',
   fields:evFields({layout:'sunray',num:'100',head:'MEGA SOFA\nSALE!',kicker:'FIRST EVER',off:'50% OFF',osub:'SELECT FABRIC SOFAS',flab:'STARTING FROM',fprice:'$499',seal:'yes',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_financing',name:'Financing Event',sub:'Pay-nothing / no-interest offers — white layout, oversized accent type',cat:'financing',
-  fields:evFields({layout:'gallery',num:'',head:'PAY NOTHING\n\'TIL 2028*',kicker:'DON\'T PAY A CENT EVENT',off:'0% INTEREST',osub:'O.A.C. ON YOUR FLEXITICARD',flab:'AS LOW AS',fprice:'$0 DOWN',bg1:'#FFFFFF',bg2:'#F2F2F2',mcol:'#111111',acc:'#E5376F'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
+  {id:'ev_appreciation',name:'Customer Appreciation',sub:'Thank-you event tone — rewards, instant credit, in-store perks',cat:'appreciation',
   fields:evFields({layout:'ticket',head:'CUSTOMER\nAPPRECIATION',kicker:'IT\'S OUR BIGGEST SALE OF THE YEAR',off:'12% BACK',osub:'IN REWARDS ON YOUR PURCHASE',flab:'INSTANT CREDIT',fprice:'$50',bg1:'#FFE81A',bg2:'#111111',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_supersale',name:'Canada-Wide Super Sale',sub:'National super-sale push — red wordmark energy, maple leaf',cat:'supersale',
-  fields:evFields({layout:'diagonal',pre:'',head:'CANADA-WIDE\nSUPER SALE',kicker:'ONE WEEK ONLY',off:'UP TO 50%',osub:'OFF SELECT SOFAS',flab:'SAVE UP TO',fprice:'$1000',bg1:'#FFFFFF',bg2:'#FFE81A',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
+  {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
   fields:evFields({layout:'gallery',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
@@ -671,7 +665,4 @@ const T_EVENTS=[
  {id:'ev_delivery',name:'Free Delivery',sub:'Service message — delivery, assembly, easy returns',cat:'delivery',
   fields:evFields({layout:'corner',pre:'',head:'FREE LOCAL\nDELIVERY',kicker:'ORDER TODAY',off:'FREE',osub:'ON ORDERS OVER $499*',flab:'',fprice:'',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_canadian',name:'Proudly Canadian',sub:'Brand message — heritage and Canadian-made',cat:'canadian',
-  fields:evFields({layout:'sunray',pre:'',head:'PROUDLY\nCANADIAN',kicker:'SINCE 1909',off:'MADE IN CANADA',osub:'SHOP CANADIAN-MADE FURNITURE',flab:'',fprice:'',bg1:'#C8102E',bg2:'#8F0B20',mcol:'#111111',acc:'#FFE81A',maple:'yes'}),
-  images:[{k:'p',l:'Lifestyle photo'}].concat(EV_EXTRA),draw:evDraw}
-];
+ ];

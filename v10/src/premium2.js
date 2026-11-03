@@ -48,24 +48,6 @@ const T_PREM2=[
     c.restore()}
   text(c,{s:F.name,key:'name',x:cx+170+110,y:ay-18,size:44,wt:900,fill:'#fff',al:'left',t,at:3.3,maxW:cw-300});text(c,{s:F.place,key:'place',x:cx+170+110,y:ay+30,size:30,wt:600,fill:'rgba(255,255,255,.65)',al:'left',t,at:3.45,maxW:cw-300});
  }},
-{id:'iris',name:'Iris Reveal',sub:'A circular iris opens from one photo to the next',
- fields:[{k:'title',l:'Title',t:'text',v:'Room makeover'},{k:'la',l:'First label',t:'text',v:'BEFORE'},{k:'lb',l:'Second label',t:'text',v:'AFTER'},{k:'bg',l:'Ring colour',t:'color',v:'#FFE81A'}],
- images:[{k:'a',l:'First photo'},{k:'b',l:'Second photo'}],
- draw(c,W,H,t,D,F,I){
-  const u=t/D,R=Math.hypot(W,H)/2+40,k=.5-.5*Math.cos(TAU*u),r=R*eInOut(k);
-  drawImg(c,I.a,0,0,W,H,{fit:'cover',label:'First photo'});
-  c.save();c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.clip();drawImg(c,I.b,0,0,W,H,{fit:'cover',label:'Second photo'});c.restore();
-  c.save();c.strokeStyle=F.bg;c.lineWidth=14;c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=26;c.beginPath();c.arc(W/2,H/2,Math.max(.1,r),0,7);c.stroke();c.restore();
-  const g=c.createLinearGradient(0,0,0,H*.22);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H*.22);
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.07,size:60,wt:900,fill:'#fff',t,at:.2,maxW:W*.86});
-  const lab=k<.5?F.la:F.lb,labKey=k<.5?'la':'lb';
-  font(c,800,40,FM);const pw0=c.measureText(lab).width+88;
-  pop(c,anchorX(labKey,W/2,90+pw0/2,W-90-pw0/2),H*.9,t,.6,()=>{
-    font(c,800,40,FM);const pw=c.measureText(lab).width+88,ph=76;
-    objDraw(c,'obj:Label',-pw/2,-ph/2,pw,ph,()=>pill(c,0,0,lab,40,'#111','#fff',44));
-  },{from:.7});
-  pop(c,logoAnchorRightX(W-55,85,170,I,1.6),H*.07+10,t,.9,()=>logo(c,I,0,0,170,85),{from:.8});
- }},
 {id:'bilingual',name:'EN / FR Flip',sub:'Headline flips between English and French, built for Canadian posts',
  fields:[{k:'en',l:'English headline',t:'area',v:'SUPER\nSALE'},{k:'fr',l:'French headline',t:'area',v:'SUPER\nSOLDE'},{k:'sen',l:'English sub',t:'text',v:'Up to 50% off select sofas'},{k:'sfr',l:'French sub',t:'text',v:'Jusqu\'à 50 % de rabais sur sofas'},{k:'bg',l:'Background',t:'color',v:'#FFE81A'},{k:'ink',l:'Ink',t:'color',v:'#111111'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
  images:[],
@@ -84,44 +66,6 @@ const T_PREM2=[
       font(c,900,32,FM);c.textAlign='center';c.textBaseline='middle';c.fillStyle=fr?'#fff':'#111';c.fillText('EN',-w/2,2);c.fillStyle=fr?'#111':'#fff';c.fillText('FR',w/2,2);
     });
   },{from:.7});
- }},
-{id:'steps',name:'How It Works',sub:'Three steps connected by a drawing line with popping numbers',
- fields:[{k:'title',l:'Title',t:'text',v:'HOW TO ORDER'},{k:'s1',l:'Step 1',t:'text',v:'Pick your style'},{k:'d1',l:'Detail 1',t:'text',v:'Browse in store or online'},{k:'s2',l:'Step 2',t:'text',v:'Book delivery'},{k:'d2',l:'Detail 2',t:'text',v:'Choose a time that suits you'},{k:'s3',l:'Step 3',t:'text',v:'Enjoy at home'},{k:'d3',l:'Detail 3',t:'text',v:'We set it up for you'},{k:'bg',l:'Background',t:'color',v:'#0C0C0C'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.19,size:68,wt:900,fill:'#fff',t,at:.3,maxW:W*.86});
-  const y0=H*.33,gap=(H*.5)/2,x=170;
-  c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2);c.stroke();
-  c.strokeStyle=F.acc;c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+gap*2*eInOut(prog(t,.6,2.4)));c.stroke();
-  [[F.s1,F.d1,'s1','d1'],[F.s2,F.d2,'s2','d2'],[F.s3,F.d3,'s3','d3']].forEach((q,i)=>{const y=y0+i*gap,at=.6+i*1.2,p=eBack(prog(t,at,.55));
-    if(p>0){c.save();c.translate(x,y);c.scale(p,p);
-      objDraw(c,'obj:Step '+(i+1),-72,-72,144,144,()=>{
-        c.beginPath();c.arc(0,0,58,0,7);c.fillStyle=F.acc;c.fill();c.fillStyle='#111';font(c,900,66,FN);c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),0,3);
-        c.globalAlpha=.4*(.5+.5*Math.sin(TAU*(u*3+i/3)));c.strokeStyle=F.acc;c.lineWidth=5;c.beginPath();c.arc(0,0,58+14,0,7);c.stroke();
-      });
-      c.restore()}
-    text(c,{s:q[0],key:q[2],x:x+110,y:y-22,size:56,wt:900,fill:'#fff',al:'left',t,at:at+.15,maxW:W-x-170,rise:30});text(c,{s:q[1],key:q[3],x:x+110,y:y+38,size:36,wt:600,fill:'rgba(255,255,255,.7)',al:'left',t,at:at+.3,maxW:W-x-170,rise:30});});
- }},
-{id:'wheel',name:'Spin to Win',sub:'A prize wheel spins and lands on your top prize',
- fields:[{k:'title',l:'Title',t:'text',v:'SPIN TO WIN'},{k:'segs',l:'Prizes (first one is the winner)',t:'area',v:'$100 OFF\n10% OFF\nFREE DELIVERY\nTRY AGAIN\n$50 OFF\n20% OFF'},{k:'cta',l:'Button',t:'text',v:'Play in store'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'c1',l:'Wheel colour 1',t:'color',v:'#FFE81A'},{k:'c2',l:'Wheel colour 2',t:'color',v:'#111111'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;rays(c,W/2,H*.5,t,D,24,'#fff',.07,W*1.2);
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.17,size:96,wt:900,fill:'#fff',t,at:.3,maxW:W*.9});
-  const segs=F.segs.split('\n').filter(Boolean),n=Math.max(2,segs.length),arc=TAU/n,R=Math.min(W*.42,H*.27),cy=H*.52,ang=TAU*3*eOut(prog(t,.4,3.4)),land=prog(t,3.8,.5);
-  c.save();c.translate(W/2,cy);
-  objDraw(c,'obj:Wheel',-R-22,-R-22,(R+22)*2,(R+22)*2,()=>{c.save();c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=40;c.beginPath();c.arc(0,0,R+22,0,7);c.fillStyle='#fff';c.fill();c.restore()});
-  c.restore();
-  c.save();c.translate(W/2,cy);c.rotate(ang);
-  segs.forEach((s,i)=>{const a0=-Math.PI/2-arc/2+i*arc;c.beginPath();c.moveTo(0,0);c.arc(0,0,R,a0,a0+arc);c.closePath();c.fillStyle=i===0&&land>0?(Math.sin(TAU*u*6)>0?'#fff':F.c1):(i%2?F.c2:F.c1);c.fill();
-    c.save();c.rotate(a0+arc/2);c.fillStyle=i%2?'#fff':'#111';if(i===0)c.fillStyle='#111';c.textAlign='right';c.textBaseline='middle';const fs=Math.min(48,fitSize(c,s,900,FM,R*.66,48));font(c,900,fs,FM);c.fillText(s,R-26,0);c.restore()});
-  c.beginPath();c.arc(0,0,60,0,7);c.fillStyle='#fff';c.fill();c.fillStyle=F.bg;font(c,900,34,FM);c.textAlign='center';c.textBaseline='middle';c.fillText('GO',0,2);c.restore();
-  c.save();c.translate(W/2,cy-R-14);c.fillStyle='#111';c.strokeStyle='#fff';c.lineWidth=6;c.beginPath();c.moveTo(-34,-30);c.lineTo(34,-30);c.lineTo(0,34);c.closePath();c.fill();c.stroke();c.restore();
-  {font(c,800,44,FM);const ctaW0=c.measureText(F.cta).width+100;
-  pop(c,anchorX('cta',W/2,90+ctaW0/2,W-90-ctaW0/2),H*.86,t,1.6,()=>{font(c,800,44,FM);const w=c.measureText(F.cta).width+100;rr(c,-w/2,-48,w,96,48);c.fillStyle='#fff';c.fill();c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(F.cta,0,3)},{from:.7})}
  }},
 {id:'ticket',name:'Event Ticket',sub:'A tilted ticket with a perforated stub, shine sweep and barcode',
  fields:[{k:'tag',l:'Tag',t:'text',v:'IN-STORE EVENT'},{k:'title',l:'Title',t:'area',v:'WAREHOUSE\nCLEARANCE'},{k:'date',l:'Date',t:'text',v:'OCT 25 – 27'},{k:'place',l:'Where',t:'text',v:'All Leon\'s locations'},{k:'time',l:'Time',t:'text',v:'9 AM – 9 PM'},{k:'bg',l:'Background',t:'color',v:'#111111'},{k:'acc',l:'Ticket',t:'color',v:'#FFE81A'}],
@@ -146,47 +90,4 @@ const T_PREM2=[
   c.restore();
   pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,1.2,()=>logo(c,I,0,0,200,100),{from:.8});
  }},
-{id:'callouts',name:'Feature Callouts',sub:'Lines draw out from the product to labelled features',
- fields:[{k:'title',l:'Title',t:'text',v:'Why you will love it'},{k:'f1',l:'Feature 1',t:'text',v:'Stain-resistant fabric'},{k:'f2',l:'Feature 2',t:'text',v:'Solid hardwood frame'},{k:'f3',l:'Feature 3',t:'text',v:'Memory foam seats'},{k:'f4',l:'Feature 4',t:'text',v:'10-year warranty'},{k:'bg',l:'Background',t:'color',v:'#F4F0E8'},{k:'acc',l:'Accent',t:'color',v:'#E4262C'}],
- images:[{k:'p',l:'Product photo'}],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  text(c,{s:F.title,key:'title',x:W/2,y:H*.09,size:58,wt:900,fill:'#111',t,at:.2,maxW:W*.88});
-  const px=W/2,py=H*.47,pw=700,ph=H*.34;floorShadow(c,px,py+ph/2+20,560,.35);
-  pop(c,px,py+Math.sin(TAU*u)*8,t,.3,()=>drawImg(c,I.p,-pw/2,-ph/2,pw,ph,{label:'Product photo',shadow:40}),{from:.8,dur:.9});
-  const pts=[[-.28,-.15,-1,-1],[.28,-.2,1,-1],[-.2,.18,-1,1],[.25,.15,1,1]];
-  [F.f1,F.f2,F.f3,F.f4].forEach((f,i)=>{const q=pts[i],at=1.0+i*.45,p=eOut(prog(t,at,.7));if(p<=0)return;
-    const sx=px+q[0]*pw,sy=py+q[1]*ph,ex=px+q[2]*(W*.27),ey=py+q[3]*(ph/2+110)+(q[3]>0?60:-60)*0,mx=ex;
-    c.save();c.strokeStyle=F.acc;c.lineWidth=5;c.lineCap='round';c.beginPath();c.moveTo(sx,sy);c.lineTo(sx+(ex-sx)*p,sy+(ey-sy)*p);c.stroke();
-    c.fillStyle=F.acc;c.beginPath();c.arc(sx,sy,14,0,7);c.fill();c.globalAlpha=.5*(1-((u*3+i/4)%1));c.strokeStyle=F.acc;c.lineWidth=4;c.beginPath();c.arc(sx,sy,14+((u*3+i/4)%1)*34,0,7);c.stroke();c.restore();
-    if(p>.9){const pp=eBack(prog(t,at+.55,.4));if(pp>0){c.save();c.translate(ex,ey);c.scale(pp,pp);font(c,800,34,FM);const w=Math.min(W*.42,c.measureText(f).width+60);
-      objDraw(c,'obj:Feature '+(i+1),-w/2,-40,w,80,()=>{rr(c,-w/2,-40,w,80,40);c.fillStyle='#111';c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(f,0,2,w-40)});
-      c.restore()}}
-  });
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,100,200,I,1.6):W/2,H*.9,t,2.8,()=>logo(c,I,0,0,200,100),{from:.8});
- }},
-{id:'coupon',name:'Promo Coupon',sub:'A cut-out coupon with a counting amount and a code that types in',
- fields:[{k:'tag',l:'Tag',t:'text',v:'EXCLUSIVE OFFER'},{k:'amt',l:'Amount',t:'text',v:'$100'},{k:'desc',l:'Description',t:'text',v:'off your next purchase'},{k:'code',l:'Code',t:'text',v:'LEONS100'},{k:'terms',l:'Terms',t:'text',v:'Min. spend $999. Ends Oct 31.'},{k:'bg',l:'Background',t:'color',v:'#E4262C'},{k:'acc',l:'Coupon',t:'color',v:'#FFE81A'}],
- images:[],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);const u=t/D;
-  c.save();c.globalAlpha=.12;c.fillStyle='#fff';for(let i=0;i<9;i++)for(let j=0;j<12;j++){const x=(i*140+(j%2)*70+u*140)%1260-90,y=j*130;c.beginPath();c.arc(x,y,12,0,7);c.fill()}c.restore();
-  pop(c,evLogoAlign()==='left'?logoAnchorX(45,105,210,I,1.6):W/2,95,t,.1,()=>logo(c,I,0,0,210,105),{from:.8});
-  const cw=W-120,ch=H*.52,p=eBack(prog(t,.3,.8));
-  c.save();c.translate(W/2,H*.5);c.rotate(Math.sin(TAU*u)*.015-.03);c.scale(p,p);c.translate(-cw/2,-ch/2);
-  objDraw(c,'obj:Coupon',0,0,cw,ch,()=>{
-    c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=50;c.shadowOffsetY=24;c.beginPath();c.roundRect(0,0,cw,ch,44);c.fillStyle=F.acc;c.fill();c.restore();
-    c.strokeStyle='#111';c.lineWidth=5;c.setLineDash([22,16]);c.beginPath();c.roundRect(22,22,cw-44,ch-44,30);c.stroke();c.setLineDash([]);
-    c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';
-    {font(c,800,28,FM);const tagW0=c.measureText(F.tag).width+64,tagCx=anchorX('tag',cw/2,tagW0/2,cw-tagW0/2);pill(c,tagCx,ch*.14,F.tag,28,'#111',F.acc,32)}
-    const as=Math.min(300,fitSize(c,F.amt,900,FN,cw*.8,300));font(c,900,as,FN);c.fillStyle='#111';{const Aa=alignFor('amt',cw/2,cw*.8);c.textAlign=Aa.align;c.fillText(countText(F.amt,prog(t,.8,1)),Aa.x,ch*.42)}
-    font(c,800,46,FM);{const Ad=alignFor('desc',cw/2,cw*.8);c.textAlign=Ad.align;c.fillText(F.desc,Ad.x,ch*.65)}
-    const cp=prog(t,1.8,.9),cs=F.code.slice(0,Math.ceil(F.code.length*cp));font(c,900,52,FM);const w=Math.max(c.measureText(F.code).width,10)+90,codeCx=anchorX('code',cw/2,w/2,cw-w/2);
-    objDraw(c,'obj:Code',codeCx-w/2,ch*.74,w,96,()=>{rr(c,codeCx-w/2,ch*.74,w,96,22);c.fillStyle='#111';c.fill();c.fillStyle=F.acc;c.textAlign='left';c.fillText(cs+(cp<1&&Math.sin(TAU*u*20)>0?'|':''),codeCx-w/2+45,ch*.74+50)});
-    font(c,600,28,FM);c.fillStyle='rgba(0,0,0,.65)';{const At=alignFor('terms',cw/2,cw-120);c.textAlign=At.align;c.fillText(F.terms,At.x,ch*.93,cw-120)}
-    shimmer(c,0,0,cw,ch,44,(u*2)%1,'rgba(255,255,255,.4)');
-  });
-  c.restore();
-  confettiBurst(c,W/2,H*.5,t,1.9,40,['#fff','#111',F.acc],11);
- }}
 ];

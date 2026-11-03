@@ -34,44 +34,6 @@ const T_CLASSIC=[
   logo(c,I,evLogoAlign()==='left'?logoAnchorX(W/2-240+25,125,250,I,1.6):W/2,ct+100,250,125);
   text(c,{s:F.url,key:'url',x:W/2,y:ct+245,size:24,wt:600,fill:'#fff',maxW:440});
  }},
-{id:'hero',name:'Hero Spotlight',sub:'Dark event frame, dropped-in product, shine sweep',
- fields:[{k:'badge',l:'Badge title',t:'text',v:'DRAFT 2026'},{k:'url',l:'Badge address',t:'text',v:'LEONS.CA'},{k:'headline',l:'Headline',t:'area',v:'DRAFT LOTTERY WINNER &\nNO. 1 PICK IN 2026 HOME DRAFT'},{k:'kicker',l:'Kicker',t:'text',v:'THE NO.1 PICK IN'},{k:'big',l:'Big word',t:'text',v:'COMFORT'},{k:'sub',l:'Bottom line',t:'text',v:'UP YOUR HOME GAME'},{k:'bg',l:'Frame colour',t:'color',v:'#0B1F4D'},{k:'panel',l:'Panel colour',t:'color',v:'#FFE81A'}],
- images:[{k:'prod',l:'Hero product (transparent PNG)'}],
- draw(c,W,H,t,D,F,I){
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  c.save();c.fillStyle='#fff';c.globalAlpha=.05;const sh=(t/D)*180;
-  for(let i=-3;i<9;i++){const x=i*180+sh;c.beginPath();c.moveTo(x,0);c.lineTo(x+70,0);c.lineTo(x-330,H);c.lineTo(x-400,H);c.closePath();c.fill()}c.restore();
-  const vg=c.createRadialGradient(W/2,H*.5,H*.2,W/2,H*.5,H*.85);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.45)');c.fillStyle=vg;c.fillRect(0,0,W,H);
-  const hp=eOut(prog(t,0,.7));c.save();c.translate(0,-(1-hp)*160);
-  const mg=c.createLinearGradient(0,0,W,0);[[0,'#8d96a1'],[.2,'#eef1f4'],[.45,'#a7afb8'],[.7,'#f3f5f7'],[1,'#858e99']].forEach(s=>mg.addColorStop(s[0],s[1]));
-  c.fillStyle=mg;c.fillRect(0,0,W,70);c.fillStyle='rgba(0,0,0,.25)';c.fillRect(0,70,W,4);c.restore();
-  pop(c,anchorX('badge',W/2,90+250,W-90-250),90,t,.2,()=>{objDraw(c,'obj:Badge',-250,-54,500,108,()=>{
-    rr(c,-250,-54,500,108,18);c.fillStyle='#0A1636';c.fill();c.strokeStyle='#3C6BFF';c.lineWidth=5;c.stroke();
-    logo(c,I,-135,0,150,75,1);c.textAlign='left';c.textBaseline='middle';c.fillStyle='#fff';font(c,900,44,FM);c.fillText(F.badge,-45,-14,270);
-    c.fillStyle='#B9C3D6';font(c,600,22,FM);c.fillText(F.url,-45,28,270)})},{from:.8});
-  text(c,{s:F.headline,key:'headline',x:W/2,y:170,size:46,fill:'#fff',maxW:W*.9,up:true,t,at:.5});
-  const px=W*.07,pw=W*.86,py=300,pb=H-70,ph0=pb-py,wp=eOut(prog(t,.6,.9)),chh=ph0*wp,cy0=py+(ph0-chh)/2;
-  if(wp>0){
-    objDraw(c,'obj:Panel',px,cy0,pw,chh,()=>{
-    c.save();rr(c,px,cy0,pw,chh,10);c.clip();
-    const pg=c.createRadialGradient(W/2,py+ph0*.4,40,W/2,py+ph0*.4,pw*.8);pg.addColorStop(0,shade(F.panel,.35));pg.addColorStop(1,F.panel);c.fillStyle=pg;c.fillRect(px,py,pw,ph0);
-    const top=py+24,bot=pb-300,bh=Math.min(bot-top,W*.78),pcy=(top+bot)/2,dp=prog(t,1.1,.9),yo=-(1-eBack(dp))*320,fl=wave(t,D,2)*8;
-    c.save();c.globalAlpha=.22*clamp(dp*2);c.fillStyle='#000';c.beginPath();c.ellipse(W/2,pcy+bh/2-8,pw*.26,16,0,0,7);c.fill();c.restore();
-    if(dp>0){c.save();c.globalAlpha=clamp(dp*3);drawImg(c,I.prod,px+pw*.1,pcy-bh/2+yo+fl,pw*.8,bh,{label:'Hero product'});c.restore()}
-    text(c,{s:F.kicker,key:'kicker',x:W/2,y:pb-282,size:38,fill:'#111',wt:800,t,at:1.6,maxW:pw-40});
-    const big=F.big.toUpperCase(),bs=fitSize(c,big,900,FM,pw-70,170);
-    pop(c,W/2,pb-170,t,1.75,()=>{font(c,900,bs,FM);c.fillStyle='#0b0b0b';const A=alignFor('big',0,pw-70);c.textAlign=A.align;c.textBaseline='middle';c.fillText(big,A.x,0)},{from:.7});
-    const sp=eOut(prog(t,2.1,.7));
-    if(sp>0){font(c,700,30,FM);const s=F.sub.toUpperCase();c.fillStyle='#111';const A=alignFor('sub',W/2,pw-80);c.textAlign=A.align;c.globalAlpha=sp;c.fillText(s,A.x,pb-52);
-      if(A.align==='center'){const sw=c.measureText(s).width,half=Math.max(0,(pw-80)/2-sw/2-24);c.fillRect(px+40,pb-53,half*sp,3);c.fillRect(px+pw-40-half*sp,pb-53,half*sp,3)}
-      c.globalAlpha=1}
-    const u=(t/D)%1,sw2=clamp((u-.55)/.3);
-    if(sw2>0&&sw2<1){const x=px-300+(pw+600)*sw2,lg=c.createLinearGradient(x,0,x+120,0);lg.addColorStop(0,'rgba(255,255,255,0)');lg.addColorStop(.5,'rgba(255,255,255,.4)');lg.addColorStop(1,'rgba(255,255,255,0)');
-      c.fillStyle=lg;c.beginPath();c.moveTo(x,py);c.lineTo(x+120,py);c.lineTo(x-180,pb);c.lineTo(x-300,pb);c.closePath();c.fill()}
-    c.restore();
-    });
-  }
- }},
 {id:'sale',name:'Sale Banner',sub:'Black header, offer count-up, two products on a yellow arc',
  fields:[{k:'lead',l:'Lead number',t:'text',v:'100'},{k:'title',l:'Title',t:'text',v:'SUPER SOFA SALE!'},{k:'pre',l:'Small prefix',t:'area',v:'UP\nTO'},{k:'big',l:'Big offer',t:'text',v:'50% OFF'},{k:'sub',l:'Sub line',t:'text',v:'SELECT SOFAS'},{k:'bg',l:'Background',t:'color',v:'#000000'},{k:'acc',l:'Accent',t:'color',v:'#FFE81A'}],
  images:[{k:'a',l:'Product A'},{k:'b',l:'Product B'}],

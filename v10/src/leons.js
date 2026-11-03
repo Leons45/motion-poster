@@ -143,37 +143,6 @@ const T_LEONS=[
   floorShadow(c,W/2,pcy+ph/2-8,W*.46,.24);
   pop(c,W/2,pcy,t,.4,()=>drawImg(c,I.p,-W*.4,-ph/2,W*.8,ph,{label:'Product photo'}),{from:.8,dur:.9});
  }},
-{id:'lthresh',name:'Buy More Save More',sub:'Grey appliance styling, round stamp badge and a spend-threshold offer',
- fields:[STYLE_FIELD,MCOL_FIELD,{k:'head',l:'Headline',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'btxt',l:'Badge text',t:'area',v:'BUY MORE\nSAVE\nMORE!'},{k:'bsub',l:'Badge small print',t:'text',v:'WHEN YOU BUY 2 OR MORE SELECT MAJOR APPLIANCES'},{k:'save',l:'Saving',t:'text',v:'SAVE $1000'},{k:'cond',l:'Condition',t:'text',v:'WHEN YOU SPEND $6495 OR MORE'},{k:'bg1',l:'Background top',t:'color',v:'#8A8A8A'},{k:'bg2',l:'Background bottom',t:'color',v:'#2E2E2E'}],
- images:[{k:'p',l:'Appliance photo'}],
- draw(c,W,H,t,D,F,I){
-  const ST=postStyle();
-  const g=c.createLinearGradient(0,0,W*.3,H);g.addColorStop(0,F.bg1);g.addColorStop(1,F.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
-  let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.42,()=>{
-    m=mastCircle(c,W,H,t,I,F.mcol||'#111111',.36);
-    mastText(c,W,m,t,'',F.head.split('\n'),'#fff',i=>i===0?'#fff':LY,0,.5);
-  });
-  let arcTop;
-  objDraw(c,'obj:Footer',0,H*.5,W,H*.5,()=>{
-    arcTop=bottomArc(c,W,H,H*.66,F.mcol||'#111111',t,.7);
-    const band=H-arcTop, ss=Math.min(band*.42,fitSize(c,F.save,900,FN,W*.84,band*.42)), sy=arcTop+band*.38;
-    c.save();c.globalAlpha=clamp(prog(t,1.2*ST.stagger,.5*ST.durMul));font(c,900,ss,FN);c.fillStyle=LY;const As=alignFor('save',W/2,W*.84);c.textAlign=As.align;c.textBaseline='middle';
-    c.fillText(countText(F.save,prog(t,1.25*ST.stagger,1*ST.durMul)),As.x,sy);c.restore();
-    text(c,{s:F.cond,key:'cond',x:W/2,y:sy+ss*.64,size:Math.min(band*.14,W*.034),wt:900,fill:'#fff',t,at:1.6,maxW:W*.86});
-  });
-  const ph=(arcTop-m.bottom)*.9, pcy=(m.bottom+arcTop)/2;
-  pop(c,W/2,pcy,t,.6,()=>drawImg(c,I.p,-W*.45,-ph/2,W*.9,ph,{label:'Appliance photo',dark:true}),{from:.82,dur:.9});
-  const br=Math.min(W*.15,(arcTop-m.bottom)*.42),bx=anchorX('btxt',W*.2,90+br,W-90-br),by=m.bottom+(arcTop-m.bottom)*.42;
-  pop(c,bx,by,t,.95,()=>{
-    objDraw(c,'obj:Stamp badge',-br,-br,br*2,br*2,()=>{
-      c.beginPath();c.arc(0,0,br,0,TAU);c.fillStyle=LY;c.fill();
-      const bl=F.btxt.split('\n'),bs=br*.26;
-      bl.forEach((l,i)=>{font(c,900,Math.min(bs,fitSize(c,l,900,FM,br*1.5,bs)),FM);c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l,0,-br*.42+i*bs*1.05)});
-      font(c,800,br*.11,FM);wrap(c,F.bsub,br*1.4).slice(0,4).forEach((l,i)=>c.fillText(l,0,br*.44+i*br*.13));
-    });
-  },{from:.2,dur:.8,rot:.6});
- }},
 {id:'lcallout',name:'Product Callout',sub:'Floating price or name card, seal badge and a brand strip beside the product',
  fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'mast',l:'Masthead',t:'select',v:'circle',o:['circle','card']},{k:'num',l:'Big number (circle only)',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'ctitle',l:'Callout title',t:'text',v:'$899'},{k:'cstrip',l:'Callout strip',t:'text',v:'SAVE $900'},{k:'cname',l:'Callout name',t:'text',v:'Milana II Luxury Plush Queen Mattress'},{k:'seal',l:'Seal badge (blank hides)',t:'text',v:'BEST SELLER'},{k:'off',l:'Offer',t:'text',v:'UP TO 50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT MATTRESSES'},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'},{k:'b',l:'Brand logo (optional)'}],
@@ -213,36 +182,4 @@ const T_LEONS=[
     });
   },{from:.4,dur:.7});
  }},
-{id:'lfinance',name:'Financing Offer',sub:'White layout with oversized pink type, legal fine print and a card slot',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'head',l:'Headline',t:'area',v:'PAY\nNOTHING\n’TIL 2028*'},{k:'a1',l:'Line 1 (black part)',t:'text',v:'NO MONEY DOWN!'},{k:'a2',l:'Line 1 (pink part)',t:'text',v:'NOT EVEN THE TAXES OR FEES!'},{k:'b1',l:'Line 2 (black part)',t:'text',v:'NO MONTHLY PAYMENTS!'},{k:'b2',l:'Line 2 (pink part)',t:'text',v:'0% INTEREST*'},{k:'fine',l:'Fine print',t:'area',v:'*O.A.C. On your FlexitiCard. Minimum purchase of $250 (excluding taxes) is required.\nSee back page for important details.'},{k:'bg',l:'Background',t:'color',v:'#FFFFFF'},{k:'acc',l:'Accent',t:'color',v:'#E5376F'},{k:'ink',l:'Ink',t:'color',v:'#111111'}],
- images:[{k:'card',l:'Card image (optional)'}],
- draw(c,W,H,t,D,F,I){
-  const ST=postStyle();
-  c.fillStyle=F.bg;c.fillRect(0,0,W,H);
-  let m;
-  objDraw(c,'obj:Masthead',0,0,W,H*.22,()=>{m=mastCard(c,W,H,t,I,F.mcol||'#111111',F.boxStyle)});
-  const hl=F.head.split('\n').filter(Boolean),hs=Math.min(H*.105,W*.17,(H*.46)/Math.max(1,hl.length));
-  hl.forEach((l,i)=>{
-    const s=Math.min(hs,fitSize(c,l,900,FM,W*.86,hs)),p=prog(t,(.35+i*.14)*ST.stagger,.55*ST.durMul);if(p<=0)return;
-    const e=ST.textEase(p);c.save();c.globalAlpha=clamp(p*2);c.translate(0,(1-e)*44);
-    font(c,900,s,FM);c.fillStyle=F.acc;const A=alignFor('head',W/2,W*.86);c.textAlign=A.align;c.textBaseline='middle';
-    c.fillText(l,A.x,m.top+hs*.72+i*hs*1.0);c.restore();
-  });
-  const sy=m.top+hs*.72+hl.length*hs*1.0+hs*.22,ss=Math.min(40,W*.038);
-  [[F.a1,F.a2,1.05,'a1'],[F.b1,F.b2,1.25,'b1']].forEach((q,i)=>{
-    const p=clamp(prog(t,q[2]*ST.stagger,.5*ST.durMul));if(p<=0)return;c.save();c.globalAlpha=p;
-    mixed(c,[[q[0]+' ',F.ink],[q[1],F.acc]],W/2,sy+i*ss*1.5,ss,900,FM,W*.88,q[3]);c.restore();
-  });
-  const fs=Math.min(24,W*.022),flh=fs*1.35,fy=sy+ss*3.0;
-  c.save();c.globalAlpha=clamp(prog(t,1.6*ST.stagger,.5*ST.durMul));font(c,600,fs,FM);c.fillStyle='rgba(0,0,0,.72)';const Af=alignFor('fine',W/2,W*.84);c.textAlign=Af.align;c.textBaseline='middle';
-  let fi=0;F.fine.split('\n').forEach(ln=>wrap(c,ln,W*.84).forEach(l=>{c.fillText(l,Af.x,fy+fi*flh);fi++}));c.restore();
-  const cardY=Math.min(H*.9,fy+fi*flh+H*.07);
-  pop(c,W/2,cardY,t,1.9,()=>{
-    objDraw(c,'obj:Card',-110,-70,220,140,()=>{
-      if(I.card)drawImgRaw(c,I.card,-110,-70,220,140,{label:'Card'});
-      else{boxPath(c,F.boxStyle,-110,-70,220,140,10);c.fillStyle='#F2F2F4';c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();
-        font(c,700,20,FM);c.fillStyle='rgba(0,0,0,.45)';c.textAlign='center';c.textBaseline='middle';c.fillText('Card image',0,0)}
-    });
-  },{from:.7,dur:.6});
- }}
 ];
