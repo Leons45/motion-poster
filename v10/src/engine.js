@@ -20,6 +20,7 @@ const state={tid:'lcircle',ratio:'4:5',D:6,loops:1,fps:30,t:0,playing:true,vals:
   film:{shake:'off',grain:0,vig:0,bars:'off',leak:'off',zoom:'off',ambient:'none'},
   quick:{},quickNextId:1,
   freetext:{},freetextNextId:1,
+  zSeq:1,
   };
 T.forEach(tp=>{state.vals[tp.id]={};state.imgs[tp.id]={};tp.fields.forEach(f=>state.vals[tp.id][f.k]=f.v)});
 const cur=()=>T.find(x=>x.id===state.tid);
@@ -63,12 +64,12 @@ const QUICK_KINDS={
   ribbon:{name:'Ribbon banner',w:240,h:70,draw(c){boxPath(c,'ribbon',-120,-35,240,70,12);c.fillStyle='#C8102E';c.fill();font(c,800,28,FNOVA);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText('NEW',0,0)}}
 };
 /* Read-only lookup — never creates the key. Creating it as a side effect (even for
-   display-only callers like buildQuick/drawQuickElements) would make the live state
+   display-only callers like buildQuick/freeList) would make the live state
    diverge from the last history snapshot and silently wipe the redo stack. */
 function quickFor(tid){return state.quick[ovKey(tid)]||[]}
 function addQuick(tid,kind){
   const k=ovKey(tid),list=state.quick[k]=state.quick[k]||[],id=state.quickNextId++,n=list.length;
-  const el={id,kind,x:W*.5+(n%3-1)*40,y:Hnow()*.5+Math.floor(n/3)*40};
+  const el={id,kind,x:W*.5+(n%3-1)*40,y:Hnow()*.5+Math.floor(n/3)*40,z:state.zSeq++};
   list.push(el);return el;
 }
 function delQuick(tid,id){
@@ -76,13 +77,10 @@ function delQuick(tid,id){
   const i=list.findIndex(e=>e.id===id);if(i<0)return;list.splice(i,1);
   if(!list.length)delete state.quick[k];
 }
-function drawQuickElements(c,W,H,t,tid){
-  const list=state.quick[ovKey(tid)];if(!list||!list.length)return;
-  list.forEach(el=>{
-    const K=QUICK_KINDS[el.kind];if(!K)return;
-    const w=K.w,h=K.h;
-    objDraw(c,'obj:Quick'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{c.save();c.translate(el.x,el.y);K.draw(c);c.restore()});
-  });
+function drawQuickItem(c,el){
+  const K=QUICK_KINDS[el.kind];if(!K)return;
+  const w=K.w,h=K.h;
+  objDraw(c,'obj:Quick'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{c.save();c.translate(el.x,el.y);K.draw(c);c.restore()});
 }
 /* ----- free text boxes: a person's own text, dropped onto ANY template, with its own
    content, size, colour and an optional background (a plain colour, or none at all).
@@ -91,7 +89,7 @@ function drawQuickElements(c,W,H,t,tid){
 function freetextFor(tid){return state.freetext[ovKey(tid)]||[]}
 function addFreetext(tid){
   const k=ovKey(tid),list=state.freetext[k]=state.freetext[k]||[],id=state.freetextNextId++,n=list.length;
-  const el={id,x:W*.5,y:Hnow()*.5+(n%4)*60,text:'Your text',size:48,color:'#111111',bg:'#FFFFFF',align:'center',w:420};
+  const el={id,x:W*.5,y:Hnow()*.5+(n%4)*60,text:'Your text',size:48,color:'#111111',bg:'#FFFFFF',align:'center',w:420,z:state.zSeq++};
   list.push(el);return el;
 }
 function delFreetext(tid,id){
@@ -112,20 +110,64 @@ function freetextBoxSize(c,el){
   const lh=size*1.2,autoH=lines.length*lh+pad*1.5,h=Math.max(autoH,+el.h||0);
   return {size,pad,w,h,lines,lh};
 }
-function drawFreetextElements(c,W,H,t,tid){
-  const list=state.freetext[ovKey(tid)];if(!list||!list.length)return;
-  list.forEach(el=>{
-    const {size,pad,w,h,lines,lh}=freetextBoxSize(c,el);
-    objDraw(c,'obj:Freetext'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{
-      c.save();c.translate(el.x,el.y);
-      if(el.bg){c.fillStyle=el.bg;rr(c,-w/2,-h/2,w,h,14);c.fill()}
-      c.fillStyle=el.color||'#111111';const al=el.align||'center';c.textAlign=al;c.textBaseline='middle';
-      font(c,800,size,FM);
-      const tx=al==='left'?-w/2+pad:al==='right'?w/2-pad:0,y0=-((lines.length-1)*lh)/2;
-      lines.forEach((l,i)=>c.fillText(l,tx,y0+i*lh,w-pad*2));
-      c.restore();
-    });
+function drawFreetextItem(c,el){
+  const {size,pad,w,h,lines,lh}=freetextBoxSize(c,el);
+  objDraw(c,'obj:Freetext'+el.id,el.x-w/2,el.y-h/2,w,h,()=>{
+    c.save();c.translate(el.x,el.y);
+    if(el.bg){c.fillStyle=el.bg;rr(c,-w/2,-h/2,w,h,14);c.fill()}
+    c.fillStyle=el.color||'#111111';const al=el.align||'center';c.textAlign=al;c.textBaseline='middle';
+    font(c,800,size,FM);
+    const tx=al==='left'?-w/2+pad:al==='right'?w/2-pad:0,y0=-((lines.length-1)*lh)/2;
+    lines.forEach((l,i)=>c.fillText(l,tx,y0+i*lh,w-pad*2));
+    c.restore();
   });
+}
+/* ----- unified free-object stacking order -----
+   Quick elements and text boxes used to draw in two fixed passes (every quick element
+   under every text box, always). That made "send to back" / "bring to front" impossible
+   across the two kinds. Both now carry a z and are merged into one ordered list here, so
+   either kind can sit above or below the other, and a layers panel can show (and drag-
+   reorder) them as a single stack. An element saved before z existed falls back to its
+   array position (quick elements under text boxes, matching the old fixed draw order). */
+function freeList(tid){
+  const k=ovKey(tid),ql=state.quick[k]||[],fl=state.freetext[k]||[];
+  const out=[];
+  ql.forEach((el,i)=>out.push({type:'quick',id:el.id,key:'obj:Quick'+el.id,z:el.z!=null?el.z:i,el}));
+  fl.forEach((el,i)=>out.push({type:'freetext',id:el.id,key:'obj:Freetext'+el.id,z:el.z!=null?el.z:1e6+i,el}));
+  out.sort((a,b)=>a.z-b.z);
+  return out;
+}
+function drawFreeObjects(c,W,H,t,tid){
+  freeList(tid).forEach(o=>o.type==='quick'?drawQuickItem(c,o.el):drawFreetextItem(c,o.el));
+}
+function freeEntryForKey(tid,key){
+  if(key.startsWith('obj:Quick'))return{type:'quick',list:state.quick[ovKey(tid)]||[],el:(state.quick[ovKey(tid)]||[]).find(e=>'obj:Quick'+e.id===key)};
+  if(key.startsWith('obj:Freetext'))return{type:'freetext',list:state.freetext[ovKey(tid)]||[],el:(state.freetext[ovKey(tid)]||[]).find(e=>'obj:Freetext'+e.id===key)};
+  return null;
+}
+function bringToFront(tid,key){const f=freeEntryForKey(tid,key);if(!f||!f.el)return;f.el.z=state.zSeq++}
+function sendToBack(tid,key){
+  const f=freeEntryForKey(tid,key);if(!f||!f.el)return;
+  const list=freeList(tid);const minZ=list.length?Math.min(...list.map(o=>o.z)):0;
+  f.el.z=minZ-1;
+}
+function bringForward(tid,key){
+  const list=freeList(tid),i=list.findIndex(o=>o.key===key);if(i<0||i===list.length-1)return;
+  const a=list[i].el,b=list[i+1].el,za=a.z!=null?a.z:i,zb=b.z!=null?b.z:i+1;a.z=zb;b.z=za;
+}
+function sendBackward(tid,key){
+  const list=freeList(tid),i=list.findIndex(o=>o.key===key);if(i<=0)return;
+  const a=list[i].el,b=list[i-1].el,za=a.z!=null?a.z:i,zb=b.z!=null?b.z:i-1;a.z=zb;b.z=za;
+}
+/* duplicates a quick element or text box in place, offset slightly, selected on top (front) */
+function duplicateFree(tid,key){
+  const f=freeEntryForKey(tid,key);if(!f||!f.el)return null;
+  const copy=jclone(f.el);copy.id=f.type==='quick'?state.quickNextId++:state.freetextNextId++;
+  copy.x=(f.el.x||0)+28;copy.y=(f.el.y||0)+28;copy.z=state.zSeq++;
+  f.list.push(copy);
+  const newKey=(f.type==='quick'?'obj:Quick':'obj:Freetext')+copy.id;
+  const ov=ovFor(tid,key,false);if(ov)Object.assign(ovFor(tid,newKey,true),jclone(ov));
+  return newKey;
 }
 let FR=null,LAST=null,realCtx=null;
 function buildFR(tp){

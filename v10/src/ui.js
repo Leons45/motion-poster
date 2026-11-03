@@ -1,12 +1,35 @@
 /* ---------- UI ---------- */
 const cv=$('#cv'),ovc=$('#ov'),ctx=cv.getContext('2d'),octx=ovc.getContext('2d');
 const PC=wrapCtx(ctx);
-let hover=null,drag=null,GUIDE={x:false,y:false};
+let hover=null,drag=null,GUIDE={xs:[],ys:[]};
 /* in-app clipboard for Cmd/Ctrl+C / Cmd/Ctrl+V - a copy of a Quick element or a Text box,
    kept in memory (not localStorage: it's a this-session clipboard, same as the OS one is
    gone on restart). It carries no template id, so it pastes onto whichever post is open
    when you paste - including a different one from where you copied it. */
 let CLIP=null;
+/* multi-select: state.sel stays the one "primary" selection (what the right panel edits);
+   MULTI holds any additional keys selected alongside it (shift-click, or a marquee drag
+   over empty canvas). Selection itself is ephemeral UI state, like hover/drag/GUIDE above -
+   not part of the saved post, so it isn't in `state` and isn't undo/redo-tracked. */
+let MULTI=[];
+let MARQ=null;
+let GROUP_DEL=null;
+function selectedKeys(){
+  if(!state.sel||state.sel.type!=='text')return[];
+  const out=[state.sel.key];MULTI.forEach(k=>{if(k!==state.sel.key)out.push(k)});return out;
+}
+/* Shift-click a key: add it if it isn't part of the current selection, drop it if it is
+   (promoting another member to primary when the primary itself is dropped). */
+function toggleMulti(key){
+  const keys=selectedKeys();
+  if(!keys.length){select({type:'text',key});return}
+  if(key===state.sel.key){
+    if(!MULTI.length){select(null);return}
+    const next=MULTI.shift();state.sel={type:'text',key:next};buildSelPanel();return;
+  }
+  const i=MULTI.indexOf(key);
+  if(i>=0)MULTI.splice(i,1);else MULTI.push(key);
+}
 
 function fitStage(){
   const st=$('#stage'),H=Hnow(),aw=Math.max(180,st.clientWidth-32),ah=Math.max(340,Math.min(innerHeight-330,880)),s=Math.min(aw/W,ah/H);
@@ -20,7 +43,7 @@ function render(){
   ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,W,H);ctx.save();
   NT=state.t;ND=state.D;
   filmPre(ctx,W,H,state.t,state.D,state.film,!!state.sel&&!state.rec);
-  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawQuickElements(PC,W,H,state.t,tp.id);drawFreetextElements(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
+  {FR=buildFR(tp);tp.draw(PC,W,H,state.t,state.D,state.vals[tp.id],state.imgs[tp.id]);drawFreeObjects(PC,W,H,state.t,tp.id);LAST=FR;FR=null}
   ctx.restore();
   /* Background animation (leaves/snow/confetti/bubbles/hearts/sparkle): a universal layer
      on top of every template, the same way film grain or a vignette already stack on top
@@ -49,22 +72,40 @@ function drawFlip(p){
   octx.beginPath();octx.moveTo(p[0]+5,p[1]-7);octx.lineTo(p[0]+11,p[1]);octx.lineTo(p[0]+5,p[1]+7);octx.stroke();
   octx.restore();
 }
+function groupBBox(keys){
+  const boxes=keys.map(textBox).filter(Boolean);if(!boxes.length)return null;
+  return{x0:Math.min(...boxes.map(b=>b.x0)),y0:Math.min(...boxes.map(b=>b.y0)),x1:Math.max(...boxes.map(b=>b.x1)),y1:Math.max(...boxes.map(b=>b.y1))};
+}
 function drawOverlay(){
   const H=Hnow();octx.clearRect(0,0,W,H);if(state.rec)return;
   if(SAFE)drawSafe(H);
   const tp=cur();
     const hb=hover&&hover.type==='text'?textBox(hover.key):null;
-    if(hb&&!(state.sel&&state.sel.key===hover.key))outline(boxPts(hb,8),3,'rgba(37,99,235,.7)');
-    const sb=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
-    if(sb){outline(boxPts(sb,10),8,'#fff');outline(boxPts(sb,10),4,'#2563EB',[16,10]);
-      const hd=sHandles(sb);octx.save();octx.fillStyle='#fff';octx.strokeStyle='#2563EB';octx.lineWidth=5;
-      octx.beginPath();octx.rect(hd.resize[0]-15,hd.resize[1]-15,30,30);octx.fill();octx.stroke();
-      octx.beginPath();octx.moveTo((sb.x0+sb.x1)/2,sb.y0-10);octx.lineTo(hd.rotate[0],hd.rotate[1]);octx.stroke();
-      octx.beginPath();octx.arc(hd.rotate[0],hd.rotate[1],16,0,TAU);octx.fill();octx.stroke();octx.restore();drawDel(hd.del);
-      if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext'))drawFlip(hd.flip)}
-  if(GUIDE.x||GUIDE.y){octx.save();octx.strokeStyle='#E4262C';octx.lineWidth=3;octx.setLineDash([12,8]);
-    if(GUIDE.x){octx.beginPath();octx.moveTo(W/2,0);octx.lineTo(W/2,H);octx.stroke()}
-    if(GUIDE.y){octx.beginPath();octx.moveTo(0,H/2);octx.lineTo(W,H/2);octx.stroke()}octx.restore()}
+    if(hb&&!(selectedKeys().includes(hover.key)))outline(boxPts(hb,8),3,'rgba(37,99,235,.7)');
+    const keys=selectedKeys();
+    if(keys.length>1){
+      /* group selection: a thin outline on every member, plus a dashed box around the
+         whole set with one delete button - no resize/rotate handles (those stay single-object). */
+      keys.forEach(k=>{const b=textBox(k);if(b)outline(boxPts(b,6),3,'#2563EB')});
+      const gb=groupBBox(keys);
+      if(gb){outline(boxPts(gb,16),3,'#E4262C',[10,8]);
+        const dp=[clampV(gb.x1+16,24,W-24),clampV(gb.y0-16,24,H-24)];drawDel(dp);GROUP_DEL=dp;}
+    }else{
+      GROUP_DEL=null;
+      const sb=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
+      if(sb){outline(boxPts(sb,10),8,'#fff');outline(boxPts(sb,10),4,'#2563EB',[16,10]);
+        const hd=sHandles(sb);octx.save();octx.fillStyle='#fff';octx.strokeStyle='#2563EB';octx.lineWidth=5;
+        octx.beginPath();octx.rect(hd.resize[0]-15,hd.resize[1]-15,30,30);octx.fill();octx.stroke();
+        octx.beginPath();octx.moveTo((sb.x0+sb.x1)/2,sb.y0-10);octx.lineTo(hd.rotate[0],hd.rotate[1]);octx.stroke();
+        octx.beginPath();octx.arc(hd.rotate[0],hd.rotate[1],16,0,TAU);octx.fill();octx.stroke();octx.restore();drawDel(hd.del);
+        if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext'))drawFlip(hd.flip)}
+    }
+  if(GUIDE.xs.length||GUIDE.ys.length){octx.save();octx.strokeStyle='#E4262C';octx.lineWidth=3;octx.setLineDash([12,8]);
+    GUIDE.xs.forEach(gx=>{octx.beginPath();octx.moveTo(gx,0);octx.lineTo(gx,H);octx.stroke()});
+    GUIDE.ys.forEach(gy=>{octx.beginPath();octx.moveTo(0,gy);octx.lineTo(W,gy);octx.stroke()});octx.restore()}
+  if(MARQ){octx.save();octx.strokeStyle='#2563EB';octx.fillStyle='rgba(37,99,235,.12)';octx.lineWidth=2;octx.setLineDash([6,5]);
+    const x0=Math.min(MARQ.x0,MARQ.x1),y0=Math.min(MARQ.y0,MARQ.y1),w=Math.abs(MARQ.x1-MARQ.x0),h=Math.abs(MARQ.y1-MARQ.y0);
+    octx.fillRect(x0,y0,w,h);octx.strokeRect(x0,y0,w,h);octx.restore()}
 }
 
 /* ----- undo / redo ----- */
@@ -160,7 +201,7 @@ function btn(parent,label,fn,cls){const b=el('button','btn sm'+(cls?' '+cls:''),
 
 /* ----- selection ----- */
 function select(sel,opts){
-  state.sel=sel;buildSelPanel();
+  state.sel=sel;if(!(opts&&opts.keepMulti))MULTI=[];buildSelPanel();if(typeof buildLayers==='function')buildLayers();
   /* opts.silent: selecting by focusing the Content field on the right already puts the
      person right where they need to be, so don't also scroll/flash the panel at them —
      that's only useful when the selection came from clicking the artboard. */
@@ -277,13 +318,21 @@ function selLabel(){
   const tp=cur(),s=state.sel;
   if(!s||s.type!=='text')return '';return s.key.startsWith('obj:')?objLabel(s.key):((tp.fields.find(f=>f.k===s.key)||{}).l||s.key);
 }
+function deleteOneKey(tp,key){
+  if(key.startsWith('obj:Quick')){delQuick(tp.id,+key.slice(9));return}
+  if(key.startsWith('obj:Freetext')){delFreetext(tp.id,+key.slice(12));return}
+  ovFor(tp.id,key,true).hide=true;
+}
 function deleteSelected(){
-  if(state.rec)return;const tp=cur(),nm=selLabel();
-  const s=state.sel;if(!s||s.type!=='text')return;
-  if(s.key.startsWith('obj:Quick')){delQuick(tp.id,+s.key.slice(9));select(null);buildQuick();dirty();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
-  if(s.key.startsWith('obj:Freetext')){delFreetext(tp.id,+s.key.slice(12));select(null);buildFreetext();dirty();toast('Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.');return}
-  ovFor(tp.id,s.key,true).hide=true;select(null);dirty();buildSelPanel();
-  toast('Removed \u201c'+nm+'\u201d. Press Undo, or Restore in the Object tab, to bring it back.');
+  if(state.rec)return;const tp=cur();
+  const keys=selectedKeys();if(!keys.length)return;
+  if(keys.length===1){
+    const nm=selLabel(),key=keys[0];deleteOneKey(tp,key);select(null);buildQuick();buildFreetext();dirty();buildSelPanel();
+    toast(key.startsWith('obj:')?'Deleted \u201c'+nm+'\u201d. Press Undo to bring it back.':'Removed \u201c'+nm+'\u201d. Press Undo, or Restore in the Object tab, to bring it back.');
+    return;
+  }
+  keys.forEach(k=>deleteOneKey(tp,k));select(null);buildQuick();buildFreetext();dirty();buildSelPanel();
+  toast('Deleted '+keys.length+' items. Press Undo to bring them back.');
 }
 const hiddenKeys=tp=>Object.entries(state.ovr[ovKey(tp.id)]||{}).filter(([k,o])=>o&&o.hide).map(([k])=>k);
 const keyLabel=(tp,k)=>k.startsWith('obj:')?objLabel(k):((tp.fields.find(f=>f.k===k)||{}).l||k);
@@ -491,6 +540,7 @@ function buildQuick(){
   Object.keys(QUICK_KINDS).forEach(k=>{const o=el('option');o.value=k;o.textContent=QUICK_KINDS[k].name;sel.append(o)});
   add.append(sel);btn(add,'Add',()=>{const e=addQuick(tp.id,sel.value);select({type:'text',key:'obj:Quick'+e.id});buildQuick();dirty()},'primary');
   box.append(add);
+  buildLayers();
 }
 function buildFreetext(){
   const sect=$('#sectFreetext');if(!sect)return;
@@ -506,7 +556,60 @@ function buildFreetext(){
   const add=el('div','addrow');
   btn(add,'Add text box',()=>{const e=addFreetext(tp.id);select({type:'text',key:'obj:Freetext'+e.id});buildFreetext();dirty()},'primary');
   box.append(add);
+  buildLayers();
 }
+/* ----- layers: every sticker and text box on this post, front-most first - the same
+   free objects the Quick/Text-box lists above add, just shown as one restackable stack
+   (drag handles move it in canvas space; these arrows move it in stacking order). ----- */
+function buildLayers(){
+  const sect=$('#sectLayers');if(!sect)return;
+  const tp=cur(),list=freeList(tp.id);
+  sect.hidden=false;
+  const box=$('#layersBox');if(!box)return;box.innerHTML='';
+  if(!list.length){box.append(el('p','note','Stickers and text boxes you add show up here, front-most first, so you can restack them without hunting for each one on the canvas.'));return}
+  const sel=selectedKeys();
+  [...list].reverse().forEach((o,i,arr)=>{
+    const row=el('div','layerrow'+(sel.includes(o.key)?' on':''));
+    const nm=el('button','laynm2',objLabel(o.key));nm.type='button';
+    nm.title=sel.length>1?'Click to select — shift-click to add/remove from the selection':'Click to select';
+    nm.addEventListener('click',e=>{if(e.shiftKey){toggleMulti(o.key);buildSelPanel();buildLayers()}else select({type:'text',key:o.key})});
+    row.append(nm);
+    const up=el('button','btn xs','▲');up.type='button';up.title='Bring forward';up.disabled=i===0;
+    up.addEventListener('click',()=>{bringForward(tp.id,o.key);buildLayers();dirty()});
+    const dn=el('button','btn xs','▼');dn.type='button';dn.title='Send backward';dn.disabled=i===arr.length-1;
+    dn.addEventListener('click',()=>{sendBackward(tp.id,o.key);buildLayers();dirty()});
+    const del=el('button','btn xs danger','✕');del.type='button';del.title='Delete';
+    del.addEventListener('click',()=>{deleteOneKey(tp,o.key);if(state.sel&&state.sel.key===o.key)state.sel=null;MULTI=MULTI.filter(k=>k!==o.key);buildSelPanel();buildQuick();buildFreetext();dirty()});
+    row.append(up,dn,del);box.append(row);
+  });
+}
+/* ----- right-click menu: duplicate / restack / delete, without hunting through panels ----- */
+let ctxMenuEl=null;
+function closeCtxMenu(){if(ctxMenuEl){ctxMenuEl.remove();ctxMenuEl=null}}
+document.addEventListener('mousedown',e=>{if(ctxMenuEl&&!ctxMenuEl.contains(e.target))closeCtxMenu()});
+addEventListener('blur',closeCtxMenu);addEventListener('resize',closeCtxMenu);
+ovc.addEventListener('contextmenu',e=>{
+  e.preventDefault();closeCtxMenu();
+  if(state.rec)return;const [x,y]=toCanvas(e),tp=cur(),k=hitText(x,y);
+  if(!k)return;
+  const already=selectedKeys();
+  if(!(already.length>1&&already.includes(k)))select({type:'text',key:k});
+  const keys=selectedKeys(),reord=keys.filter(kk=>kk.startsWith('obj:'));
+  const wrap=$('#cvwrap'),r=ovc.getBoundingClientRect();
+  const m=el('div','ctxmenu');
+  m.style.left=clampV(e.clientX-r.left,4,r.width-4)+'px';m.style.top=clampV(e.clientY-r.top,4,r.height-4)+'px';
+  function item(label,fn,disabled){const b=el('button','ctxitem',label);b.type='button';if(disabled){b.disabled=true}else b.addEventListener('click',()=>{fn();closeCtxMenu()});m.append(b);return b}
+  item(reord.length>1?'Duplicate ('+reord.length+')':'Duplicate',()=>{
+    const made=reord.map(kk=>duplicateFree(tp.id,kk)).filter(Boolean);
+    if(made.length){buildQuick();buildFreetext();state.sel={type:'text',key:made[0]};MULTI=made.slice(1);buildSelPanel();buildLayers();dirty()}
+  },!reord.length);
+  item('Bring to front',()=>{reord.forEach(kk=>bringToFront(tp.id,kk));buildQuick();buildFreetext();dirty()},!reord.length);
+  item('Bring forward',()=>{reord.forEach(kk=>bringForward(tp.id,kk));buildQuick();buildFreetext();dirty()},!reord.length);
+  item('Send backward',()=>{reord.forEach(kk=>sendBackward(tp.id,kk));buildQuick();buildFreetext();dirty()},!reord.length);
+  item('Send to back',()=>{reord.forEach(kk=>sendToBack(tp.id,kk));buildQuick();buildFreetext();dirty()},!reord.length);
+  item(keys.length>1?'Delete ('+keys.length+')':'Delete',()=>deleteSelected(),false).classList.add('danger');
+  wrap.append(m);ctxMenuEl=m;
+});
 const LAYOUT_ORDER=['sunray','gallery','ticket','diagonal','arch','circle','split','fullbleed','corner','poster','card','badge'];
 const SIGNATURE=new Set(['gallery','arch','diagonal','sunray','ticket']);
 function buildLayoutGallery(box,tp){
@@ -783,14 +886,41 @@ $('#scrub').addEventListener('input',e=>{if(state.rec)return;state.playing=false
 /* ----- canvas interaction ----- */
 const toCanvas=e=>{const r=ovc.getBoundingClientRect();return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*Hnow()/r.height]};
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+/* Entrance animations (pop-ins, slides) keep moving the canvas position of whatever's
+   selected while the post is playing - fighting a manual drag/resize/rotate and making it
+   feel jumpy. Freeze on whatever pose is showing, in place (no time jump), the instant an
+   on-canvas interaction starts; "Edit view" still exists for jumping to the settled pose
+   ahead of time, this just makes grabbing something mid-animation not fight you too. */
+function pauseIfPlaying(){if(state.playing){state.playing=false;$('#playBtn').textContent='Play'}}
+/* Every key with a known box this frame - template fields and quick/freetext objects -
+   used for marquee selection and for snapping a drag against other elements' edges. */
+function allSelectableKeys(){
+  const fieldKeys=(LAST&&LAST.fields||[]).map(f=>f.key),objKeys=(LAST&&LAST.objs)||[];
+  return[...new Set([...fieldKeys,...objKeys])];
+}
+/* Snap a moving box's x0/centre/x1 and y0/centre/y1 against the canvas centre and every
+   other element's matching edges/centre, Canva-style - not just the canvas centre line. */
+function computeSnap(box,dx,dy,excludeKeys){
+  const H=Hnow(),TH=10,nb={x0:box.x0+dx,y0:box.y0+dy,x1:box.x1+dx,y1:box.y1+dy},cx=(nb.x0+nb.x1)/2,cy=(nb.y0+nb.y1)/2;
+  const candX=[W/2],candY=[H/2];
+  allSelectableKeys().forEach(k=>{if(excludeKeys.includes(k))return;const b=textBox(k);if(!b)return;
+    candX.push(b.x0,(b.x0+b.x1)/2,b.x1);candY.push(b.y0,(b.y0+b.y1)/2,b.y1)});
+  let dxAdj=0,bestXd=TH,gx=null,dyAdj=0,bestYd=TH,gy=null;
+  [nb.x0,cx,nb.x1].forEach(v=>candX.forEach(c=>{const d=Math.abs(v-c);if(d<bestXd){bestXd=d;dxAdj=c-v;gx=c}}));
+  [nb.y0,cy,nb.y1].forEach(v=>candY.forEach(c=>{const d=Math.abs(v-c);if(d<bestYd){bestYd=d;dyAdj=c-v;gy=c}}));
+  return{dx:dx+dxAdj,dy:dy+dyAdj,gx,gy};
+}
 ovc.addEventListener('pointerdown',e=>{
   if(state.rec)return;const [x,y]=toCanvas(e),tp=cur();
   {
-    const sb0=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
+    if(GROUP_DEL&&dist(GROUP_DEL,[x,y])<28){deleteSelected();return}
+    const singleSel=selectedKeys().length<=1;
+    const sb0=singleSel&&state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;
     if(sb0){const hd=sHandles(sb0),an=LAST&&LAST.anch[state.sel.key],o0=ovFor(tp.id,state.sel.key,true),isObj0=state.sel.key.startsWith('obj:');
       if(dist(hd.del,[x,y])<28){deleteSelected();return}
       if(isObj0&&!state.sel.key.startsWith('obj:Freetext')&&dist(hd.flip,[x,y])<28){o0.flip=!o0.flip;buildSelPanel();dirty();return}
       if(an&&dist(hd.resize,[x,y])<40){
+        pauseIfPlaying();
         if(state.sel.key.startsWith('obj:Freetext')){
           const fid=+state.sel.key.slice(12),fe=(state.freetext[ovKey(tp.id)]||[]).find(x=>x.id===fid);
           /* a text box resizes itself (its own w/h, measured fresh here), never the generic
@@ -800,22 +930,53 @@ ovc.addEventListener('pointerdown',e=>{
         }
         drag={mode:'sresize',key:state.sel.key,a:an,sc0:o0.sc,d0:Math.max(20,dist(hd.resize,[an.x,an.y]))};ovc.setPointerCapture(e.pointerId);return;
       }
-      if(an&&dist(hd.rotate,[x,y])<40){drag={mode:'srotate',key:state.sel.key,a:an,r0:o0.rot,g0:Math.atan2(y-an.y,x-an.x)};ovc.setPointerCapture(e.pointerId);return}}
+      if(an&&dist(hd.rotate,[x,y])<40){pauseIfPlaying();drag={mode:'srotate',key:state.sel.key,a:an,r0:o0.rot,g0:Math.atan2(y-an.y,x-an.x)};ovc.setPointerCapture(e.pointerId);return}}
     const k=hitText(x,y);
-    if(k){select({type:'text',key:k});const o=ovFor(tp.id,k,true);drag={mode:'move',key:k,ox:o.dx,oy:o.dy,sx:x,sy:y,box:textBox(k)}}else{select(null);const bb=document.getElementById('bgBar');if(bb&&!bb.hidden)flashEl(bb)}
+    if(k&&e.shiftKey){
+      toggleMulti(k);buildSelPanel();
+      const keys=selectedKeys();
+      if(keys.includes(k)){
+        pauseIfPlaying();
+        const starts=keys.map(kk=>{const o=ovFor(tp.id,kk,true);return{key:kk,ox:o.dx,oy:o.dy}});
+        drag={mode:'groupmove',keys,starts,sx:x,sy:y,box:groupBBox(keys)};ovc.setPointerCapture(e.pointerId);
+      }
+      return;
+    }
+    if(k){
+      const already=selectedKeys();
+      if(already.length>1&&already.includes(k)){
+        pauseIfPlaying();
+        const starts=already.map(kk=>{const o=ovFor(tp.id,kk,true);return{key:kk,ox:o.dx,oy:o.dy}});
+        drag={mode:'groupmove',keys:already,starts,sx:x,sy:y,box:groupBBox(already)};ovc.setPointerCapture(e.pointerId);return;
+      }
+      select({type:'text',key:k});pauseIfPlaying();const o=ovFor(tp.id,k,true);drag={mode:'move',key:k,ox:o.dx,oy:o.dy,sx:x,sy:y,box:textBox(k)};
+    }else{
+      /* empty canvas: could be a plain deselect click, or the start of a marquee drag -
+         decided on pointerup by how far the pointer actually moved. */
+      MARQ={x0:x,y0:y,x1:x,y1:y};
+    }
   }
   if(drag)ovc.setPointerCapture(e.pointerId);
 });
 ovc.addEventListener('pointermove',e=>{
   const [x,y]=toCanvas(e),tp=cur(),H=Hnow();
+  if(MARQ){MARQ.x1=x;MARQ.y1=y;return}
   if(!drag){
     {const k=hitText(x,y);hover=k?{type:'text',key:k}:null;let cu=k?'move':'default';
-      const sb1=state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;if(sb1){const hd=sHandles(sb1);if(dist(hd.del,[x,y])<28)cu='pointer';else if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext')&&dist(hd.flip,[x,y])<28)cu='pointer';else if(dist(hd.resize,[x,y])<40)cu='nwse-resize';else if(dist(hd.rotate,[x,y])<40)cu='grab'}
+      if(GROUP_DEL&&dist(GROUP_DEL,[x,y])<28)cu='pointer';
+      const singleSel=selectedKeys().length<=1;
+      const sb1=singleSel&&state.sel&&state.sel.type==='text'?textBox(state.sel.key):null;if(sb1){const hd=sHandles(sb1);if(dist(hd.del,[x,y])<28)cu='pointer';else if(state.sel.key.startsWith('obj:')&&!state.sel.key.startsWith('obj:Freetext')&&dist(hd.flip,[x,y])<28)cu='pointer';else if(dist(hd.resize,[x,y])<40)cu='nwse-resize';else if(dist(hd.rotate,[x,y])<40)cu='grab'}
       ovc.style.cursor=cu;ovc.title=k?('Click to edit: '+(k.startsWith('obj:')?objLabel(k):((cur().fields.find(f=>f.k===k)||{}).l||k))):''}
     return;
   }
-  GUIDE.x=GUIDE.y=false;
+  GUIDE.xs=[];GUIDE.ys=[];
   {
+    if(drag.mode==='groupmove'){
+      const snap=computeSnap(drag.box,x-drag.sx,y-drag.sy,drag.keys);
+      GUIDE.xs=snap.gx!=null?[snap.gx]:[];GUIDE.ys=snap.gy!=null?[snap.gy]:[];
+      drag.starts.forEach(s=>{const o=ovFor(tp.id,s.key,true);o.dx=Math.round(s.ox+snap.dx);o.dy=Math.round(s.oy+snap.dy)});
+      return;
+    }
     const o=ovFor(tp.id,drag.key,true);
     if(drag.mode==='sresize'){o.sc=Math.max(.1,Math.min(5,Math.round(drag.sc0*dist([x,y],[drag.a.x,drag.a.y])/drag.d0*100)/100))}
     else if(drag.mode==='fresize'){
@@ -823,13 +984,29 @@ ovc.addEventListener('pointermove',e=>{
       drag.fe.w=Math.max(80,Math.round(drag.w0*r));drag.fe.h=Math.max(30,Math.round(drag.h0*r));
     }
     else if(drag.mode==='srotate'){let r=drag.r0+(Math.atan2(y-drag.a.y,x-drag.a.x)-drag.g0)*180/Math.PI;if(e.shiftKey)r=Math.round(r/15)*15;r=((r+540)%360)-180;o.rot=Math.round(r)}
-    else if(drag.mode==='move'){let nx=drag.ox+x-drag.sx,ny=drag.oy+y-drag.sy;
-      if(drag.box){const cx=(drag.box.x0+drag.box.x1)/2+(nx-drag.ox);if(Math.abs(cx-W/2)<12){nx+=W/2-cx;GUIDE.x=true}}
-      o.dx=Math.round(nx);o.dy=Math.round(ny)}
+    else if(drag.mode==='move'){
+      if(drag.box){const snap=computeSnap(drag.box,x-drag.sx,y-drag.sy,[drag.key]);
+        o.dx=Math.round(drag.ox+snap.dx);o.dy=Math.round(drag.oy+snap.dy);
+        GUIDE.xs=snap.gx!=null?[snap.gx]:[];GUIDE.ys=snap.gy!=null?[snap.gy]:[];
+      }else{o.dx=Math.round(drag.ox+x-drag.sx);o.dy=Math.round(drag.oy+y-drag.sy)}
+    }
   }
 });
 function buildPosLive(){/* position inputs refresh on pointer up */}
-const endDrag=()=>{if(drag){drag=null;GUIDE.x=GUIDE.y=false;buildSelPanel();dirty()}};
+const endDrag=()=>{
+  if(MARQ){
+    const dx=MARQ.x1-MARQ.x0,dy=MARQ.y1-MARQ.y0;
+    if(Math.hypot(dx,dy)>4){
+      const rx0=Math.min(MARQ.x0,MARQ.x1),rx1=Math.max(MARQ.x0,MARQ.x1),ry0=Math.min(MARQ.y0,MARQ.y1),ry1=Math.max(MARQ.y0,MARQ.y1);
+      const hit=allSelectableKeys().filter(k=>{const b=textBox(k);if(!b)return false;
+        return b.x1>=rx0&&b.x0<=rx1&&b.y1>=ry0&&b.y0<=ry1;});
+      if(hit.length){state.sel={type:'text',key:hit[0]};MULTI=hit.slice(1);buildSelPanel()}
+      else{select(null);const bb=document.getElementById('bgBar');if(bb&&!bb.hidden)flashEl(bb)}
+    }else{select(null);const bb=document.getElementById('bgBar');if(bb&&!bb.hidden)flashEl(bb)}
+    MARQ=null;
+  }
+  if(drag){drag=null;GUIDE.xs=[];GUIDE.ys=[];buildSelPanel();dirty()}
+};
 ovc.addEventListener('pointerup',endDrag);ovc.addEventListener('pointercancel',endDrag);
 ovc.addEventListener('pointerleave',()=>{if(!drag)hover=null});
 ovc.addEventListener('dragover',e=>e.preventDefault());
@@ -928,13 +1105,22 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Space'&&tag!=='BUTTON'){e.preventDefault();$('#playBtn').click();return}
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(!state.rec){e.shiftKey?redo():undo()}return}
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='y'){e.preventDefault();if(!state.rec)redo();return}
-  if(e.key==='Escape'){select(null);return}
+  if(e.key==='Escape'){MARQ=null;closeCtxMenu();select(null);return}
   const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
-  if(arrows[e.key]&&state.sel){
+  if(arrows[e.key]&&selectedKeys().length){
     e.preventDefault();const [ax,ay]=arrows[e.key];
-    if(state.sel.type==='text'){const o=ovFor(tp.id,state.sel.key,true);o.dx+=ax*step;o.dy+=ay*step;buildSelPanel();dirty()}
+    selectedKeys().forEach(k=>{const o=ovFor(tp.id,k,true);o.dx+=ax*step;o.dy+=ay*step});
+    buildSelPanel();dirty();
   }
-  if((e.key==='Delete'||e.key==='Backspace')&&state.sel){e.preventDefault();deleteSelected();return}
+  if((e.key==='Delete'||e.key==='Backspace')&&selectedKeys().length){e.preventDefault();deleteSelected();return}
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='d'){
+    const keys=selectedKeys().filter(k=>k.startsWith('obj:'));
+    if(keys.length){e.preventDefault();
+      const made=keys.map(k=>duplicateFree(tp.id,k)).filter(Boolean);
+      if(made.length){buildQuick();buildFreetext();state.sel={type:'text',key:made[0]};MULTI=made.slice(1);buildSelPanel();dirty();toast(made.length>1?'Duplicated '+made.length+' items.':'Duplicated.')}
+    }
+    return;
+  }
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='c'){
     if(state.sel&&state.sel.type==='text'&&state.sel.key.startsWith('obj:')){
       e.preventDefault();const k=state.sel.key,ovSrc=jclone(ovFor(tp.id,k,true));

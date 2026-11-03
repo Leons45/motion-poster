@@ -106,6 +106,21 @@ h4.grp:first-child{margin-top:0}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
 .addrow{display:flex;gap:8px;margin:10px 0}
 .addrow select{flex:1;min-width:0}
+
+/* layers list: front-most first, drag handles stay on canvas - these are just restack controls */
+.layerrow{display:flex;align-items:center;gap:5px;padding:4px;border-radius:8px;margin-bottom:4px}
+.layerrow.on{background:color-mix(in srgb,var(--acc) 18%,var(--surface))}
+.laynm2{flex:1;min-width:0;text-align:left;padding:6px 8px;border:1px solid transparent;border-radius:7px;background:transparent;color:inherit;font:600 12.5px var(--f-ui);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.laynm2:hover{border-color:var(--line);background:var(--field)}
+.layerrow .btn.xs{padding:3px 7px;line-height:1}
+
+/* right-click menu: duplicate / restack / delete without leaving the canvas */
+.ctxmenu{position:absolute;z-index:8;min-width:170px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:5px;display:flex;flex-direction:column}
+.ctxitem{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:var(--ink);font:600 12.5px var(--f-ui);cursor:pointer}
+.ctxitem:hover:not(:disabled){background:var(--field)}
+.ctxitem:disabled{opacity:.4;cursor:default}
+.ctxitem.danger{color:#D92D20}
+.ctxitem.danger:hover{background:#D92D20;color:#fff}
 .btn.xs{padding:3px 7px;font-size:11px}
 .fld.chk{display:flex;align-items:center;gap:8px}
 .fld.chk>span{margin:0}
