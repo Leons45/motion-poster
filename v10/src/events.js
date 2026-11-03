@@ -611,7 +611,7 @@ const LAYOUTS={gallery:layoutGallery,arch:layoutArch,diagonal:layoutDiagonal,sun
 function evFields(def){
   const base={num:'',head:'HEADLINE\nHERE',kicker:'FOR A LIMITED TIME',
     pre:'UP TO',off:'50% OFF',osub:'SELECT ITEMS',flab:'STARTING FROM',fprice:'$599',seal:'',
-    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',disc:'#ffffff',boxStyle:'rounded',maple:'yes',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
+    mcol:'#111111',acc:'#C8102E',bg1:'#FFE81A',bg2:'#E8C600',disc:'#ffffff',boxStyle:'rounded',maple:'no',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'};
   const v=Object.assign({},base,def);
   return [STYLE_FIELD,layoutField(def&&def.layout),MCOL_FIELD,BOX_FIELD,
     {k:'disc',l:'Backdrop shape colour (Sunray disc, Ticket card)',t:'color',v:v.disc},

@@ -84,7 +84,7 @@ const MCOL_FIELD={k:'mcol',l:'Masthead colour',t:'color',v:'#111111'};
 const BOX_FIELD={k:'boxStyle',l:'Box style (cards, pills, badges)',t:'select',v:'rounded',o:Object.keys(BOX_STYLES).map(k=>[k,BOX_STYLES[k].name])};
 const T_LEONS=[
 {id:'lcircle',name:'Circle Masthead Sale',sub:'Black circle masthead, hero product on an arc, red starting-price bar',
- fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'yes',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
+ fields:[STYLE_FIELD,MCOL_FIELD,BOX_FIELD,{k:'num',l:'Big number',t:'text',v:'100'},{k:'head',l:'Headline',t:'area',v:'SUPER SOFA\nSALE!'},{k:'pre',l:'Offer prefix',t:'text',v:'UP TO'},{k:'off',l:'Offer',t:'text',v:'50% OFF'},{k:'osub',l:'Offer sub line',t:'text',v:'SELECT FABRIC SOFAS'},{k:'flab',l:'Footer label (blank hides bar)',t:'text',v:'STARTING FROM'},{k:'fprice',l:'Footer price',t:'text',v:'$599'},{k:'maple',l:'Made in Canada (yes/no)',t:'select',v:'no',o:['yes','no']},{k:'bg1',l:'Background centre',t:'color',v:'#FFE81A'},{k:'bg2',l:'Background edge',t:'color',v:'#E8C600'}],
  images:[{k:'p',l:'Product photo'}],
  draw(c,W,H,t,D,F,I){
   const ST=postStyle();
