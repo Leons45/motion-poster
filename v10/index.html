@@ -1478,8 +1478,8 @@ const T_LEONS=[
    across 5 shared structural layouts so any category can use any composition. ---------- */
 const EVENT_CATS=[
   ['megasale','Mega Sale'],['appreciation','Appreciation'],
-  ['supersale','Super Sale'],['seasonal','Seasonal'],['blackfriday','Black Friday'],
-  ['buymore','Buy More Save More'],['clearance','Clearance'],['newarrivals','New Arrivals'],['delivery','Free Delivery']
+  ['supersale','Super Sale'],['seasonal','Seasonal'],
+  ['buymore','Buy More Save More'],['newarrivals','New Arrivals'],['delivery','Free Delivery']
 ];
 const LAYOUT_NAMES={circle:'Circle masthead',split:'Split panel',fullbleed:'Full-bleed photo',corner:'Corner badge',poster:'Centred poster',card:'Photo + content card',badge:'Title + offer badge',gallery:'Signature: Gallery',arch:'Signature: Arch',diagonal:'Signature: Diagonal',sunray:'Signature: Sunray',ticket:'Signature: Ticket'};
 /* A function, not a shared object: each event template needs its OWN field object with
@@ -2126,16 +2126,10 @@ const T_EVENTS=[
   {id:'ev_seasonal',name:'Seasonal Savings',sub:'Flexible seasonal/holiday promo — swap colours per occasion',cat:'seasonal',
   fields:evFields({layout:'gallery',head:'SEASONAL\nSAVINGS',kicker:'FOR A LIMITED TIME',off:'40% OFF',osub:'SELECT FURNITURE',flab:'STARTING FROM',fprice:'$399',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_blackfriday',name:'Black Friday',sub:'High-contrast black/yellow doorbuster push',cat:'blackfriday',
-  fields:evFields({layout:'arch',num:'',pre:'',head:'BLACK\nFRIDAY',kicker:'DOORBUSTERS',off:'UP TO 60%',osub:'OFF STOREWIDE',flab:'STARTING FROM',fprice:'$299',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_buymore',name:'Buy More, Save More',sub:'Tiered savings — the more they spend the more they save',cat:'buymore',
+  {id:'ev_buymore',name:'Buy More, Save More',sub:'Tiered savings — the more they spend the more they save',cat:'buymore',
   fields:evFields({layout:'card',pre:'',head:'BUY MORE,\nSAVE MORE',kicker:'SPEND MORE · SAVE MORE',off:'SAVE UP TO $1,000',osub:'ON SELECT FURNITURE · ASK IN STORE',flab:'ON ORDERS OVER',fprice:'$3,000',bg1:'#FFE81A',bg2:'#E8C600',mcol:'#111111',acc:'#C8102E',since:'PROUDLY CANADIAN \u00b7 SINCE 1909'}),
   images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_clearance',name:'Clearance Event',sub:'Last-chance clearance — red, loud, urgent',cat:'clearance',
-  fields:evFields({layout:'diagonal',head:'CLEARANCE\nEVENT',kicker:'LAST CHANCE',off:'UP TO 70% OFF',osub:'WHILE QUANTITIES LAST',flab:'FROM',fprice:'$199',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#C8102E'}),
-  images:[{k:'p',l:'Product photo'}].concat(EV_EXTRA),draw:evDraw},
- {id:'ev_newarrivals',name:'New Arrivals',sub:'Lifestyle photo first — fresh collections and launches',cat:'newarrivals',
+  {id:'ev_newarrivals',name:'New Arrivals',sub:'Lifestyle photo first — fresh collections and launches',cat:'newarrivals',
   fields:evFields({layout:'fullbleed',pre:'',head:'NEW\nARRIVALS',kicker:'JUST LANDED',off:'SHOP THE COLLECTION',osub:'IN STORE & ONLINE AT LEONS.CA',flab:'FROM',fprice:'$799',bg1:'#111111',bg2:'#000000',mcol:'#111111',acc:'#FFE81A'}),
   images:[{k:'p',l:'Lifestyle photo'}].concat(EV_EXTRA),draw:evDraw},
  {id:'ev_delivery',name:'Free Delivery',sub:'Service message — delivery, assembly, easy returns',cat:'delivery',
