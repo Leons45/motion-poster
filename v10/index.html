@@ -3990,37 +3990,56 @@ document.fonts.addEventListener('loadingdone',()=>{paintThumbs();fontNote()});
 Promise.race([Promise.all([document.fonts.load('900 40px "Proxima Nova"'),document.fonts.load('800 40px "Proxima Soft"'),document.fonts.load('900 40px "proxima-nova"'),document.fonts.load('800 40px "proxima-soft"'),document.fonts.load('900 40px Nunito'),document.fonts.load('800 40px Montserrat'),document.fonts.load('700 40px Montserrat')]),new Promise(r=>setTimeout(r,2500))]).then(()=>{paintThumbs();fontNote()}).catch(()=>{});
 
 /* ---------- Quick Generate ----------
-   One small form mapped onto a SMALL, deliberately curated set of the
-   studio's own templates - only the ones whose fields are a genuinely
-   generic "headline + offer + optional sub + optional price" shape, so
-   nothing here forces a fixed concept (free delivery, a rewards program,
-   a floating price card with a baked-in product name) to wear a headline
-   it was never written for. Blank input fields are CLEARED on their
-   template (not left at factory defaults), because a left-over default
-   is exactly what produced incoherent, overlapping posts before: a
-   "100" nobody asked for, a price bar nobody filled in, a second line
-   that only made sense paired with different first line.
+   One small form mapped onto a SMALL, deliberately curated set of
+   layouts - not templates. Early versions picked four different
+   TEMPLATES (ev_megasale, ev_seasonal, lcircle, lclean) and kept
+   whatever photo zone each one happened to ship with. That was the
+   actual cause of the "0% design knowledge" complaint: lcircle and
+   lclean each reserve a small, FIXED-size photo box sized for a dense,
+   fully-filled post, and when Quick Generate's minimal 2-field input
+   leaves everything else blank, that box just sits there as dead
+   space - no amount of clearing stale text fixes a layout whose empty
+   space isn't content-driven to begin with.
 
-   Every generated candidate is then measured with the studio's own
-   Design-check engine (lintCurrent(), the same one behind the "Design
-   check" chip) before it's shown - a candidate with a real overlap,
-   margin violation or illegibly small line is dropped rather than
-   displayed, so what reaches the grid has already passed the same bar
-   as a hand-built post. */
+   The studio's own event-post engine already solves exactly this: every
+   ev_* template can render through any of its 12 shared LAYOUTS
+   (events.js), and two of them - 'fullbleed' and 'badge' - use the
+   product photo as a full-canvas cover-fit BACKGROUND rather than a
+   box floating in empty space, with every text block individually
+   gated on having real content (see layoutFullbleed/layoutBadge: each
+   line only takes space if its field is non-empty). A photo that
+   covers 100% of the canvas can't leave dead space, and a headline
+   stack that collapses around whatever's actually filled in can't
+   show stale leftovers either. So instead of 4 templates, Quick
+   Generate now offers 4 LAYOUT VARIANTS across the two event templates
+   whose "off" line is a genuinely generic offer slot.
 
-/* Templates whose field schema is concept-neutral enough to auto-fill safely.
-   Left out on purpose: ev_appreciation/ev_buymore/ev_newarrivals/ev_delivery
-   (their "off" line is a fixed concept - rewards %, spend tiers, "shop the
-   collection", "free" - not a generic offer slot) and lcallout (its price
-   card has no equivalent field in this simple form, so it would always show
-   a stale placeholder product name/price with no clean way to hide it). */
-const QG_IDS=['ev_megasale','ev_seasonal','lcircle','lclean'];
+   Blank input fields are still CLEARED on their template (not left at
+   factory defaults) for the same reason as before: a left-over default
+   is what produced incoherent, overlapping posts and fabricated-looking
+   numbers. Every candidate is then measured with the studio's own
+   Design-check engine (lintCurrent()) before it's shown - a candidate
+   with a real overlap, margin violation or illegibly small line is
+   dropped rather than displayed. */
+
+/* Event templates whose field schema is concept-neutral (a real "offer"
+   slot, not a fixed concept like rewards-% or free-delivery), each paired
+   with the two full-bleed-photo layouts. Left out on purpose: lcircle/
+   lclean (fixed small photo zone - see above), ev_appreciation/ev_buymore/
+   ev_newarrivals/ev_delivery (fixed-concept offer line) and lcallout (its
+   price card has no equivalent field in this simple form). */
+const QG_VARIANTS=[
+  {id:'ev_megasale',layout:'fullbleed',label:'Full-bleed photo'},
+  {id:'ev_megasale',layout:'badge',label:'Circle badge'},
+  {id:'ev_seasonal',layout:'fullbleed',label:'Full-bleed photo'},
+  {id:'ev_seasonal',layout:'badge',label:'Circle badge'}
+];
 
 const QG_INPUT={headline:'',offer:'',offerSub:'',footerLabel:'',footerPrice:'',photo:null,photoUrl:''};
 
 function qgDefaults(tp){const F={};tp.fields.forEach(f=>F[f.k]=f.v);return F}
 
-function qgMapFields(tp,input){
+function qgMapFields(tp,input,layout){
   const F=qgDefaults(tp);
   const has=k=>k in F;
   const headline=(input.headline||'').trim(), offer=(input.offer||'').trim(),
@@ -4039,19 +4058,15 @@ function qgMapFields(tp,input){
   if(has('off'))F.off=offer;
   if(has('osub'))F.osub=offerSub; // clear when blank - a factory sub-line was written for the factory offer, not this one
   if(has('flab')&&has('fprice')){F.flab=showPrice?(footerLabel||'STARTING FROM'):'';F.fprice=showPrice?footerPrice:''}
-  if(tp.id==='lcircle'){
-    /* Leave "num" blank rather than guess a figure from the offer text: lcircle
-       splits its masthead band between the number and the headline, so any
-       number at all shrinks the headline - and a guessed one (e.g. parsing
-       "50" out of "50% off") duplicates the real offer figure for no reason.
-       Blank skips that row entirely and gives the headline the full band. */
-    F.num='';
-    F.pre=''; // "UP TO" was tuned for the factory copy; let the typed offer stand on its own
-  }
-  if(tp.id==='lclean'){
-    F.l1=headline||F.l1;
-    F.l2=offerSub; // clear when blank, rather than keep a line written to pair with a different l1
-  }
+  if(has('num'))F.num=''; // only circle/split/poster read this - irrelevant to fullbleed/badge, but clear it so switching layout later never surfaces a stray number
+  /* Switch to one of the two full-bleed-photo layouts: the product photo
+     covers the whole canvas as a background (drawImg ... fit:'cover' over
+     0,0,W,H) instead of sitting in a small fixed box, and every text block
+     is gated on its own field being non-empty (if(kb.h)/if(sb.h)/if(hasP)
+     etc. in layoutFullbleed/layoutBadge) - so a sparse 2-field input still
+     renders as a full, intentional-looking photo poster instead of empty
+     yellow space around a small floating image. */
+  if(layout&&has('layout'))F.layout=layout;
   return F;
 }
 
@@ -4107,25 +4122,19 @@ function qgRenderGrid(){
       return;
     }
     let shown=0;
-    QG_IDS.forEach(id=>{
-      const tp=T.find(x=>x.id===id);if(!tp)return;
-      const F=qgMapFields(tp,QG_INPUT),I=qgMapImages(tp,QG_INPUT);
-      /* lintCurrent()'s role-matching was built for the T_EVENTS field schema
-         (see ui.js runCheck, which only shows the Design-check chip for
-         tp.id.startsWith('ev_')) and throws a false "offer bigger than
-         headline" on lcircle even with its own untouched factory copy - so
-         only gate event templates on it; trust the field mapping for the
-         other two. */
-      if(tp.id.startsWith('ev_')){
-        const errors=qgLintErrors(tp,F,I);
-        if(errors.length)return; // don't show a layout that fails its own Design check
-      }
+    QG_VARIANTS.forEach(variant=>{
+      const tp=T.find(x=>x.id===variant.id);if(!tp)return;
+      const F=qgMapFields(tp,QG_INPUT,variant.layout),I=qgMapImages(tp,QG_INPUT);
+      // every candidate here is an ev_* template, so always run it past the
+      // studio's own Design-check engine before showing it
+      const errors=qgLintErrors(tp,F,I);
+      if(errors.length)return; // don't show a layout that fails its own Design check
       shown++;
       const card=el('div','qg-card');
       const cvs=document.createElement('canvas');cvs.width=220;cvs.height=275;
       card.append(cvs);
       card.append(el('div','qg-name',tp.name));
-      card.append(el('div','qg-grp',tp.grp));
+      card.append(el('div','qg-grp',variant.label));
       const useBtn=el('button','','Use this');useBtn.type='button';
       useBtn.addEventListener('click',()=>qgApply(tp,F,I));
       card.append(useBtn);
