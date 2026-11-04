@@ -232,3 +232,32 @@ details.card>.cardbody{padding:4px 12px 8px;background:var(--surface);border-top
 .barrow .grow{flex:1;min-width:0}
 .barrow.tools .btn{font-size:12.5px;padding-left:12px;padding-right:12px}
 @media (max-width:1300px){.barrow .grow{display:none}}
+
+/* ---------- Quick Generate: one small form -> several real, on-brand post
+   options rendered from the actual templates above (not a separate design
+   system), so what you pick is already correct. ---------- */
+.top .grow{flex:1;min-width:0}
+.qg-overlay{position:fixed;inset:0;background:rgba(10,10,8,.55);z-index:80;align-items:flex-start;justify-content:center;overflow:auto;padding:5vh 16px}
+.qg-overlay:not([hidden]){display:flex}
+.qg-modal{background:var(--surface);color:var(--ink);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.35);width:min(960px,100%);padding:22px 24px 26px}
+.qg-modal h2{display:flex;align-items:center;justify-content:space-between;font:800 18px var(--f-disp);text-transform:none;letter-spacing:0;color:var(--ink);margin:0 0 4px}
+.qg-modal h2::before{display:none}
+.qg-modal .qg-sub{color:var(--mute);margin:0 0 18px;font-size:13px}
+.qg-close{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;color:var(--mute);padding:2px 6px}
+.qg-close:hover{color:var(--ink)}
+.qg-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-bottom:18px}
+.qg-form .qg-full{grid-column:1/-1}
+.qg-form label{display:flex;flex-direction:column;gap:5px;font:700 11px var(--f-ui);text-transform:uppercase;letter-spacing:.07em;color:var(--mute)}
+.qg-form input[type=text],.qg-form textarea{font:600 14px var(--f-ui);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;text-transform:none;letter-spacing:0}
+.qg-form textarea{resize:vertical;min-height:40px}
+.qg-photo{display:flex;align-items:center;gap:12px}
+.qg-photo .qg-pv{width:56px;height:56px;border-radius:10px;background:var(--field);border:1px dashed var(--line);background-size:cover;background-position:center;flex:none}
+.qg-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:6px}
+.qg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;max-height:52vh;overflow:auto;padding-top:4px}
+.qg-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--field);display:flex;flex-direction:column}
+.qg-card canvas{width:100%;display:block;aspect-ratio:1080/1350;background:#000}
+.qg-card .qg-name{font:700 11.5px var(--f-ui);padding:8px 10px 2px;color:var(--ink)}
+.qg-card .qg-grp{font:600 10px var(--f-ui);padding:0 10px 8px;color:var(--mute)}
+.qg-card button{margin:0 10px 10px;border:none;border-radius:999px;background:var(--acc);color:var(--acc-ink);font:800 11.5px var(--f-ui);padding:8px 0;cursor:pointer}
+.qg-card button:hover{filter:brightness(.97)}
+.qg-empty{color:var(--mute);font-size:13px;padding:18px 4px}
