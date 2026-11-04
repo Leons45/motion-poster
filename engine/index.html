@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motion Poster Engine</title>
+<link rel="stylesheet" href="style.css" />
+
+<!--
+  Proxima Nova is a licensed font — load your own hosted copy here
+  (e.g. via Typekit/Adobe Fonts or a self-hosted @font-face) once you
+  have it set up. Until then the engine falls back to a system sans.
+  Example:
+  <style>
+    @font-face {
+      font-family: 'Proxima Nova';
+      src: url('assets/ProximaNova-Bold.woff2') format('woff2');
+      font-weight: 800;
+    }
+    @font-face {
+      font-family: 'Proxima Nova';
+      src: url('assets/ProximaNova-Black.woff2') format('woff2');
+      font-weight: 900;
+    }
+  </style>
+-->
+</head>
+<body>
+
+<aside>
+  <h1>Motion Poster Engine</h1>
+  <div class="sub">Data in → layout solved → animated, in your browser.</div>
+
+  <form id="posterForm">
+    <label for="headline">Headline</label>
+    <input type="text" id="headline" placeholder="Save Big on Sectionals" />
+
+    <label for="price">Price</label>
+    <input type="text" id="price" placeholder="$1,299" />
+
+    <label for="salePercent">Sale % (optional)</label>
+    <input type="text" id="salePercent" placeholder="30" />
+
+    <label for="theme">Theme</label>
+    <select id="theme">
+      <option value="leons-default">Leon's Default</option>
+      <option value="black-friday">Black Friday</option>
+      <option value="clearance">Clearance</option>
+      <option value="new-arrival">New Arrival</option>
+    </select>
+
+    <label for="imageInput">Product image</label>
+    <input type="file" id="imageInput" accept="image/*" />
+
+    <label for="variantCount">Options to generate</label>
+    <input type="number" id="variantCount" value="4" min="1" max="8" />
+
+    <button type="submit" class="primaryBtn">Generate options</button>
+  </form>
+
+  <div class="divider"></div>
+
+  <label>Batch from CSV</label>
+  <div class="sub" style="margin-bottom:8px;">
+    Columns: headline, price, salePercent, theme, imageUrl
+  </div>
+  <input type="file" id="csvInput" accept=".csv" />
+  <button id="batchBtn" class="primaryBtn">Render batch</button>
+
+  <div class="status" id="status"></div>
+</aside>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
