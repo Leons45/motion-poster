@@ -37,8 +37,15 @@ function qgMapFields(tp,input){
         footerPrice=(input.footerPrice||'').trim();
   const showPrice=!!footerPrice;
 
-  if(has('head'))F.head=headline||F.head;
-  if(has('off'))F.off=offer||F.off;
+  /* Headline and offer are each template's own hero text and differ per
+     template (one factory default is "40% OFF", another is "15% OFF") -
+     falling back to "whatever that template happened to ship with" when
+     the person left a field blank means four cards can show four
+     different, uninvited numbers that look like real data. qgRenderGrid
+     refuses to generate anything until both are actually typed, so these
+     two lines only ever carry what the person wrote. */
+  if(has('head'))F.head=headline;
+  if(has('off'))F.off=offer;
   if(has('osub'))F.osub=offerSub; // clear when blank - a factory sub-line was written for the factory offer, not this one
   if(has('flab')&&has('fprice')){F.flab=showPrice?(footerLabel||'STARTING FROM'):'';F.fprice=showPrice?footerPrice:''}
   if(tp.id==='lcircle'){
@@ -104,8 +111,8 @@ function qgRenderGrid(){
   qgDebounce=setTimeout(()=>{
     if(!qgGridEl)return;
     qgGridEl.innerHTML='';
-    if(!QG_INPUT.headline&&!QG_INPUT.offer){
-      qgGridEl.append(el('p','qg-empty','Type a headline or offer above to see your options — they update live.'));
+    if(!QG_INPUT.headline.trim()||!QG_INPUT.offer.trim()){
+      qgGridEl.append(el('p','qg-empty','Type both a headline and an offer above — every option needs its own real numbers, never a leftover from the template.'));
       return;
     }
     let shown=0;
@@ -154,11 +161,11 @@ function qgOpen(){
   const close=el('button','qg-close','×');close.type='button';close.setAttribute('aria-label','Close');
   close.addEventListener('click',qgClose);h.append(close);
   modal.append(h);
-  modal.append(el('p','qg-sub','Fill these in once — only options that pass this studio’s own Design check (no overlap, no tiny type, no fields left blank) are shown.'));
+  modal.append(el('p','qg-sub','Headline and offer are required — every option shows exactly what you typed, never a leftover number from the template. Only layouts that pass this studio’s own Design check (no overlap, no tiny type) are shown.'));
 
   const form=el('div','qg-form');
-  qgField(form,'Headline','headline',{area:true,placeholder:'MEGA SOFA SALE!',full:true});
-  qgField(form,'Offer','offer',{placeholder:'50% OFF or $499'});
+  qgField(form,'Headline (required)','headline',{area:true,placeholder:'MEGA SOFA SALE!',full:true});
+  qgField(form,'Offer (required)','offer',{placeholder:'50% OFF or $499'});
   qgField(form,'Offer sub-line (optional)','offerSub',{placeholder:'SELECT FABRIC SOFAS'});
   qgField(form,'Footer label (optional)','footerLabel',{placeholder:'STARTING FROM'});
   qgField(form,'Footer price (optional)','footerPrice',{placeholder:'$599'});
