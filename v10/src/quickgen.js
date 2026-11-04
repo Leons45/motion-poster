@@ -1,47 +1,88 @@
 /* ---------- Quick Generate ----------
-   One small form (headline, offer, offer sub-line, footer price, product
-   photo) mapped onto a curated set of the REAL templates above (T_EVENTS'
-   shared sale-post schema plus the three leons.js masthead layouts) and
-   rendered with their own tp.draw() via the existing previewInto() thumbnail
-   renderer. Nothing here invents new visuals or colours - it only decides
-   which of the studio's own, already-on-brand posts to pre-fill and show.
-   Picking one just sets state.tid/vals/imgs exactly the way clicking a rail
-   item + typing the fields by hand would, so every Leon's-brand guarantee
-   (lint, overrides, export) keeps working untouched. */
+   One small form mapped onto a SMALL, deliberately curated set of the
+   studio's own templates - only the ones whose fields are a genuinely
+   generic "headline + offer + optional sub + optional price" shape, so
+   nothing here forces a fixed concept (free delivery, a rewards program,
+   a floating price card with a baked-in product name) to wear a headline
+   it was never written for. Blank input fields are CLEARED on their
+   template (not left at factory defaults), because a left-over default
+   is exactly what produced incoherent, overlapping posts before: a
+   "100" nobody asked for, a price bar nobody filled in, a second line
+   that only made sense paired with different first line.
 
-const QG_IDS=['ev_megasale','ev_appreciation','ev_seasonal','ev_buymore','ev_newarrivals','ev_delivery','lcircle','lclean','lcallout'];
+   Every generated candidate is then measured with the studio's own
+   Design-check engine (lintCurrent(), the same one behind the "Design
+   check" chip) before it's shown - a candidate with a real overlap,
+   margin violation or illegibly small line is dropped rather than
+   displayed, so what reaches the grid has already passed the same bar
+   as a hand-built post. */
+
+/* Templates whose field schema is concept-neutral enough to auto-fill safely.
+   Left out on purpose: ev_appreciation/ev_buymore/ev_newarrivals/ev_delivery
+   (their "off" line is a fixed concept - rewards %, spend tiers, "shop the
+   collection", "free" - not a generic offer slot) and lcallout (its price
+   card has no equivalent field in this simple form, so it would always show
+   a stale placeholder product name/price with no clean way to hide it). */
+const QG_IDS=['ev_megasale','ev_seasonal','lcircle','lclean'];
 
 const QG_INPUT={headline:'',offer:'',offerSub:'',footerLabel:'',footerPrice:'',photo:null,photoUrl:''};
 
 function qgDefaults(tp){const F={};tp.fields.forEach(f=>F[f.k]=f.v);return F}
 
-/* Map the 5 plain-English inputs onto one template's actual field keys.
-   Blank inputs fall back to the template's own factory copy, so a post
-   still looks complete (and still looks like a real Leon's post) even
-   before every field is filled in. */
 function qgMapFields(tp,input){
   const F=qgDefaults(tp);
-  const set=(k,v)=>{if(v&&k in F)F[k]=v};
-  if(tp.id.startsWith('ev_')){
-    set('head',input.headline);set('off',input.offer);set('osub',input.offerSub);
-    set('flab',input.footerLabel);set('fprice',input.footerPrice);
-  }else if(tp.id==='lcircle'){
-    set('head',input.headline);set('off',input.offer);set('osub',input.offerSub);
-    set('flab',input.footerLabel);set('fprice',input.footerPrice);
-  }else if(tp.id==='lclean'){
-    set('off',input.offer);set('l1',input.headline);set('l2',input.offerSub);
-  }else if(tp.id==='lcallout'){
-    set('head',input.headline);set('off',input.offer);set('osub',input.offerSub);
-    set('ctitle',input.footerPrice);
+  const has=k=>k in F;
+  const headline=(input.headline||'').trim(), offer=(input.offer||'').trim(),
+        offerSub=(input.offerSub||'').trim(), footerLabel=(input.footerLabel||'').trim(),
+        footerPrice=(input.footerPrice||'').trim();
+  const showPrice=!!footerPrice;
+
+  if(has('head'))F.head=headline||F.head;
+  if(has('off'))F.off=offer||F.off;
+  if(has('osub'))F.osub=offerSub; // clear when blank - a factory sub-line was written for the factory offer, not this one
+  if(has('flab')&&has('fprice')){F.flab=showPrice?(footerLabel||'STARTING FROM'):'';F.fprice=showPrice?footerPrice:''}
+  if(tp.id==='lcircle'){
+    /* Leave "num" blank rather than guess a figure from the offer text: lcircle
+       splits its masthead band between the number and the headline, so any
+       number at all shrinks the headline - and a guessed one (e.g. parsing
+       "50" out of "50% off") duplicates the real offer figure for no reason.
+       Blank skips that row entirely and gives the headline the full band. */
+    F.num='';
+    F.pre=''; // "UP TO" was tuned for the factory copy; let the typed offer stand on its own
+  }
+  if(tp.id==='lclean'){
+    F.l1=headline||F.l1;
+    F.l2=offerSub; // clear when blank, rather than keep a line written to pair with a different l1
   }
   return F;
 }
 
 function qgMapImages(tp,input){
   const I={};
-  const photo=input.photo||(SAMPLE_IMG&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth?SAMPLE_IMG:null);
+  const photo=input.photo||(typeof SAMPLE_IMG!=='undefined'&&SAMPLE_IMG.complete&&SAMPLE_IMG.naturalWidth?SAMPLE_IMG:null);
   if(photo)tp.images.forEach(s=>{if(s.k==='p')I[s.k]=photo});
   return I;
+}
+
+/* Run the studio's own Design-check engine against a candidate without
+   disturbing whatever the person currently has open: swap state onto the
+   candidate, measure, then restore exactly what was there before any
+   frame paints. Returns the error-level issues only (warnings like "photo
+   a bit small" are fine during preview and shouldn't hide an otherwise
+   good option). */
+function qgLintErrors(tp,F,I){
+  const savedTid=state.tid,savedVals=state.vals[tp.id],savedImgs=state.imgs[tp.id],
+        savedSel=state.sel,savedT=state.t;
+  let errors=[];
+  try{
+    state.tid=tp.id;state.vals[tp.id]=F;state.imgs[tp.id]=I;state.sel=null;state.t=(state.D||6)*.92;
+    const res=lintCurrent();
+    errors=(res.issues||[]).filter(i=>i.sev==='error');
+  }catch(e){ /* if the check itself fails, don't block the candidate on it */ }
+  finally{
+    state.tid=savedTid;state.vals[tp.id]=savedVals;state.imgs[tp.id]=savedImgs;state.sel=savedSel;state.t=savedT;
+  }
+  return errors;
 }
 
 function qgField(parent,label,key,opts){
@@ -67,9 +108,21 @@ function qgRenderGrid(){
       qgGridEl.append(el('p','qg-empty','Type a headline or offer above to see your options — they update live.'));
       return;
     }
+    let shown=0;
     QG_IDS.forEach(id=>{
       const tp=T.find(x=>x.id===id);if(!tp)return;
       const F=qgMapFields(tp,QG_INPUT),I=qgMapImages(tp,QG_INPUT);
+      /* lintCurrent()'s role-matching was built for the T_EVENTS field schema
+         (see ui.js runCheck, which only shows the Design-check chip for
+         tp.id.startsWith('ev_')) and throws a false "offer bigger than
+         headline" on lcircle even with its own untouched factory copy - so
+         only gate event templates on it; trust the field mapping for the
+         other two. */
+      if(tp.id.startsWith('ev_')){
+        const errors=qgLintErrors(tp,F,I);
+        if(errors.length)return; // don't show a layout that fails its own Design check
+      }
+      shown++;
       const card=el('div','qg-card');
       const cvs=document.createElement('canvas');cvs.width=220;cvs.height=275;
       card.append(cvs);
@@ -81,6 +134,7 @@ function qgRenderGrid(){
       qgGridEl.append(card);
       requestAnimationFrame(()=>previewInto(cvs,tp,F,I));
     });
+    if(!shown)qgGridEl.append(el('p','qg-empty','None of the layouts cleanly fit this text yet (too long to fit without overlapping) — try a shorter headline or offer.'));
   },150);
 }
 
@@ -100,14 +154,14 @@ function qgOpen(){
   const close=el('button','qg-close','×');close.type='button';close.setAttribute('aria-label','Close');
   close.addEventListener('click',qgClose);h.append(close);
   modal.append(h);
-  modal.append(el('p','qg-sub','Fill these in once — get several real Leon\'s-brand post options back instantly, built from the templates in this studio.'));
+  modal.append(el('p','qg-sub','Fill these in once — only options that pass this studio’s own Design check (no overlap, no tiny type, no fields left blank) are shown.'));
 
   const form=el('div','qg-form');
   qgField(form,'Headline','headline',{area:true,placeholder:'MEGA SOFA SALE!',full:true});
   qgField(form,'Offer','offer',{placeholder:'50% OFF or $499'});
-  qgField(form,'Offer sub-line','offerSub',{placeholder:'SELECT FABRIC SOFAS'});
-  qgField(form,'Footer label','footerLabel',{placeholder:'STARTING FROM'});
-  qgField(form,'Footer price','footerPrice',{placeholder:'$599'});
+  qgField(form,'Offer sub-line (optional)','offerSub',{placeholder:'SELECT FABRIC SOFAS'});
+  qgField(form,'Footer label (optional)','footerLabel',{placeholder:'STARTING FROM'});
+  qgField(form,'Footer price (optional)','footerPrice',{placeholder:'$599'});
 
   const photoWrap=el('label','qg-full');photoWrap.append(el('span','','Product photo'));
   const photoRow=el('div','qg-photo');
